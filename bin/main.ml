@@ -1,23 +1,23 @@
-open Printf
+open Lib.Lexer
+open Lib.Pprinter
+open Lib.Tokens
 
-let read_file filename =
-  try
-    let ic = open_in filename in  (* Open the file for reading *)
-    let n = in_channel_length ic in (*get the length of the input channel*)
-    let s = really_input_string ic n in (*read all the content*)
-    close_in ic;                  (* Close the file *)
-    s
-  with
-  | Sys_error msg ->
-      eprintf "Error: %s\n" msg;  (* Handle file-related errors *)
-      "" (* Return empty string in case of error *)
 
-let main filename =
-  let content = read_file filename in
-  printf "File content:\n%s\n" content
+let print_tokens_from_file filename =
+  let chan = open_in filename in
+  let lexbuf = Lexing.from_channel chan in
+  let rec loop () =
+    let token = read_token lexbuf in
+    match token with
+    | EOF -> print_endline "End of file."
+    | t ->
+        Printf.printf "%s\n" (string_of_token t);
+        loop ()
+  in
+  loop ()
 
 let () =
   if Array.length Sys.argv <> 2 then
-    eprintf "Usage: %s <filename>\n" Sys.argv.(0)
+    Printf.eprintf "Usage: %s <filename>\n" Sys.argv.(0)
   else
-    main Sys.argv.(1)
+    print_tokens_from_file Sys.argv.(1)
