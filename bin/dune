@@ -1,0 +1,4 @@
+(executable
+ (public_name The-Lobster-Compiler)
+ (name main)
+ (libraries Lib))

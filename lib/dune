@@ -1,0 +1,6 @@
+(library
+ (name Lib)
+ (modules tokens lexer pprinter ast)
+ )
+
+(ocamllex lexer)
