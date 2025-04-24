@@ -1,14 +1,23 @@
 
-%token <string> IDENT STRING
-%token <int> INT
-%token <float> FLOAT
-%token <char> CHARLIT
-%token TRUE FALSE 
-%token FN LET MUT RETURN STRUCT ENUM IF ELSE WHILE FOR LOOP MATCH IMPL TRAIT CONST STATIC
-%token USE PUB MOD TYPE AS EXTERN CRATE MOVE REF SELF SUPER BOOL I32 U32 F32 F64 CHAR STR
-%token PLUS MINUS STAR SLASH PERCENT EQ EQEQ NE LT LE GT GE ANDAND OROR NOT
-%token DOT DOTDOT DOTDOTDOT COMMA SEMI COLON ARROW FAT_ARROW AMP AMPMUT
-%token LPAREN RPAREN LBRACE RBRACE LBRACK RBRACK PIPE UNDERSCORE PRINT
-%token EOF
+%token <string>  IDENT    STRING
+%token <int>     INT
+%token <float>   FLOAT
+%token <char>    CHARLIT
+%token           TRUE     FALSE 
 
-%%
+(* Keywords *)
+%token           FN       LET       MUT      RETURN    STRUCT    ENUM
+%token           IF       ELSE      WHILE    FOR       LOOP      MATCH
+%token           IMPL     TRAIT     CONST    STATIC
+
+(* Primitive Types *)
+%token           BOOL     I32       U32      F32       F64       CHAR     STR
+
+(* Operators *)
+%token           PLUS     MINUS     STAR     SLASH     PERCENT   EQ       EQEQ     NE
+%token           LT       LE        GT       GE        ANDAND    OROR     NOT
+
+(* Punctuation *)
+%token           DOT      DOTDOT    DOTDOTDOT COMMA     SEMI      COLON    ARROW    FAT_ARROW
+%token           AMP      AMPMUT    LPAREN    RPAREN    LBRACE    RBRACE   LBRACK   RBRACK
+%token           PIPE     UNDERSCORE PRINT    EOF
