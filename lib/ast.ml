@@ -38,8 +38,6 @@ and expr =
   | LTrue
   | LFalse
   | Ident     of string
-  | Binary    of expr * binop * expr
-  | Unary     of unop * expr
 
 and block_element =
   | Item_block of item

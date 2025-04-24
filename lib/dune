@@ -1,3 +1,15 @@
+
+
+(menhir
+  (modules tokens)
+  (flags --only-tokens)
+)
+
+(menhir
+  (modules tokens parser)
+  (merge_into parser)
+)
+
 (library
  (name Lib)
  (modules parser lexer pprinter ast)
@@ -5,4 +17,3 @@
 
 (ocamllex lexer)
 
-(menhir (modules parser))
