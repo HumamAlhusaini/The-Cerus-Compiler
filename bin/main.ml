@@ -1,6 +1,6 @@
 open Lib.Lexer
 open Lib.Pprinter
-open Lib.Parser
+open Lib.Program
 
 
 let print_tokens_from_file filename =

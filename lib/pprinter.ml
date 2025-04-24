@@ -1,5 +1,5 @@
 open Ast
-open Parser
+open Program
 
 let string_of_token = function
   | INT i        -> Printf.sprintf "INT(%d)" i

@@ -1,18 +1,13 @@
 
 
 (menhir
-  (modules tokens)
-  (flags --only-tokens)
-)
-
-(menhir
-  (modules tokens parser)
-  (merge_into parser)
+  (modules parser/tokens parser/expr parser/items parser/program parser/stmt parser/types)
+  (merge_into program)
 )
 
 (library
  (name Lib)
- (modules parser lexer pprinter ast)
+ (modules program lexer pprinter ast)
  )
 
 (ocamllex lexer)
