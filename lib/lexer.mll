@@ -59,12 +59,13 @@ rule read_token = parse
   | "false"            { FALSE }
   | int as i           { INT (int_of_string i) }
   | '"'                { read_string (Buffer.create 17) lexbuf }
-  | id as ident        { IDENT ident }
+  | '\'' ([^'\\'] as c) '\'' { CHARLIT(c) }        (* Simple char like 'a' *)
   | "+"                { PLUS }
   | "-"                { MINUS }
   | "*"                { STAR }
   | "/"                { SLASH }
   | "%"                { PERCENT }
+  | "="                { EQ}
   | "=="               { EQEQ }
   | "!="               { NE }
   | "<"                { LT }
@@ -90,6 +91,9 @@ rule read_token = parse
   | "["                { LBRACK }
   | "]"                { RBRACK }
   | "_"                { UNDERSCORE }
+  | "I32"               { I32 }
+  | "char"              { CHAR }
+  | id as ident        { IDENT ident }
 
   | eof                { EOF }
 

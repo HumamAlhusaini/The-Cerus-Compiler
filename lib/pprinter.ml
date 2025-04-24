@@ -6,6 +6,7 @@ let string_of_token = function
   | IDENT s      -> Printf.sprintf "IDENT(%s)" s
   | STRING s     -> Printf.sprintf "STRING(%S)" s
   | FLOAT f      -> Printf.sprintf "FLOAT(%f)" f
+  | CHARLIT c    -> Printf.sprintf "CHARLIT(%c)" c
 
   | TRUE         -> "TRUE"
   | FALSE        -> "FALSE"
@@ -89,15 +90,40 @@ let string_of_token = function
   | UNDERSCORE   -> "UNDERSCORE"
   | EOF          -> "EOF"
 
-let rec string_of_expr = function
-  | Let (_, name, value) ->
-      "let " ^ name ^ " = " ^ string_of_expr value
-  | Func (_, name, args, body) ->
-  let args_str = String.concat ", " (Option.value args ~default:[]) in
-    "fn " ^ name ^ "(" ^ args_str ^ ") {\n  " ^
-      String.concat "\n  " (List.map string_of_expr body) ^ "\n}"
+let string_of_typ = function
+  | TLit TInt32 -> "i32"
+  | TLit TUInt32 -> "u32"
+  | TLit TFloat32 -> "f32"
+  | TLit TFloat64 -> "f64"
+  | TLit TChar -> "char"
+  | TLit Bool -> "bool"
+  | TCustom name -> name
+
+let string_of_param (name, typ) =
+  name ^ ": " ^ string_of_typ typ
+
+let string_of_literal = function
+  | LInt i -> string_of_int i
+  | LFloat f -> string_of_float f
+  | LChar c -> "'" ^ String.make 1 c ^ "'"
+  | LTrue -> "true"
+  | LFalse -> "false"
+
+let string_of_statement = function
+  | Declaration (_, name, typ, lit) ->  
+      "let " ^ name ^ ": " ^ string_of_typ typ ^ " = " ^ string_of_literal lit ^ ";"
   | Print (_, s) ->
-      Printf.sprintf "Print(%s)" s
+      Printf.sprintf "Print(%s);" s
+
+let (*rec*) string_of_expr = function
+  | Func (_, name, args, body) ->
+    let args_str =
+      match args with
+        | None -> ""
+        | Some lst -> String.concat ", " (List.map string_of_param lst)
+    in
+      "fn " ^ name ^ "(" ^ args_str ^ ") {\n  " ^
+      String.concat "\n  " (List.map string_of_statement body) ^ "\n}"
 
 let string_of_program (prog : program) : string =
   String.concat ";\n" (List.map string_of_expr prog) ^ ";\n"

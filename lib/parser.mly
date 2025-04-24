@@ -5,6 +5,7 @@ open Ast
 %token <string> IDENT STRING
 %token <int> INT
 %token <float> FLOAT
+%token <char> CHARLIT
 %token TRUE FALSE 
 %token FN LET MUT RETURN STRUCT ENUM IF ELSE WHILE FOR LOOP MATCH IMPL TRAIT CONST STATIC
 %token USE PUB MOD TYPE AS EXTERN CRATE MOVE REF SELF SUPER BOOL I32 U32 F32 F64 CHAR STR
@@ -19,22 +20,49 @@ open Ast
 %%
 
 program:
-  expr_list; EOF { $1 }
+  item_list; EOF { $1 }
 
-expr_list:
+item_list:
   /* empty */ { [] }
-| e = expr; rest = expr_list { e :: rest }
+| e = item; rest = item_list { e :: rest }
 ;
 
-param:
-  separated_list(COMMA, IDENT) {
+lit_type:
+    | I32        { TInt32 }
+    | U32        { TUInt32 }
+    | F32        { TFloat32 }
+    | F64        { TFloat64 }
+    | CHAR       { TChar }
+    | BOOL       { Bool }
+
+typ:
+    | lit = lit_type { TLit lit }
+    | id = IDENT    { TCustom id }
+
+var_and_typ:
+  | id = IDENT; COLON; t = typ { (id, t) }
+
+params:
+  separated_list(COMMA, var_and_typ) {
     match $1 with
     | [] -> None
     | lst -> Some lst
   }
 
-expr:
- | FN; name = IDENT; LPAREN; parameters = param; RPAREN; 
- LBRACE; expressions = list(expr); RBRACE { Func ($startpos, name, parameters, expressions)}
+literals:
+    | i = INT     { LInt i }
+    | i = FLOAT   { LFloat i }
+    | c = CHARLIT { LChar c }
+    | TRUE        { LTrue }
+    | FALSE       { LFalse }
 
- | PRINT; LPAREN; s = STRING; RPAREN; { Print ($startpos, s) }
+stmt:
+    | LET; vt = var_and_typ; EQ; dec = literals; SEMI {
+    let name, t = vt in
+    Declaration ($startpos, name, t, dec)
+  }
+    | PRINT; LPAREN; s = STRING; RPAREN; SEMI; { Print ($startpos, s) }
+
+item:
+ | FN; name = IDENT; LPAREN; parameters = params; RPAREN; 
+ LBRACE; body = list(stmt); RBRACE { Func ($startpos, name, parameters, body)}
