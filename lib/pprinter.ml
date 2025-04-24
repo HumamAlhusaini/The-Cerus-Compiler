@@ -102,28 +102,48 @@ let string_of_typ = function
 let string_of_param (name, typ) =
   name ^ ": " ^ string_of_typ typ
 
-let string_of_literal = function
-  | LInt i -> string_of_int i
-  | LFloat f -> string_of_float f
-  | LChar c -> "'" ^ String.make 1 c ^ "'"
+let string_of_expr = function
+  | IntLit i -> string_of_int i
+  | FloatLit f -> string_of_float f
+  | CharLit c -> "'" ^ String.make 1 c ^ "'"
+  | StringLit s -> s
+  | Ident s -> s
   | LTrue -> "true"
   | LFalse -> "false"
 
 let string_of_statement = function
   | Declaration (_, name, typ, lit) ->  
-      "let " ^ name ^ ": " ^ string_of_typ typ ^ " = " ^ string_of_literal lit ^ ";"
+      "let " ^ name ^ ": " ^ string_of_typ typ ^ " = " ^ string_of_expr lit ^ ";"
   | Print (_, s) ->
       Printf.sprintf "Print(%s);" s
 
-let (*rec*) string_of_expr = function
+let rec string_of_block_element = function
+  | Stmt_block s -> string_of_statement s
+  | Item_block i -> string_of_item i
+
+and string_of_item = function
   | Func (_, name, args, body) ->
-    let args_str =
-      match args with
+      let args_str =
+        match args with
         | None -> ""
         | Some lst -> String.concat ", " (List.map string_of_param lst)
-    in
-      "fn " ^ name ^ "(" ^ args_str ^ ") {\n  " ^
-      String.concat "\n  " (List.map string_of_statement body) ^ "\n}"
+      in
+      let body_str = String.concat "\n  " (List.map string_of_block_element body) in
+      "fn " ^ name ^ "(" ^ args_str ^ ") {\n  " ^ body_str ^ "\n}"
+
+  | Struct (_, name, fields) ->
+      let fields_str = String.concat ", " (List.map (fun (f, t) -> f ^ ": " ^ string_of_typ t) fields) in
+      "struct " ^ name ^ " { " ^ fields_str ^ " }"
+
+  | Enum (_, name, variants) ->
+      let variants_str = String.concat ", " (List.map (fun (v, t) -> v ^ " (" ^ String.concat ", " (List.map string_of_typ t) ^ ")") variants) in
+      "enum " ^ name ^ " { " ^ variants_str ^ " }"
+
+  | Const (_, name, t, expr) ->
+      "const " ^ name ^ ": " ^ string_of_typ t ^ " = " ^ string_of_expr expr ^ ";"
+
+  | Static (_, name, t, expr) ->
+      "static " ^ name ^ ": " ^ string_of_typ t ^ " = " ^ string_of_expr expr ^ ";"
 
 let string_of_program (prog : program) : string =
-  String.concat ";\n" (List.map string_of_expr prog) ^ ";\n"
+  String.concat ";\n" (List.map string_of_item prog) ^ ";\n"

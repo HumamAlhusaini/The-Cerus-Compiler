@@ -43,26 +43,49 @@ var_and_typ:
   | id = IDENT; COLON; t = typ { (id, t) }
 
 params:
-  separated_list(COMMA, var_and_typ) {
-    match $1 with
-    | [] -> None
-    | lst -> Some lst
-  }
+  separated_list(COMMA, var_and_typ) { $1 }
 
-literals:
-    | i = INT     { LInt i }
-    | i = FLOAT   { LFloat i }
-    | c = CHARLIT { LChar c }
+expr:
+    | i = INT     { IntLit i }
+    | i = FLOAT   { FloatLit i }
+    | c = CHARLIT { CharLit c }
+    | s = STRING { StringLit s }
+    | d = IDENT { Ident d }
     | TRUE        { LTrue }
     | FALSE       { LFalse }
 
+block_element:
+    | s = stmt { Stmt_block s }
+    | i = item { Item_block i }
+
 stmt:
-    | LET; vt = var_and_typ; EQ; dec = literals; SEMI {
+    | LET; vt = var_and_typ; EQ; dec = expr; SEMI {
     let name, t = vt in
     Declaration ($startpos, name, t, dec)
   }
     | PRINT; LPAREN; s = STRING; RPAREN; SEMI; { Print ($startpos, s) }
 
+enum:
+  | id = IDENT; LPAREN; typs = separated_list(COMMA, typ); RPAREN { (id, typs) }
+  | id = IDENT                                        { (id, []) }
+
 item:
- | FN; name = IDENT; LPAREN; parameters = params; RPAREN; 
- LBRACE; body = list(stmt); RBRACE { Func ($startpos, name, parameters, body)}
+  | FN; name = IDENT; LPAREN; parameters = params; RPAREN;
+    LBRACE; body = list(block_element); RBRACE {
+      let params_opt = match parameters with
+        | [] -> None
+        | lst -> Some lst
+      in
+      Func ($startpos, name, params_opt, body)
+  }
+    | STRUCT; name = IDENT; LBRACE; p = params; RBRACE { Struct ($startpos, name, p)}
+    | ENUM; name = IDENT; LBRACE; variants = separated_list(COMMA, enum); RBRACE {
+      Enum ($startpos, name, variants)
+      }
+    | CONST; name = IDENT; COLON; t = typ; EQ; value = expr; SEMI {
+      Const ($startpos, name, t, value)
+      }
+    | STATIC; name = IDENT; COLON; t = typ; EQ; value = expr; SEMI {
+      Static ($startpos, name, t, value)
+      }
+

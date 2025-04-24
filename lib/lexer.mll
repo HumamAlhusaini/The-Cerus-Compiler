@@ -17,6 +17,7 @@ let digit = ['0'-'9']
 let alpha = ['a'-'z' 'A'-'Z']
 
 let int = '-'? digit+  (* regex for integers *)
+let float = '-'? digit+ '.' digit+
 let id = (alpha) (alpha|digit|'_')* (* regex for identifier *)
 let whitespace = [' ' '\t']+
 let newline = '\r' | '\n' | "\r\n"
@@ -57,6 +58,7 @@ rule read_token = parse
   | "super"            { SUPER }
   | "true"             { TRUE }
   | "false"            { FALSE }
+  | float as f   { FLOAT (float_of_string f) }
   | int as i           { INT (int_of_string i) }
   | '"'                { read_string (Buffer.create 17) lexbuf }
   | '\'' ([^'\\'] as c) '\'' { CHARLIT(c) }        (* Simple char like 'a' *)
@@ -74,6 +76,7 @@ rule read_token = parse
   | ">="               { GE }
   | "||"               { OROR }
   | "!"                { NOT }
+  | "."                { DOT }
   | ".."               { DOTDOT }
   | "..."              { DOTDOTDOT }
   | ","                { COMMA }
@@ -91,9 +94,9 @@ rule read_token = parse
   | "["                { LBRACK }
   | "]"                { RBRACK }
   | "_"                { UNDERSCORE }
-  | "I32"               { I32 }
-  | "F32"               { F32 }
-  | "F64"               { F64 }
+  | "i32"               { I32 }
+  | "f32"               { F32 }
+  | "f64"               { F64 }
   | "char"              { CHAR }
   | "bool"              { BOOL }
   | id as ident        { IDENT ident }
