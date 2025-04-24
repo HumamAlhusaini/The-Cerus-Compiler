@@ -19,7 +19,12 @@ open Ast
 %%
 
 program:
-| es = separated_list(SEMI, expr); EOF { es }
+  expr_list; EOF { $1 }
+
+expr_list:
+  /* empty */ { [] }
+| e = expr; rest = expr_list { e :: rest }
+;
 
 param:
   separated_list(COMMA, IDENT) {
