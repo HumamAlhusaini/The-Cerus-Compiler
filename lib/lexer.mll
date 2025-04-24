@@ -92,7 +92,10 @@ rule read_token = parse
   | "]"                { RBRACK }
   | "_"                { UNDERSCORE }
   | "I32"               { I32 }
+  | "F32"               { F32 }
+  | "F64"               { F64 }
   | "char"              { CHAR }
+  | "bool"              { BOOL }
   | id as ident        { IDENT ident }
 
   | eof                { EOF }
