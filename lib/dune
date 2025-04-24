@@ -1,6 +1,8 @@
 (library
  (name Lib)
- (modules tokens lexer pprinter ast)
+ (modules parser lexer pprinter ast)
  )
 
 (ocamllex lexer)
+
+(menhir (modules parser))

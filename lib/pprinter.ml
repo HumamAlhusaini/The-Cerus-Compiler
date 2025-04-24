@@ -1,5 +1,5 @@
-
-open Tokens
+open Ast
+open Parser
 
 let string_of_token = function
   | INT i        -> Printf.sprintf "INT(%d)" i
@@ -9,7 +9,7 @@ let string_of_token = function
 
   | TRUE         -> "TRUE"
   | FALSE        -> "FALSE"
-  | UNIT         -> "UNIT"
+  | PRINT        -> "PRINT"
 
   | FN           -> "FN"
   | LET          -> "LET"
@@ -89,4 +89,15 @@ let string_of_token = function
   | UNDERSCORE   -> "UNDERSCORE"
   | EOF          -> "EOF"
 
+let rec string_of_expr = function
+  | Let (_, name, value) ->
+      "let " ^ name ^ " = " ^ string_of_expr value
+  | Func (_, name, args, body) ->
+  let args_str = String.concat ", " (Option.value args ~default:[]) in
+    "fn " ^ name ^ "(" ^ args_str ^ ") {\n  " ^
+      String.concat "\n  " (List.map string_of_expr body) ^ "\n}"
+  | Print (_, s) ->
+      Printf.sprintf "Print(%s)" s
 
+let string_of_program (prog : program) : string =
+  String.concat ";\n" (List.map string_of_expr prog) ^ ";\n"

@@ -1,1 +1,3 @@
-fn something() {}
+fn something() {
+    print!("something")
+}

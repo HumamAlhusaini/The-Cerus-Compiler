@@ -1,6 +1,6 @@
 {
 open Lexing
-open Tokens
+open Parser
 
 exception SyntaxError of string
 
@@ -29,6 +29,7 @@ rule read_token = parse
   | "/*"               { read_multi_line_comment lexbuf }
   | "fn"               { FN }
   | "let"              { LET }
+  | "print!"          { PRINT }
   | "mut"              { MUT }
   | "return"           { RETURN }
   | "struct"           { STRUCT }
@@ -56,7 +57,6 @@ rule read_token = parse
   | "super"            { SUPER }
   | "true"             { TRUE }
   | "false"            { FALSE }
-  | "()"               { UNIT }
   | int as i           { INT (int_of_string i) }
   | '"'                { read_string (Buffer.create 17) lexbuf }
   | id as ident        { IDENT ident }

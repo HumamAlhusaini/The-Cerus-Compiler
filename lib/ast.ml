@@ -23,7 +23,8 @@ type type_expr =
   
 type expr =
   | Let         of loc * string * expr
-  | Func        of loc * string * string list * expr
+  | Func        of loc * string * string list option * expr list
+  | Print       of loc * string
 
 type program = expr list
 
