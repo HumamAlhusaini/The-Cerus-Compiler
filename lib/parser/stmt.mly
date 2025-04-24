@@ -2,8 +2,8 @@
 %%
 %public
 stmt:
-    | LET; vt = var_and_typ; EQ; dec = expr; SEMI {
+    | LET; vt = var_and_typ; dec = has_expr; {
         let name, t = vt in
-        Declaration ($startpos, name, t, dec)
+        Let ($startpos, name, t, dec)
     }
-    | PRINT; LPAREN; s = STRING; RPAREN; SEMI; { Print ($startpos, s) }
+    | PRINT; LPAREN; s = STRING; RPAREN; SEMI { Print ($startpos, s) }

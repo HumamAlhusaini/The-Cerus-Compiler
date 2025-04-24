@@ -112,8 +112,12 @@ let string_of_expr = function
   | LFalse -> "false"
 
 let string_of_statement = function
-  | Declaration (_, name, typ, lit) ->  
-      "let " ^ name ^ ": " ^ string_of_typ typ ^ " = " ^ string_of_expr lit ^ ";"
+  | Let (_, name, typ, expr) ->   
+  let literal = match expr with
+     | Some e -> " = " ^ string_of_expr e
+     | None -> ""
+  in 
+      "let " ^ name ^ ": " ^ string_of_typ typ ^ " = " ^ literal ^ ";"
   | Print (_, s) ->
       Printf.sprintf "Print(%s);" s
 
@@ -140,10 +144,18 @@ and string_of_item = function
       "enum " ^ name ^ " { " ^ variants_str ^ " }"
 
   | Const (_, name, t, expr) ->
-      "const " ^ name ^ ": " ^ string_of_typ t ^ " = " ^ string_of_expr expr ^ ";"
+    let literal = match expr with
+        | Some e -> string_of_expr e
+        | None -> ""
+      in 
+      "const " ^ name ^ ": " ^ string_of_typ t ^ " = " ^ literal ^ ";"
 
   | Static (_, name, t, expr) ->
-      "static " ^ name ^ ": " ^ string_of_typ t ^ " = " ^ string_of_expr expr ^ ";"
+    let literal = match expr with
+        | Some e -> string_of_expr e
+        | None -> ""
+    in 
+      "static " ^ name ^ ": " ^ string_of_typ t ^ " = " ^ literal ^ ";"
 
 let string_of_program (prog : program) : string =
   String.concat ";\n" (List.map string_of_item prog) ^ ";\n"

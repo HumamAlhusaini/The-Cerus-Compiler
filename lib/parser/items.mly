@@ -26,9 +26,9 @@ item:
   | ENUM; name = IDENT; LBRACE; variants = separated_list(COMMA, enum); RBRACE {
       Enum ($startpos, name, variants)
   }
-  | CONST; name = IDENT; COLON; t = typ; EQ; value = expr; SEMI {
+  | CONST; name = IDENT; COLON; t = typ; value = has_expr {
       Const ($startpos, name, t, value)
   }
-  | STATIC; name = IDENT; COLON; t = typ; EQ; value = expr; SEMI {
+  | STATIC; name = IDENT; COLON; t = typ; value = has_expr {
       Static ($startpos, name, t, value)
   }

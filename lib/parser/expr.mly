@@ -9,3 +9,9 @@ expr:
     | d = IDENT   { Ident d }
     | TRUE        { LTrue }
     | FALSE       { LFalse }
+
+%public
+has_expr:
+    | EQ; e = expr; SEMI { Some e }
+    | SEMI    { None }
+;

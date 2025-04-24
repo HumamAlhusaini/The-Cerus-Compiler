@@ -19,7 +19,7 @@ and typ_lit =
   | Bool
 
 type stmt =
-  | Declaration of loc * string * typ * expr
+  | Let of loc * string * typ * expr option
   | Print       of loc * string
 
 (* Top-level or block items *)
@@ -27,8 +27,8 @@ and item =
   | Func     of loc * string * (string * typ) list option * block_element list
   | Struct   of loc * string * (string * typ) list
   | Enum     of loc * string * (string * typ list) list
-  | Const    of loc * string * typ * expr
-  | Static   of loc * string * typ * expr
+  | Const    of loc * string * typ * expr option
+  | Static   of loc * string * typ * expr option
 
 and expr =
   | IntLit    of int
