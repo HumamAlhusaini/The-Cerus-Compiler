@@ -4,7 +4,6 @@ open Ast
 %}
 
 %%
-%public
 lit_type:
     | I32        { TInt32 }
     | U32        { TUInt32 }

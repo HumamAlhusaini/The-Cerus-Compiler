@@ -1,23 +1,25 @@
 
-%token <string>  IDENT    STRING
-%token <int>     INT
-%token <float>   FLOAT
-%token <char>    CHARLIT
-%token           TRUE     FALSE 
+%token <string> IDENT STRING // Identifiers and string literals
+%token <int> INT             // Integer literals
+%token <float> FLOAT           // Floating-point literals
+%token <char> CHARLIT         // Character literals
+%token TRUE FALSE            // Boolean literals
 
-(* Keywords *)
-%token           FN       LET       MUT      RETURN    STRUCT    ENUM
-%token           IF       ELSE      WHILE    FOR       LOOP      MATCH
-%token           IMPL     TRAIT     CONST    STATIC
+%token FN LET MUT RETURN STRUCT ENUM IF ELSE WHILE FOR LOOP MATCH IMPL TRAIT CONST STATIC
+                               // Keywords related to function definition, variable binding, control flow, data structures, etc.
 
-(* Primitive Types *)
-%token           BOOL     I32       U32      F32       F64       CHAR     STR
+%token USE PUB MOD TYPE AS EXTERN CRATE MOVE REF SELF SUPER BOOL I32 U32 F32 F64 CHAR STR
+                               // Keywords related to module system, type aliases, external code, memory management, and primitive types
 
-(* Operators *)
-%token           PLUS     MINUS     STAR     SLASH     PERCENT   EQ       EQEQ     NE
-%token           LT       LE        GT       GE        ANDAND    OROR     NOT
+%token PLUS MINUS STAR SLASH PERCENT EQ EQEQ NE LT LE GT GE ANDAND OROR NOT
+                               // Arithmetic, comparison, and logical operators
 
-(* Punctuation *)
-%token           DOT      DOTDOT    DOTDOTDOT COMMA     SEMI      COLON    ARROW    FAT_ARROW
-%token           AMP      AMPMUT    LPAREN    RPAREN    LBRACE    RBRACE   LBRACK   RBRACK
-%token           PIPE     UNDERSCORE PRINT    EOF
+%token DOT DOTDOT DOTDOTDOT COMMA SEMI COLON ARROW FAT_ARROW AMP AMPMUT
+                               // Punctuation and symbols used in syntax
+
+%token LPAREN RPAREN LBRACE RBRACE LBRACK RBRACK PIPE UNDERSCORE PRINT
+                               // Delimiters and other special symbols
+
+%token EOF                     // End of file marker
+
+%%

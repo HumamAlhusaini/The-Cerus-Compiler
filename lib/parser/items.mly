@@ -8,7 +8,6 @@ block_element:
     | s = stmt { Stmt_block s }
     | i = item { Item_block i }
 
-%public
 enum:
   | id = IDENT; LPAREN; typs = separated_list(COMMA, typ); RPAREN { (id, typs) }
   | id = IDENT                                        { (id, []) }
