@@ -16,23 +16,30 @@ enum:
 item:
   | FN; name = IDENT; LPAREN; parameters = params; RPAREN;
     LBRACE; body = list(block_element); RBRACE {
+      let n = Func_name.of_string name in
       let params_opt = match parameters with
         | [] -> None
         | lst -> Some lst
       in
-      Func ($startpos, name, params_opt, body)
+      Func ($startpos, n, params_opt, body)
   }
-  | STRUCT; name = IDENT; LBRACE; p = params; RBRACE { Struct ($startpos, name, p) }
+  | STRUCT; name = IDENT; LBRACE; p = params; RBRACE { 
+      let n = Struct_name.of_string name in
+      Struct ($startpos, n, p) 
+    }
   | ENUM; name = IDENT; LBRACE; variants = separated_list(COMMA, enum); RBRACE {
-      Enum ($startpos, name, variants)
+      let n = Enum_name.of_string name in
+      Enum ($startpos, n, variants)
   } 
   | CONST; name = IDENT; COLON; t = typ; EQ; value = expr; SEMI {
     match t with
     | TRef (true, _) ->
         failwith "Mutable references are not allowed in const definitions"
-    | _ ->
-        Const ($startpos, name, t, value)
+    | _ -> 
+      let n = Var_name.of_string name in
+        Const ($startpos, n, t, value)
 }
   | STATIC; mut = opt_mut; name = IDENT; COLON; t = typ; value = has_expr {
-      Static ($startpos, mut, name, t, value)
+      let n = Var_name.of_string name in
+      Static ($startpos, mut, n, t, value)
   }

@@ -116,7 +116,7 @@ let rec string_of_expr = function
 
 let string_of_statement = function
   | Let (_, mut, name, typ, expr) ->
-      "let " ^ (if mut then "mut " else "") ^ name ^ ": " ^
+      "let " ^ (if mut then "mut " else "") ^ Var_name.to_string name ^ ": " ^
       string_of_typ typ ^
       (match expr with
        | Some e -> " = " ^ string_of_expr e
@@ -136,21 +136,21 @@ and string_of_item = function
         | Some lst -> String.concat ", " (List.map string_of_param lst)
       in
       let body_str = String.concat "\n  " (List.map string_of_block_element body) in
-      "fn " ^ name ^ "(" ^ args_str ^ ") {\n  " ^ body_str ^ "\n}"
+      "fn " ^ Func_name.to_string name ^ "(" ^ args_str ^ ") {\n  " ^ body_str ^ "\n}"
 
   | Struct (_, name, fields) ->
       let fields_str = String.concat ", " (List.map (fun (f, t) -> f ^ ": " ^ string_of_typ t) fields) in
-      "struct " ^ name ^ " { " ^ fields_str ^ " }"
+      "struct " ^ Struct_name.to_string name ^ " { " ^ fields_str ^ " }"
 
   | Enum (_, name, variants) ->
       let variants_str = String.concat ", " (List.map (fun (v, t) -> v ^ " (" ^ String.concat ", " (List.map string_of_typ t) ^ ")") variants) in
-      "enum " ^ name ^ " { " ^ variants_str ^ " }"
+      "enum " ^ Enum_name.to_string name ^ " { " ^ variants_str ^ " }"
 
   | Const (_, name, t, expr) ->
-      Printf.sprintf "const " ^ name ^ ": " ^ string_of_typ t ^ " = " ^ string_of_expr expr ^ ";"
+      Printf.sprintf "const " ^ Var_name.to_string name ^ ": " ^ string_of_typ t ^ " = " ^ string_of_expr expr ^ ";"
 
   | Static (_, mut, name, t, expr) ->
-      "static " ^ (if mut then "mut " else "") ^ name ^ ": " ^
+      "static " ^ (if mut then "mut " else "") ^ Var_name.to_string name ^ ": " ^
       string_of_typ t ^
       (match expr with
        | Some e -> " = " ^ string_of_expr e
