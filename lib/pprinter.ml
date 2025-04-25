@@ -90,7 +90,7 @@ let string_of_token = function
   | UNDERSCORE   -> "UNDERSCORE"
   | EOF          -> "EOF"
 
-let rec string_of_typ = function
+let rec string_of_simpl_typ = function
   | TLit TInt32 -> "i32"
   | TLit TUInt32 -> "u32"
   | TLit TFloat32 -> "f32"
@@ -99,7 +99,14 @@ let rec string_of_typ = function
   | TLit Bool -> "bool"
   | TCustom name -> name
   | TRef (mut, t) ->
-      "&" ^ (if mut then "mut " else "") ^ string_of_typ t
+      "&" ^ (if mut then "mut " else "") ^ string_of_simpl_typ t
+  | TParen list -> 
+      "(" ^ String.concat ", " (List.map string_of_typ list) ^ ")"
+
+and string_of_typ = function
+  | Typ simpl -> string_of_simpl_typ simpl
+  | TArrow (t1, t2) -> 
+      string_of_simpl_typ t1 ^ " -> " ^ string_of_simpl_typ t2
 
 let string_of_param (name, typ) =
   name ^ ": " ^ string_of_typ typ

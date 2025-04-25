@@ -11,7 +11,7 @@ let is_valid_impl_item item =
 %%
 
 params:
-  separated_list(COMMA, var_and_typ) { $1 }
+  separated_list(COMMA, var_and_typ) {  $1 }
 
 block_element:
     | s = stmt { Stmt_block s }
@@ -41,10 +41,6 @@ item:
       Enum ($startpos, n, variants)
   } 
   | CONST; name = IDENT; COLON; t = typ; EQ; value = expr; SEMI {
-    match t with
-    | TRef (true, _) ->
-        failwith "Mutable references are not allowed in const definitions"
-    | _ -> 
       let n = Var_name.of_string name in
         Const ($startpos, n, t, value)
 }
@@ -58,3 +54,14 @@ item:
       else
         failwith "Invalid item found inside impl block"
   }
+
+
+(*
+function_type ::= function_signature
+function_signature ::= argument_type "->" return_type
+argument_type ::= "(" argument_list? ")"
+argument_list ::= type | argument_list "," type
+return_type ::= function_signature | unit_type
+unit_type ::= "()"
+*)
+

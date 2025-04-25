@@ -59,9 +59,14 @@ type bin_op =
   | BinOpDiv
 
 type typ =
+  | Typ of simpl_typ
+  | TArrow of simpl_typ * simpl_typ               (* function type: T1 -> T2 *)
+
+and simpl_typ =
   | TLit of typ_lit
   | TCustom of string
-  | TRef of bool * typ
+  | TRef of bool * simpl_typ
+  | TParen of typ list
 
 and typ_lit =
   | TInt32
