@@ -15,3 +15,8 @@ has_expr:
     | EQ; e = expr; SEMI { Some e }
     | SEMI    { None }
 ;
+
+%public
+opt_mut:
+  | MUT { true }
+  |     { false }

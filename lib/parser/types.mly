@@ -14,9 +14,11 @@ lit_type:
 
 %public
 typ:
-    | lit = lit_type { TLit lit }
-    | id = IDENT    { TCustom id }
+  | base = lit_type                { TLit base }
+  | AMP t = typ                   { TRef (false, t) }
+  | AMPMUT t = typ                { TRef (true, t) }
 
 %public
 var_and_typ:
   | id = IDENT; COLON; t = typ { (id, t) }
+

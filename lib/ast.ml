@@ -9,6 +9,7 @@ type bin_op =
 type typ =
   | TLit of typ_lit
   | TCustom of string
+  | TRef of bool * typ
 
 and typ_lit =
   | TInt32
@@ -19,7 +20,7 @@ and typ_lit =
   | Bool
 
 type stmt =
-  | Let of loc * string * typ * expr option
+  | Let of loc * bool * string * typ * expr option
   | Print       of loc * string
 
 (* Top-level or block items *)
@@ -27,8 +28,8 @@ and item =
   | Func     of loc * string * (string * typ) list option * block_element list
   | Struct   of loc * string * (string * typ) list
   | Enum     of loc * string * (string * typ list) list
-  | Const    of loc * string * typ * expr option
-  | Static   of loc * string * typ * expr option
+  | Const    of loc * string * typ * expr 
+  | Static   of loc * bool * string * typ * expr option
 
 and expr =
   | IntLit    of int
@@ -38,6 +39,7 @@ and expr =
   | LTrue
   | LFalse
   | Ident     of string
+  | Ref of bool * expr
 
 and block_element =
   | Item_block of item

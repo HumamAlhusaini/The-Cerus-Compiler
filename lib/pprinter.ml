@@ -90,7 +90,7 @@ let string_of_token = function
   | UNDERSCORE   -> "UNDERSCORE"
   | EOF          -> "EOF"
 
-let string_of_typ = function
+let rec string_of_typ = function
   | TLit TInt32 -> "i32"
   | TLit TUInt32 -> "u32"
   | TLit TFloat32 -> "f32"
@@ -98,11 +98,13 @@ let string_of_typ = function
   | TLit TChar -> "char"
   | TLit Bool -> "bool"
   | TCustom name -> name
+  | TRef (mut, t) ->
+      "&" ^ (if mut then "mut " else "") ^ string_of_typ t
 
 let string_of_param (name, typ) =
   name ^ ": " ^ string_of_typ typ
 
-let string_of_expr = function
+let rec string_of_expr = function
   | IntLit i -> string_of_int i
   | FloatLit f -> string_of_float f
   | CharLit c -> "'" ^ String.make 1 c ^ "'"
@@ -110,16 +112,17 @@ let string_of_expr = function
   | Ident s -> s
   | LTrue -> "true"
   | LFalse -> "false"
+  | Ref (mut, e) -> "&" ^ (if mut then "mut " else "") ^ string_of_expr e
 
 let string_of_statement = function
-  | Let (_, name, typ, expr) ->   
-  let literal = match expr with
-     | Some e -> " = " ^ string_of_expr e
-     | None -> ""
-  in 
-      "let " ^ name ^ ": " ^ string_of_typ typ ^ " = " ^ literal ^ ";"
-  | Print (_, s) ->
-      Printf.sprintf "Print(%s);" s
+  | Let (_, mut, name, typ, expr) ->
+      "let " ^ (if mut then "mut " else "") ^ name ^ ": " ^
+      string_of_typ typ ^
+      (match expr with
+       | Some e -> " = " ^ string_of_expr e
+       | None -> "") ^ ";"
+  | Print (_, s) -> 
+      Printf.sprintf "Print(%s)" s
 
 let rec string_of_block_element = function
   | Stmt_block s -> string_of_statement s
@@ -144,18 +147,14 @@ and string_of_item = function
       "enum " ^ name ^ " { " ^ variants_str ^ " }"
 
   | Const (_, name, t, expr) ->
-    let literal = match expr with
-        | Some e -> string_of_expr e
-        | None -> ""
-      in 
-      "const " ^ name ^ ": " ^ string_of_typ t ^ " = " ^ literal ^ ";"
+      Printf.sprintf "const " ^ name ^ ": " ^ string_of_typ t ^ " = " ^ string_of_expr expr ^ ";"
 
-  | Static (_, name, t, expr) ->
-    let literal = match expr with
-        | Some e -> string_of_expr e
-        | None -> ""
-    in 
-      "static " ^ name ^ ": " ^ string_of_typ t ^ " = " ^ literal ^ ";"
+  | Static (_, mut, name, t, expr) ->
+      "static " ^ (if mut then "mut " else "") ^ name ^ ": " ^
+      string_of_typ t ^
+      (match expr with
+       | Some e -> " = " ^ string_of_expr e
+       | None -> "") ^ ";"
 
 let string_of_program (prog : program) : string =
   String.concat ";\n" (List.map string_of_item prog) ^ ";\n"
