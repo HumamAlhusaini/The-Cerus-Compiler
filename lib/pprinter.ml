@@ -129,14 +129,14 @@ let rec string_of_block_element = function
   | Item_block i -> string_of_item i
 
 and string_of_item = function
-  | Func (_, name, args, body) ->
+  | Func (_, name, args, typ, body) ->
       let args_str =
         match args with
         | None -> ""
         | Some lst -> String.concat ", " (List.map string_of_param lst)
       in
       let body_str = String.concat "\n  " (List.map string_of_block_element body) in
-      "fn " ^ Func_name.to_string name ^ "(" ^ args_str ^ ") {\n  " ^ body_str ^ "\n}"
+      "fn " ^ Func_name.to_string name ^ "(" ^ args_str ^ ") ->" ^ string_of_typ typ ^ " {\n  " ^ body_str ^ "\n}"
 
   | Struct (_, name, fields) ->
       let fields_str = String.concat ", " (List.map (fun (f, t) -> f ^ ": " ^ string_of_typ t) fields) in
@@ -155,6 +155,9 @@ and string_of_item = function
       (match expr with
        | Some e -> " = " ^ string_of_expr e
        | None -> "") ^ ";"
+  | Impl (_, name, body) -> 
+      let body_str = String.concat "\n  " (List.map string_of_item body) in
+      "fn " ^ Impl_name.to_string name ^ "{\n  " ^ body_str ^ "\n}"
 
 let string_of_program (prog : program) : string =
   String.concat ";\n" (List.map string_of_item prog) ^ ";\n"

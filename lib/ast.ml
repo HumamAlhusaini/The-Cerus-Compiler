@@ -16,7 +16,15 @@ module Var_name : ID = struct
   let ( = ) = String.equal
 end
 
-module Class_name : ID = struct
+
+module Trait_name : ID = struct
+  type t = string
+  let of_string s = s
+  let to_string s = s
+  let ( = ) = String.equal
+end
+
+module Impl_name : ID = struct
   type t = string
   let of_string s = s
   let to_string s = s
@@ -69,11 +77,12 @@ type stmt =
 
 (* Top-level or block items *)
 and item =
-  | Func     of loc * Func_name.t * (string * typ) list option * block_element list
+  | Func     of loc * Func_name.t * (string * typ) list option * typ * block_element list
   | Struct   of loc * Struct_name.t * (string * typ) list
   | Enum     of loc * Enum_name.t * (string * typ list) list
   | Const    of loc * Var_name.t * typ * expr 
   | Static   of loc * bool * Var_name.t * typ * expr option
+  | Impl     of loc * Impl_name.t * item list
 
 and expr =
   | IntLit    of int
