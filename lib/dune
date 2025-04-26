@@ -1,14 +1,5 @@
-
-
-(menhir
-  (modules parser/tokens parser/expr parser/items parser/program parser/stmt parser/types)
-  (merge_into program)
-)
-
-(library
- (name Lib)
- (modules program lexer pprinter ast)
- )
-
-(ocamllex lexer)
-
+(rule
+ (target Parser.v)
+ (deps items.vy expr.vy program.vy stmt.vy tokens.vy types.vy)
+ (action
+  (run menhir --coq --coq-no-version-check --base program %{deps})))
