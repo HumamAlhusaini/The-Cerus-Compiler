@@ -1,11 +1,10 @@
 
-%{
-  open Ast
 
-let is_valid_impl_item item =
-  match item with
-  | Func _ -> true  (* Only functions are valid *)
-  | _ -> false      (* Reject structs, enums, etc. *)
+%{
+
+Require Import List.
+Require Cabs.
+
 %}
 
 %%

@@ -1,5 +1,9 @@
 (rule
  (target Parser.v)
- (deps items.vy expr.vy program.vy stmt.vy tokens.vy types.vy)
+ (deps Parser.vy)
  (action
-  (run menhir --coq --coq-no-version-check --base program %{deps})))
+  (run menhir --coq --coq-no-version-check %{deps})))
+
+(coq.theory
+  (name lobster)
+  (modules Ast))
