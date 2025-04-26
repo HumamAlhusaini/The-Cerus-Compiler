@@ -1,17 +1,18 @@
 
 %{
 
+Require Import Ascii.
+Require Import String.
 Require Import List.
-Require Import Ast.
+Require Import Main.Ast.
 
-Require Extraction.
 %}
 
 
 %token <string> IDENT STRING 
-%token <int> INT             
+%token <nat> INT             
 %token <float> FLOAT         
-%token <char> CHARLIT        
+%token <ascii> CHARLIT        
 %token TRUE FALSE            
 
 %token FN LET MUT RETURN STRUCT ENUM IF ELSE WHILE FOR LOOP MATCH IMPL TRAIT CONST STATIC
@@ -32,17 +33,17 @@ Require Extraction.
 %type <typ> typ
 %type <Ast.stmt> stmt
 %type <simpl_typ> simpl_typ
-%type <list typ> separated_list_typ
-%type <(string * typ) list> separated_list_params
-%type <string * typ list> enum
-%type <(string * typ list) list > separated_list_enum
+%type <list Ast.typ> separated_list_typ
+%type <list (string * typ)> separated_list_params
+%type <string * list typ> enum
+%type <list (string * list typ) > separated_list_enum
 %type <bool> opt_mut
 %type <Ast.typ_lit> lit_type
-%type <item list> item_list
+%type <list Ast.item> item_list
 %type <Ast.item> item
-%type <option expr> has_expr
+%type <option Ast.expr> has_expr
 %type <Ast.expr> expr
-%type <block_element list> block_element_list
+%type <list Ast.block_element> block_element_list
 %type <Ast.block_element> block_element
 
 %start program
@@ -81,16 +82,15 @@ var_and_typ:
 
 separated_list_typ:
 | s = typ; COMMA; ls = separated_list_typ; { s :: ls }
-| s = typ; { s }
+| s = typ; { [s] }
 
 separated_list_params:
 | s = var_and_typ; COMMA; ls = separated_list_params; { s :: ls }
-| s = var_and_typ; { s }
+| s = var_and_typ; { [s] }
 
 stmt:
     | LET; mut = opt_mut; name = IDENT; COLON; t = typ; dec = has_expr; {
-         let n = Var_name.of_string name in
-        Let (mut,  n, t, dec)
+        Let mut  name t dec
     }
  
 block_element:
@@ -99,7 +99,7 @@ block_element:
 
 separated_list_enum: 
 | e = enum; COMMA; ls = separated_list_enum { e :: ls }
-| e = enum; { e }
+| e = enum; { [e] }
 
 enum:
   | id = IDENT; LPAREN; typs = separated_list_typ; RPAREN { (id, typs) }
@@ -107,41 +107,29 @@ enum:
 
 block_element_list:
 | b = block_element; ls = block_element_list { b :: ls }
-| b = block_element; { b }
+| b = block_element; { [b] }
 
 
 %public
 item:
   | FN; name = IDENT; LPAREN; parameters = separated_list_params; RPAREN; ARROW; t = typ;
     LBRACE; body = block_element_list; RBRACE {
-      let n = Func_name.of_string name in
-      let params_opt = match parameters with
-        | [] -> None
-        | lst -> Some lst
-      in
-      Func (n, params_opt, t, body)
+      Func name parameters t body
   }
   | STRUCT; name = IDENT; LBRACE; p = separated_list_params; RBRACE { 
-      let n = Struct_name.of_string name in
-      Struct (n, p) 
+      Struct name p 
     }
   | ENUM; name = IDENT; LBRACE; variants = separated_list_enum; RBRACE {
-      let n = Enum_name.of_string name in
-      Enum (n, variants)
+      Enum name variants
   } 
   | CONST; name = IDENT; COLON; t = typ; EQ; value = expr; SEMI {
-      let n = Var_name.of_string name in
-        Const (n, t, value)
+        Const name t value
 }
   | STATIC; mut = opt_mut; name = IDENT; COLON; t = typ; value = has_expr {
-      let n = Var_name.of_string name in
-      Static (mut, n, t, value)
+      Static mut name t value
   }
     | IMPL; name = IDENT; LBRACE; body = item_list; RBRACE; {
-      if List.for_all is_valid_impl_item body then
-        Impl (Impl_name.of_string name, body)
-      else
-        failwith "Invalid item found inside impl block"
+        Impl name body
   }
 
 
@@ -151,16 +139,16 @@ lit_type:
     | F32        { TFloat32 }
     | F64        { TFloat64 }
     | CHAR       { TChar }
-    | BOOL       { Bool }
+    | BOOL       { TBool }
 
 simpl_typ:
   | base = lit_type                { TLit base }
-  | AMP t = simpl_typ              { TRef (false, t) }
-  | AMPMUT t = simpl_typ           { TRef (true, t) }
+  | AMP t = simpl_typ              { TRef false t }
+  | AMPMUT t = simpl_typ           { TRef true t }
   | LPAREN; s = separated_list_typ; RPAREN;       { TParen s }
 
 typ:
   | s = simpl_typ { Typ s  }
-  | s1 = simpl_typ; ARROW; s2 = simpl_typ { TArrow (s1, s2)}
+  | s1 = simpl_typ; ARROW; s2 = simpl_typ { TArrow s1 s2 }
 
 
