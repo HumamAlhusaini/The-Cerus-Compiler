@@ -1,0 +1,16 @@
+
+-Q . Main
+-Q MenhirLib MenhirLib
+
+Ast.v
+Parser.v
+MenhirLib/Alphabet.v 
+MenhirLib/Grammar.v 
+MenhirLib/Automaton.v 
+MenhirLib/Validator_safe.v 
+MenhirLib/Interpreter.v 
+MenhirLib/Interpreter_complete.v
+MenhirLib/Interpreter_correct.v
+MenhirLib/Validator_classes.v 
+MenhirLib/Validator_complete.v 
+MenhirLib/Main.v 

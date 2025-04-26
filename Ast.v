@@ -1,5 +1,5 @@
-Require Import String.
-Require Import Ascii.
+From Stdlib Require Import String.
+From Stdlib Require Import Ascii.
 
 (*temporary dummy float*)
 Definition float := nat.
@@ -74,7 +74,7 @@ Inductive block_element : Type :=
 (* Top-level items *)
 
 with item : Type :=
-  | Func : func_name -> option (list (string * typ)) -> typ -> list block_element -> item
+  | Func : func_name -> list (string * typ) -> typ -> list block_element -> item
   | Struct : struct_name -> list (string * typ) -> item
   | Enum : enum_name -> list (string * list typ) -> item
   | Const : var_name -> typ -> expr -> item

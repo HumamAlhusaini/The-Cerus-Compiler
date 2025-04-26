@@ -1,9 +1,0 @@
-(rule
- (target Parser.v)
- (deps Parser.vy)
- (action
-  (run menhir --coq --coq-no-version-check %{deps})))
-
-(coq.theory
-  (name lobster)
-  (modules Ast))
