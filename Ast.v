@@ -83,3 +83,15 @@ with item : Type :=
 
 (* Whole program is just a list of items *)
 Definition program : Type := list item.
+
+
+(* Extraction commands *)
+
+Require Import ExtrOcamlBasic.
+Require Import ExtrOcamlString.
+
+Extraction Language OCaml.
+
+Separate Extraction 
+  float loc var_name trait_name impl_name func_name enum_name struct_name
+  bin_op typ simpl_typ typ_lit expr stmt block_element item program.

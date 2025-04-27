@@ -5,7 +5,6 @@ let string_of_token = function
   | INT i        -> Printf.sprintf "INT(%d)" i
   | IDENT s      -> Printf.sprintf "IDENT(%s)" s
   | STRING s     -> Printf.sprintf "STRING(%S)" s
-  | FLOAT f      -> Printf.sprintf "FLOAT(%f)" f
   | CHARLIT c    -> Printf.sprintf "CHARLIT(%c)" c
 
   | TRUE         -> "TRUE"

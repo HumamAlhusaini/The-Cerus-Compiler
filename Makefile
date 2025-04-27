@@ -1,17 +1,25 @@
-COQC=coqc -Q . Main -Q MenhirLib MenhirLib
-COQDEP=coqdep -Q . Main -Q MenhirLib MenhirLib
-MENHIR=menhir
+# Compiler commands
+COQC = coqc -Q . Main -Q MenhirLib MenhirLib
+COQDEP = coqdep -Q . Main -Q MenhirLib MenhirLib
+MENHIR = menhir
+OCAMLLEX = ocamllex
+OCAMLC = ocamlc
 
 # Menhir source and output
 PARSER_SOURCE = Parser.vy
 PARSER_OUTPUT = Parser.v
 
+# Coq files
 VFILES = Ast.v $(PARSER_OUTPUT) extraction.v
 VOFILES = $(VFILES:.v=.vo)
 
-all: $(VOFILES)
+# OCaml files
+MLFILES = Parser.mli Parser.ml lexer.ml pprinter.ml main.ml
 
-# Rule: first generate Parser.v from Parser.vy
+# Default target
+all: $(VOFILES) ocaml-build
+
+# Rule: generate Parser.v from Parser.vy
 $(PARSER_OUTPUT): $(PARSER_SOURCE)
 	$(MENHIR) --coq --coq-no-version-check $<
 
@@ -19,11 +27,20 @@ $(PARSER_OUTPUT): $(PARSER_SOURCE)
 %.vo: %.v
 	$(COQC) $<
 
+# Rule: generate lexer.ml from lexer.mll
+lexer.ml: lexer.mll
+	$(OCAMLLEX) $<
+
+# Rule: build OCaml executable
+ocaml-build: lexer.ml
+	$(OCAMLC) -o main.byte $(MLFILES)
+
 depend:
 	$(COQDEP) $(VFILES) > .depend
 
 clean:
 	rm -f *.vo *.glob *.vok *.vos .*.aux .depend MenhirLib/.*.aux MenhirLib/*.vok \
-	MenhirLib/*.glob MenhirLib/*.vo MenhirLib/*.vos MenhirLib/.depend Parser.v Parser.mli Parser.ml
+	MenhirLib/*.glob MenhirLib/*.vo MenhirLib/*.vos MenhirLib/.depend Parser.v Parser.mli Parser.ml *.out *.cmo *.cmi lexer.ml  \
+	Ascii.ml Ascii.mli Ast.mli Ast.ml Datatypes.ml Datatypes.mli String.mli String.ml
 
 -include .depend

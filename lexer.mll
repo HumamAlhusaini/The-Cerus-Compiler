@@ -1,6 +1,6 @@
 {
 open Lexing
-open Program
+open Parser
 
 exception SyntaxError of string
 
@@ -17,7 +17,6 @@ let digit = ['0'-'9']
 let alpha = ['a'-'z' 'A'-'Z']
 
 let int = '-'? digit+  (* regex for integers *)
-let float = '-'? digit+ '.' digit+
 let id = (alpha) (alpha|digit|'_')* (* regex for identifier *)
 let whitespace = [' ' '\t']+
 let newline = '\r' | '\n' | "\r\n"
@@ -28,80 +27,79 @@ rule read_token = parse
   | newline            { next_line lexbuf; read_token lexbuf }
   | "//"             { read_token lexbuf }  (* single-line comment *)
   | "/*"               { read_multi_line_comment lexbuf }
-  | "fn"               { FN }
-  | "let"              { LET }
-  | "print!"          { PRINT }
-  | "mut"              { MUT }
-  | "return"           { RETURN }
-  | "struct"           { STRUCT }
-  | "enum"             { ENUM }
-  | "if"               { IF }
-  | "else"             { ELSE }
-  | "while"            { WHILE }
-  | "for"              { FOR }
-  | "loop"             { LOOP }
-  | "match"            { MATCH }
-  | "impl"             { IMPL }
-  | "trait"            { TRAIT }
-  | "const"            { CONST }
-  | "static"           { STATIC }
-  | "use"              { USE }
-  | "pub"              { PUB }
-  | "mod"              { MOD }
-  | "type"             { TYPE }
-  | "as"               { AS }
-  | "extern"           { EXTERN }
-  | "crate"            { CRATE }
-  | "move"             { MOVE }
-  | "ref"              { REF }
-  | "self"             { SELF }
-  | "super"            { SUPER }
-  | "true"             { TRUE }
-  | "false"            { FALSE }
-  | float as f   { FLOAT (float_of_string f) }
+  | "fn"               { FN () }
+  | "let"              { LET () }
+  | "print!"          { PRINT () }
+  | "mut"              { MUT () }
+  | "return"           { RETURN () }
+  | "struct"           { STRUCT () }
+  | "enum"             { ENUM () }
+  | "if"               { IF () }
+  | "else"             { ELSE () }
+  | "while"            { WHILE () }
+  | "for"              { FOR () }
+  | "loop"             { LOOP () }
+  | "match"            { MATCH () }
+  | "impl"             { IMPL () }
+  | "trait"            { TRAIT () }
+  | "const"            { CONST () }
+  | "static"           { STATIC () }
+  | "use"              { USE () }
+  | "pub"              { PUB () }
+  | "mod"              { MOD () }
+  | "type"             { TYPE () }
+  | "as"               { AS () }
+  | "extern"           { EXTERN () }
+  | "crate"            { CRATE () }
+  | "move"             { MOVE () }
+  | "ref"              { REF () }
+  | "self"             { SELF () }
+  | "super"            { SUPER () }
+  | "true"             { TRUE () }
+  | "false"            { FALSE () } 
   | int as i           { INT (int_of_string i) }
   | '"'                { read_string (Buffer.create 17) lexbuf }
   | '\'' ([^'\\'] as c) '\'' { CHARLIT(c) }        (* Simple char like 'a' *)
-  | "+"                { PLUS }
-  | "-"                { MINUS }
-  | "*"                { STAR }
-  | "/"                { SLASH }
-  | "%"                { PERCENT }
-  | "="                { EQ}
-  | "=="               { EQEQ }
-  | "!="               { NE }
-  | "<"                { LT }
-  | "<="               { LE }
-  | ">"                { GT }
-  | ">="               { GE }
-  | "||"               { OROR }
-  | "!"                { NOT }
-  | "."                { DOT }
-  | ".."               { DOTDOT }
-  | "..."              { DOTDOTDOT }
-  | ","                { COMMA }
-  | ";"                { SEMI }
-  | ":"                { COLON }
-  | "->"               { ARROW }
-  | "=>"               { FAT_ARROW }
-  | "&mut"             { AMPMUT }
-  | "&"                { AMP }
-  | "|"                { PIPE }
-  | "("                { LPAREN }
-  | ")"                { RPAREN }
-  | "{"                { LBRACE }
-  | "}"                { RBRACE }
-  | "["                { LBRACK }
-  | "]"                { RBRACK }
-  | "_"                { UNDERSCORE }
-  | "i32"               { I32 }
-  | "f32"               { F32 }
-  | "f64"               { F64 }
-  | "char"              { CHAR }
-  | "bool"              { BOOL }
+  | "+"                { PLUS () }
+  | "-"                { MINUS () }
+  | "*"                { STAR () }
+  | "/"                { SLASH () }
+  | "%"                { PERCENT () }
+  | "="                { EQ () }
+  | "=="               { EQEQ () }
+  | "!="               { NE () }
+  | "<"                { LT () }
+  | "<="               { LE () }
+  | ">"                { GT () }
+  | ">="               { GE () }
+  | "||"               { OROR () }
+  | "!"                { NOT () }
+  | "."                { DOT () }
+  | ".."               { DOTDOT () }
+  | "..."              { DOTDOTDOT () }
+  | ","                { COMMA () }
+  | ";"                { SEMI () }
+  | ":"                { COLON () }
+  | "->"               { ARROW () }
+  | "=>"               { FAT_ARROW () }
+  | "&mut"             { AMPMUT () }
+  | "&"                { AMP () }
+  | "|"                { PIPE () }
+  | "("                { LPAREN () }
+  | ")"                { RPAREN () }
+  | "{"                { LBRACE () }
+  | "}"                { RBRACE () }
+  | "["                { LBRACK () }
+  | "]"                { RBRACK () }
+  | "_"                { UNDERSCORE () }
+  | "i32"               { I32 () }
+  | "f32"               { F32 () }
+  | "f64"               { F64 () }
+  | "char"              { CHAR () }
+  | "bool"              { BOOL () }
   | id as ident        { IDENT ident }
 
-  | eof                { EOF }
+  | eof                { EOF () }
 
   | _                  { raise (SyntaxError ("Illegal character: " ^ Lexing.lexeme lexbuf)) }
 
