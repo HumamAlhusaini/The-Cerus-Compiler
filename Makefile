@@ -6,7 +6,7 @@ MENHIR=menhir
 PARSER_SOURCE = Parser.vy
 PARSER_OUTPUT = Parser.v
 
-VFILES = Ast.v $(PARSER_OUTPUT)
+VFILES = Ast.v $(PARSER_OUTPUT) extraction.v
 VOFILES = $(VFILES:.v=.vo)
 
 all: $(VOFILES)
@@ -24,6 +24,6 @@ depend:
 
 clean:
 	rm -f *.vo *.glob *.vok *.vos .*.aux .depend MenhirLib/.*.aux MenhirLib/*.vok \
-	MenhirLib/*.glob MenhirLib/*.vo MenhirLib/*.vos MenhirLib/.depend Parser.v
+	MenhirLib/*.glob MenhirLib/*.vo MenhirLib/*.vos MenhirLib/.depend Parser.v Parser.mli Parser.ml
 
 -include .depend
