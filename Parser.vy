@@ -7,31 +7,61 @@ Require Import List.
 Require Import Main.Ast.
 %}
 
-%token ADD SUB EQ MUL DIV
+%token<Ast.loc> ADD SUB EQ MUL DIV
 %token<Ast.constant * Ast.loc> CONSTANT
 %token EOF
 
-%type <Ast.expression> expression
-%type <list Ast.expression> translation_unit
+%type<(Ast.expression * Ast.loc)> primary_expression
+%type<(Ast.expression * Ast.loc)> postfix_expression
+%type<(Ast.expression * Ast.loc)> unary_expression
+%type<(Ast.expression * Ast.loc)> cast_expression
+%type<(Ast.expression * Ast.loc)> multiplicative_expression
+%type<(Ast.expression * Ast.loc)> additive_expression
+%type<(Ast.expression * Ast.loc)> shift_expression
 
-%start<list Ast.expression> translation_unit_file
+%start <list (Ast.expression * Ast.loc)> translation_unit
 
 %%
 
 
-expression:
-  | CONSTANT { Ast.CONSTANT (fst $1) }
-  | e1 = expression ADD e2 = expression { Ast.BINARY Ast.ADD e1 e2 }
-  | e1 = expression SUB e2 = expression { Ast.BINARY Ast.SUB e1 e2 }
-  | e1 = expression MUL e2 = expression { Ast.BINARY Ast.MUL e1 e2 }
-  | e1 = expression DIV e2 = expression { Ast.BINARY Ast.DIV e1 e2 }
-  | e1 = expression EQ  e2 = expression { Ast.BINARY Ast.EQ  e1 e2 }
+primary_expression:
+| cst = CONSTANT
+    { (Ast.CONSTANT (fst cst), snd cst) }
+
+postfix_expression:
+| expr = primary_expression
+    { expr }
+
+unary_expression:
+| expr = postfix_expression
+    { expr }
+
+cast_expression:
+| expr = unary_expression
+    { expr }
+
+multiplicative_expression:
+| expr = cast_expression
+    { expr }
+| expr1 = multiplicative_expression MUL expr2 = cast_expression
+    { (Ast.BINARY Ast.MUL (fst expr1) (fst expr2), snd expr1) }
+| expr1 = multiplicative_expression DIV expr2 = cast_expression
+    { (Ast.BINARY Ast.DIV (fst expr1) (fst expr2), snd expr1) }
+
+additive_expression:
+| expr = multiplicative_expression
+    { expr }
+| expr1 = additive_expression ADD expr2 = multiplicative_expression
+    { (Ast.BINARY Ast.ADD (fst expr1) (fst expr2), snd expr1) }
+| expr1 = additive_expression SUB expr2 = multiplicative_expression
+    { (Ast.BINARY Ast.SUB (fst expr1) (fst expr2), snd expr1) }
+
+shift_expression:
+| expr = additive_expression { expr }
 
 translation_unit:
-  | e = expression; rest = translation_unit { e :: rest }
+  | e = shift_expression; rest = translation_unit EOF { e :: rest }
   | /* empty */ { [] }
 
-translation_unit_file:
-  | e = translation_unit EOF { e }
 
 
