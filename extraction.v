@@ -1,3 +1,3 @@
 Require Import Main.Parser.
 
-Extraction "Parser.ml" program.
+Extraction "Parser.ml" translation_unit_file.
