@@ -14,7 +14,7 @@ VFILES = Ast.v $(PARSER_OUTPUT) extraction.v
 VOFILES = $(VFILES:.v=.vo)
 
 # OCaml files
-MLFILES = Parser.mli Parser.ml lexer.ml pprinter.ml main.ml
+MLFILES = Ast.mli Ast.ml Parser.mli Parser.ml lexer.ml pprinter.ml main.ml
 
 # Default target
 all: $(VOFILES) ocaml-build

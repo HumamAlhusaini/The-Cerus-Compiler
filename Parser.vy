@@ -18,11 +18,11 @@ Require Import Main.Ast.
 %type<(Ast.expression * Ast.loc)> multiplicative_expression
 %type<(Ast.expression * Ast.loc)> additive_expression
 %type<(Ast.expression * Ast.loc)> shift_expression
+%type<list (Ast.expression * Ast.loc)> nonempty_translation_unit
 
 %start <list (Ast.expression * Ast.loc)> translation_unit
 
 %%
-
 
 primary_expression:
 | cst = CONSTANT
@@ -59,9 +59,13 @@ additive_expression:
 shift_expression:
 | expr = additive_expression { expr }
 
+nonempty_translation_unit:
+  | e = shift_expression; rest = nonempty_translation_unit { e :: rest }
+  | e = shift_expression { [e] }
+
 translation_unit:
-  | e = shift_expression; rest = translation_unit EOF { e :: rest }
-  | /* empty */ { [] }
+  | e = nonempty_translation_unit EOF { e }
+  | EOF { [] }
 
 
 

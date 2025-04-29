@@ -13,19 +13,6 @@ let next_line lexbuf =
     }
 }
 
-let currentLoc =
-  let nextident = ref 0 in
-  let getident () =
-    nextident := !nextident + 1;
-    !nextident
-  in
-  fun lb ->
-    let p = Lexing.lexeme_start_p lb in
-    Cabs.({ lineno   = p.Lexing.pos_lnum;
-            filename = p.Lexing.pos_fname;
-            byteno   = p.Lexing.pos_cnum;
-            ident    = getident ();})
-
 (* Define helper regexes *)
 let digit = ['0'-'9']
 let alpha = ['a'-'z' 'A'-'Z']
@@ -41,7 +28,7 @@ rule read_token = parse
   | newline            { next_line lexbuf; read_token lexbuf }
   | "//"             { read_token lexbuf }  (* single-line comment *)
   | "/*"               { read_multi_line_comment lexbuf }
-  | int as i           { CONSTANT (CONST_INT i) currentLoc lexbuf) }
+  | int as i           { CONSTANT ((CONST_INT i) currentLoc lexbuf) }
   | "+"                 { ADD (currentLoc lexbuf) }
   | "-"                 { SUB (currentLoc lexbuf) }
   | "*"                 { MULT (currentLoc lexbuf) }
