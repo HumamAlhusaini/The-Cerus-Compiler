@@ -4,7 +4,7 @@ From Stdlib Require Import Ascii.
 
 Parameter loc : Type.
 
-Parameter string : Type.
+Parameter str : Type.
 
 Inductive expression :=
   | BINARY : binary_operator -> expression -> expression -> expression
@@ -14,6 +14,14 @@ with binary_operator :=
   | ADD | SUB | MUL | DIV | EQ
 
 with constant := 
-  | CONST_INT : string -> constant.
+  | CONST_INT : str -> constant.
 
 
+Require Import ExtrOcamlBasic.
+Require Import ExtrOcamlString.
+
+
+Extraction "Ast.ml" constant expression binary_operator.
+
+Extract Constant loc => "Lexing.position".
+Extract Constant str => "string".

@@ -20,8 +20,9 @@ MLFILES = Ast.mli Ast.ml Parser.mli Parser.ml lexer.ml pprinter.ml main.ml
 all: $(VOFILES) ocaml-build
 
 # Rule: generate Parser.v from Parser.vy
-$(PARSER_OUTPUT): $(PARSER_SOURCE)
+Parser.v: Parser.vy
 	$(MENHIR) --coq --coq-no-version-check $<
+
 
 # Rule: compile .v to .vo
 %.vo: %.v
@@ -40,7 +41,7 @@ depend:
 
 clean:
 	rm -f *.vo *.glob *.vok *.vos .*.aux .depend MenhirLib/.*.aux MenhirLib/*.vok \
-	MenhirLib/*.glob MenhirLib/*.vo MenhirLib/*.vos MenhirLib/.depend Parser.v Parser.mli Parser.ml *.out *.cmo *.cmi lexer.ml  \
+	MenhirLib/*.glob MenhirLib/*.vo MenhirLib/*.vos MenhirLib/.depend Pre_parser.ml Pre_parser.mli Parser.v Parser.mli Parser.ml *.out *.cmo *.cmi lexer.ml  \
 	Ascii.ml Ascii.mli Ast.mli Ast.ml Datatypes.ml Datatypes.mli String.mli String.ml
 
 -include .depend
