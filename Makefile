@@ -14,14 +14,10 @@ VFILES = Ast.v $(PARSER_OUTPUT) extraction.v
 VOFILES = $(VFILES:.v=.vo)
 
 # OCaml files
-MLFILES = Ast.mli Ast.ml Parser.mli Parser.ml Pre_parser.mli Pre_parser.ml lexer.ml pprinter.ml main.ml
+MLFILES = Ast.mli Ast.ml Parser.mli Parser.ml lexer.ml main.ml
 
 # Default target
 all: $(VOFILES) ocaml-build
-
-# Rule: compile Pre_parser.mly into OCaml files
-Pre_parser.ml Pre_parser.mli: Pre_parser.mly
-	$(MENHIR) Pre_parser.mly
 
 # Rule: generate Parser.v from Parser.vy
 Parser.v: Parser.vy
@@ -37,7 +33,7 @@ lexer.ml: lexer.mll
 	$(OCAMLLEX) $<
 
 # Rule: build OCaml executable
-ocaml-build: Pre_parser.ml lexer.ml
+ocaml-build: lexer.ml
 	$(OCAMLC) -o main.byte $(MLFILES)
 
 depend:
@@ -46,7 +42,7 @@ depend:
 clean:
 	rm -f *.vo *.glob *.vok *.vos .*.aux .depend MenhirLib/.*.aux MenhirLib/*.vok \
 	MenhirLib/*.glob MenhirLib/*.vo MenhirLib/*.vos MenhirLib/.depend Pre_parser.ml Pre_parser.mli Parser.v Parser.mli Parser.ml *.out *.cmo *.cmi lexer.ml  \
-	Ascii.ml Ascii.mli Ast.mli Ast.ml Datatypes.ml Datatypes.mli String.mli String.ml
+	Ascii.ml Ascii.mli Ast.mli Ast.ml Datatypes.ml Datatypes.mli String.mli String.ml main.byte
 
 -include .depend
 
