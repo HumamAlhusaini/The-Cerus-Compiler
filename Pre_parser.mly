@@ -3,7 +3,7 @@
   open Ast
 %}
 
-%token<Ast.loc> ADD SUB EQ MUL DIV
+%token ADD SUB EQ MUL DIV
 %token<Ast.constant * Ast.loc> CONSTANT
 %token EOF
 
