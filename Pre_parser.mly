@@ -1,71 +1,68 @@
 
 %{
-From Coq Require Extraction.
-Extraction Language OCaml.
-Require Import Ascii.
-Require Import String.
-Require Import List.
-Require Import Main.Ast.
+  open Ast
 %}
 
 %token<Ast.loc> ADD SUB EQ MUL DIV
 %token<Ast.constant * Ast.loc> CONSTANT
 %token EOF
 
-%type<(Ast.expression * Ast.loc)> primary_expression
-%type<(Ast.expression * Ast.loc)> postfix_expression
-%type<(Ast.expression * Ast.loc)> unary_expression
-%type<(Ast.expression * Ast.loc)> cast_expression
-%type<(Ast.expression * Ast.loc)> multiplicative_expression
-%type<(Ast.expression * Ast.loc)> additive_expression
-%type<(Ast.expression * Ast.loc)> shift_expression
-%type<list (Ast.expression * Ast.loc)> nonempty_translation_unit
 
-%start <list (Ast.expression * Ast.loc)> translation_unit
+%type<unit> primary_expression
+%type<unit> postfix_expression
+%type<unit> unary_expression
+%type<unit> cast_expression
+%type<unit> additive_operator
+%type<unit> multiplicative_operator
+%type<unit> multiplicative_expression
+%type<unit> additive_expression
+%type<unit> shift_expression
+%type<unit> nonempty_translation_unit
+
+%start <unit> translation_unit
 
 %%
 
 primary_expression:
-| cst = CONSTANT
-    { (Ast.CONSTANT (fst cst), snd cst) }
+| CONSTANT
+    {}
 
 postfix_expression:
-| expr = primary_expression
-    { expr }
-
+| primary_expression 
+  {}
 unary_expression:
-| expr = postfix_expression
-    { expr }
-
+| postfix_expression
+{}
 cast_expression:
-| expr = unary_expression
-    { expr }
+| unary_expression
+{}
+multiplicative_operator:
+  MUL | DIV 
+  {}
 
 multiplicative_expression:
-| expr = cast_expression
-    { expr }
-| expr1 = multiplicative_expression MUL expr2 = cast_expression
-    { (Ast.BINARY Ast.MUL (fst expr1) (fst expr2), snd expr1) }
-| expr1 = multiplicative_expression DIV expr2 = cast_expression
-    { (Ast.BINARY Ast.DIV (fst expr1) (fst expr2), snd expr1) }
+| cast_expression 
+| multiplicative_expression multiplicative_operator cast_expression
+    {}
+
+additive_operator:
+  ADD | SUB {}
 
 additive_expression:
-| expr = multiplicative_expression
-    { expr }
-| expr1 = additive_expression ADD expr2 = multiplicative_expression
-    { (Ast.BINARY Ast.ADD (fst expr1) (fst expr2), snd expr1) }
-| expr1 = additive_expression SUB expr2 = multiplicative_expression
-    { (Ast.BINARY Ast.SUB (fst expr1) (fst expr2), snd expr1) }
+| multiplicative_expression
+| additive_expression additive_operator multiplicative_expression
+    {}
 
 shift_expression:
-| expr = additive_expression { expr }
+| additive_expression
+    {}
 
 nonempty_translation_unit:
-  | e = shift_expression; rest = nonempty_translation_unit { e :: rest }
-  | e = shift_expression { [e] }
+  | shift_expression nonempty_translation_unit 
+  | shift_expression {  }
 
 translation_unit:
-  | e = nonempty_translation_unit EOF { e }
-  | EOF { [] }
+  | nonempty_translation_unit EOF 
+  | EOF {  }
 
 

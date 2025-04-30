@@ -27,11 +27,10 @@ let id = (alpha) (alpha|digit|'_')* (* regex for identifier *)
 let whitespace = [' ' '\t']+
 let newline = '\r' | '\n' | "\r\n"
 
-
 rule read_token = parse
   | whitespace         { read_token lexbuf }
   | newline            { next_line lexbuf; }
-  | int as i           { CONSTANT ((CONST_INT i) lexbuf.lex_curr_p) }
+  | int as i           { CONSTANT (Ast.CONST_INT i, lexbuf.lex_curr_p) }
   | "+"                 { ADD (currentLoc lexbuf) }
   | "-"                 { SUB (currentLoc lexbuf) }
   | "*"                 { MULT (currentLoc lexbuf) }
