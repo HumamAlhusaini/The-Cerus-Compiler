@@ -7,7 +7,7 @@ open Parser
     | MUL0 _ -> "MUL"
     | DIV0 _ -> "DIV"
     | EQ1 _ -> "EQ"
-    | CONSTANT0 (_, _) -> "CONSTANT"
+    | CONSTANT0 _ -> "CONSTANT"
 
 let print_tokens_from_file filename =
   let chan = open_in filename in

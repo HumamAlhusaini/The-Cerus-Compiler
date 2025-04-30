@@ -29,7 +29,7 @@ let newline = '\r' | '\n' | "\r\n"
 rule read_token = parse
   | whitespace         { read_token lexbuf }
   | newline            { next_line lexbuf; read_token lexbuf}
-  | int as i           { CONSTANT0 (CONST_INT i, lexbuf.lex_curr_p); read_token lexbuf }
+  | int           { CONSTANT0 (CONST_INT (Lexing.lexeme lexbuf), lexbuf.lex_curr_p) }
   | "+"                 { ADD0 (lexbuf.lex_curr_p) }
   | "-"                 { SUB0 (lexbuf.lex_curr_p) }
   | "*"                 { MUL0 (lexbuf.lex_curr_p) }
@@ -37,4 +37,3 @@ rule read_token = parse
   | "="                  { EQ1 (lexbuf.lex_curr_p)}
   | eof                { EOF () }
   | _                  { raise (SyntaxError ("Illegal character: " ^ Lexing.lexeme lexbuf)) }
-
