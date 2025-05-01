@@ -3,6 +3,5 @@ Require Import Main.Cabs.
 
 Cd "extraction".
 
-Extraction "Parser.ml" translation_unit_file.
-
+Separate Extraction translation_unit_file constant expression binary_operator.
 

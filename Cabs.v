@@ -234,4 +234,3 @@ Require Import ExtrOcamlString.
 Extract Constant loc => "Lexing.position".
 Extract Constant str => "string".
 
-Extraction "Cabs.ml" constant expression binary_operator.

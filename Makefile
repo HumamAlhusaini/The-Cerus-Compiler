@@ -12,15 +12,9 @@ PARSER_OUTPUT = Parser.v
 # Paths
 EXTRACTED_DIR = extraction
 
-# Source files
+# Coq files
 VFILES = Cabs.v $(PARSER_OUTPUT) extraction.v
 VOFILES := $(VFILES:.v=.vo)
-
-EXTRACTED_ML := $(wildcard $(EXTRACTED_DIR)/*.ml)
-EXTRACTED_MLI := $(wildcard $(EXTRACTED_DIR)/*.mli)
-EXTRACTED_CMI := $(EXTRACTED_MLI:.mli=.cmi)
-
-MLFILES := main.ml
 
 # Default target
 all: $(VOFILES) ocaml-build
@@ -33,27 +27,30 @@ $(PARSER_OUTPUT): $(PARSER_SOURCE)
 %.vo: %.v
 	$(COQC) $<
 
-# Generate lexer.ml from lexer.mll
-$(EXTRACTED_DIR)/lexer.ml: $(EXTRACTED_DIR)/lexer.mll
+# Rule: generate lexer.ml from lexer.mll inside extraction/
+$(EXTRACTED_DIR)/lexer.ml: lexer.mll | $(EXTRACTED_DIR)
 	$(OCAMLLEX) $< -o $@
 
-# Build .cmi files from .mli
+# Rule: copy main.ml into extraction/
+$(EXTRACTED_DIR)/main.ml: main.ml | $(EXTRACTED_DIR)
+	cp $< $@
+
+# Rule: make sure extraction/ exists
+$(EXTRACTED_DIR):
+	mkdir -p $@
+
+# Compile .mli to .cmi
 $(EXTRACTED_DIR)/%.cmi: $(EXTRACTED_DIR)/%.mli
 	$(OCAMLC) -c -I $(EXTRACTED_DIR) $< -o $@
 
+# Compile .ml to .cmo
 $(EXTRACTED_DIR)/%.cmo: $(EXTRACTED_DIR)/%.ml
 	$(OCAMLC) -c -I $(EXTRACTED_DIR) $< -o $@
 
-lexer.cmo: extraction/lexer.ml
-	$(OCAMLC) -c -I $(EXTRACTED_DIR) $<
-
-main.cmo: main.ml
-	$(OCAMLC) -c -I $(EXTRACTED_DIR) $<
 # Build OCaml executable
-EXTRACTED_CMO := $(EXTRACTED_ML:.ml=.cmo)
-
-ocaml-build: $(EXTRACTED_CMI) $(EXTRACTED_CMO)  main.cmo
-	$(OCAMLC) -I $(EXTRACTED_DIR) -o main.byte $(EXTRACTED_CMO) lexer.cmo main.cmo
+ocaml-build: $(EXTRACTED_DIR)/lexer.ml $(EXTRACTED_DIR)/main.ml
+	$(MAKE) $(EXTRACTED_DIR)/*.cmo
+	$(OCAMLC) -o main.byte $(EXTRACTED_DIR)/*.cmo
 
 # Dependency generation
 depend:
@@ -64,6 +61,6 @@ clean:
 	rm -f *.vo *.glob *.vok *.vos .*.aux .depend \
 	      MenhirLib/*.vo MenhirLib/*.vos MenhirLib/*.glob MenhirLib/*.vok \
 	      Parser.v Parser.mli Parser.ml lexer.ml main.byte \
-	      $(EXTRACTED_DIR)/*
+	      $(EXTRACTED_DIR)/* Cabs.ml Cabs.mli
 
 -include .depend
