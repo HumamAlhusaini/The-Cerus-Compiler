@@ -1,5 +1,5 @@
-Require Import Main.Parser.
-Require Import Main.Cabs.
+Require Import Proj.Parser.
+Require Import Proj.Cabs.
 
 Cd "extraction".
 

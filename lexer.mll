@@ -11,7 +11,7 @@ let next_line lexbuf =
                pos_lnum = pos.pos_lnum + 1
     }
 
-let explode s = List.init (String.length s) (String.get s)
+let explode s = Stdlib.List.init (String.length s) (String.get s)
 
 let get_column pos =
   pos.Lexing.pos_cnum - pos.Lexing.pos_bol

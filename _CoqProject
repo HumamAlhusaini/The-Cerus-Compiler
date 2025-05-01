@@ -1,5 +1,5 @@
 
--Q . Main
+-Q . Proj
 -Q MenhirLib MenhirLib
 
 Ast.v
