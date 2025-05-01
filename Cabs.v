@@ -231,6 +231,11 @@ with for_clause :=
 Require Import ExtrOcamlBasic.
 Require Import ExtrOcamlString.
 
-Extract Constant loc => "Lexing.position".
+Extract Constant loc =>
+"{ lineno : int;
+   filename: string;
+   byteno: int;
+   ident : int;
+ }".
 Extract Constant str => "string".
 
