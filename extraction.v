@@ -1,6 +1,8 @@
 Require Import Main.Parser.
-Require Import Main.Ast.
+Require Import Main.Cabs.
 
-Extraction "Parser.ml" translation_unit.
+Cd "extraction".
+
+Extraction "Parser.ml" translation_unit_file.
 
 
