@@ -1,24 +1,22 @@
 open Lexer
 open Parser
 open Cabs
+open Sedlexing
 
 let string_of_loc loc =
-  Printf.sprintf "Filename:%s - LineNumber: %d (byte %d, id %d)" loc.filename loc.lineno loc.byteno loc.ident
-let string_of_token = function
+  match loc with
+  x,y -> Printf.sprintf "column: %d, offset: %n" x y
 
-  | Parser.CONSTANT (CONST_INT s, loc) -> Printf.sprintf "CONSTANT(INT %s) at %s" s (string_of_loc loc)
-  | Parser.PLUS loc -> Printf.sprintf "PLUS at %s" (string_of_loc loc)
-  | Parser.MINUS loc -> Printf.sprintf "MINUS at %s" (string_of_loc loc)
-  | Parser.STAR loc -> Printf.sprintf "STAR at %s" (string_of_loc loc)
-  | Parser.SLASH loc -> Printf.sprintf "SLASH at %s" (string_of_loc loc)
-  | Parser.EQ loc -> Printf.sprintf "EQ at %s" (string_of_loc loc)
+let string_of_token = function
+  | Parser.IDENT (Cabs.Raw_Ident x, loc) -> Printf.sprintf "RAW_IDENT (%s), loc: %s" x (string_of_loc loc)
+  | Parser.IDENT (Cabs.Ident x, loc) -> Printf.sprintf "IDENT (%s), loc: %s" x (string_of_loc loc)
   | Parser.EOF () -> "EOF"
 
 let print_tokens_from_file filename =
   let chan = open_in filename in
-  let lexbuf = Lexing.from_channel chan in
+  let lexbuf = Sedlexing.Utf8.from_channel chan in
   let rec loop () =
-    let token = read_token lexbuf in
+    let token = token lexbuf in
     match token with
     | Parser.EOF _ -> print_endline "End of file."
     | t ->

@@ -25,12 +25,12 @@ Require Import Proj.Cabs.
 %token<Cabs.loc> PERCENTEQ CARETEQ ANDEQ OREQ SHLEQ SHREQ    /* %= ^= &= |= <<= >>= */
 %token<Cabs.loc> EQEQ NE LT GT LE GE                         /* == != < > <= >= */
 %token<Cabs.loc> AT UNDERSCORE DOT DOTDOT DOTDOTDOT DOTDOTEQ /* @ _ . .. ... ..= */
-%token<Cabs.loc> COMMA SEMI COLON                            /* , ; : */
+%token<Cabs.loc> COMMA SEMI COLON RESERVED_RAW_IDENTIFIER   /* , ; : */
 %token<Cabs.loc> PATHSEP RARROW FATARROW LARROW              /* :: -> => <- */
 %token<Cabs.loc> POUND DOLLAR QUESTION TILDE               /* # $ ? ~ */
-%token<Cabs.identifier * Cabs.loc> IDENT
-%token LBRACE RBRACE LBRACK RBRACK LPAREN RPAREN 
+%token<Cabs.loc> LBRACE RBRACE LBRACK RBRACK LPAREN RPAREN 
 
+%token<Cabs.identifier * Cabs.loc> IDENT
 %token EOF
 
 %type<Cabs.top_level * Cabs.loc> id

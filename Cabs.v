@@ -18,11 +18,6 @@ with identifier :=
 Require Import ExtrOcamlBasic.
 Require Import ExtrOcamlString.
 
-Extract Constant loc =>
-"{ lineno : int;
-   filename: string;
-   byteno: int;
-   ident : int;
- }".
+Extract Constant loc => "int * int".
 Extract Constant str => "string".
 
