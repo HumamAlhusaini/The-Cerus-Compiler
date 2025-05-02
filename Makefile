@@ -38,6 +38,10 @@ $(EXTRACTED_DIR)/enter.ml: enter.ml | $(EXTRACTED_DIR)
 $(EXTRACTED_DIR)/lexer.ml: lexer.ml | $(EXTRACTED_DIR)
 	cp $< $@
 
+# Copy lexer.ml into extraction/
+$(EXTRACTED_DIR)/pprint.ml: pprint.ml | $(EXTRACTED_DIR)
+	cp $< $@
+
 # Use ocamlbuild to build the OCaml program
 ocaml-build: $(EXTRACTED_DIR)/enter.ml $(EXTRACTED_DIR)/lexer.ml
 	$(OCAMLBUILD) -I extraction extraction/enter.native

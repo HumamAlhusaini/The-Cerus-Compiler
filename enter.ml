@@ -2,15 +2,7 @@ open Lexer
 open Parser
 open Cabs
 open Sedlexing
-
-let string_of_loc loc =
-  match loc with
-  x,y -> Printf.sprintf "column: %d, offset: %n" x y
-
-let string_of_token = function
-  | Parser.IDENT (Cabs.Raw_Ident x, loc) -> Printf.sprintf "RAW_IDENT (%s), loc: %s" x (string_of_loc loc)
-  | Parser.IDENT (Cabs.Ident x, loc) -> Printf.sprintf "IDENT (%s), loc: %s" x (string_of_loc loc)
-  | Parser.EOF () -> "EOF"
+  open Pprint
 
 let print_tokens_from_file filename =
   let chan = open_in filename in

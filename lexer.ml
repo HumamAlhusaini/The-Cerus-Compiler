@@ -138,6 +138,7 @@ let reserved_raw_identifier =
 let rec token buf =
   match%sedlex buf with
     | white_space -> token buf
+    | '\n'        -> new_line buf; token buf
     | reserved_raw_identifier -> RESERVED_RAW_IDENTIFIER (loc buf)
     | raw_identifier ->
         let uArr = Sedlexing.lexeme buf in
