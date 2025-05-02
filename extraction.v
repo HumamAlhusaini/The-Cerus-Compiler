@@ -3,5 +3,5 @@ Require Import Proj.Cabs.
 
 Cd "extraction".
 
-Separate Extraction translation_unit_file constant expression binary_operator.
+Separate Extraction program top_level identifier.
 

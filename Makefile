@@ -1,7 +1,7 @@
 COQC = coqc -Q . Proj -Q MenhirLib MenhirLib
 COQDEP = coqdep -Q . Proj -Q MenhirLib MenhirLib
 MENHIR = menhir
-OCAMLLEX = ocamllex
+SEDLEX = ocamlfind ocamlc -c -package sedlex.ppx
 OCAMLBUILD = ocamlbuild
 
 # Menhir source and output
@@ -35,8 +35,8 @@ $(EXTRACTED_DIR)/enter.ml: enter.ml | $(EXTRACTED_DIR)
 	cp $< $@
 
 # Generate lexer.ml in extraction/
-$(EXTRACTED_DIR)/lexer.ml: lexer.mll | $(EXTRACTED_DIR)
-	$(OCAMLLEX) $< -o $@
+$(EXTRACTED_DIR)/lexer.ml: lexer.ml | $(EXTRACTED_DIR)
+	$(SEDLEX) $< $@
 
 # Use ocamlbuild to build the OCaml program
 ocaml-build: $(EXTRACTED_DIR)/enter.ml $(EXTRACTED_DIR)/lexer.ml
@@ -50,7 +50,7 @@ depend:
 clean:
 	rm -f *.vo *.glob *.vok *.vos .*.aux .depend \
 	      MenhirLib/*.vo MenhirLib/*.vos MenhirLib/*.glob MenhirLib/*.vok \
-	      Parser.v Parser.mli Parser.ml lexer.ml enter.byte \
+	      Parser.v Parser.mli Parser.ml enter.byte \
 	      $(EXTRACTED_DIR)/* \
 	      *.native *.byte *.o *.cm* *.d.byte *.d.native *.ml.d
 
