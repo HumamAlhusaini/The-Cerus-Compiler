@@ -1,2 +1,5 @@
-"\r45"
-match
+"Quote: \n and \" are valid."
+
+"Hex A: \x41, Hex newline: \x0A"
+
+"Unicode snowman: \u{2603}, Rocket: \u{1F680}, Music note: \u{266B}"

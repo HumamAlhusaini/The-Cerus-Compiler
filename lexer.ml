@@ -67,8 +67,9 @@ let rust_keywords = [
   "struct"; "super"; "trait"; "true"; "type"; "unsafe"; "use"; "where"; "while"
 ]
 
-let ascii_escape = [%sedlex.regexp?
-  "\\n" | "\\r" | "\\t" | "\\\\" | "\\0" | "\\x", hex_digit, hex_digit]
+let ascii_escape =
+  [%sedlex.regexp?
+    "\\n" | "\\r" | "\\t" | "\\\\" | "\\0" | "\\x", hex_digit, hex_digit]
 
 let byte_escape = [%sedlex.regexp?
   "\\n" | "\\r" | "\\t" | "\\\\" | "\\0" | "\\x", hex_digit, hex_digit]
@@ -164,7 +165,7 @@ let rec token buf =
     | "<" -> LT (loc buf)
     | ">" -> GT (loc buf)
     | "@" -> AT (loc buf)
-    | "_" -> UNDERSCORE (loc buf)
+   | "_" -> UNDERSCORE (loc buf)
     | "." -> DOT (loc buf)
     | "," -> COMMA (loc buf)
     | ";" -> SEMI (loc buf)
@@ -200,8 +201,18 @@ and read_string buffer buf =
   (* Handle ASCII hexadecimal escape \xNN *)
   | ascii_escape ->
       let lex = Utf8.lexeme buf in
-      let code = int_of_string ("0x" ^ String.sub lex 2 2) in
-      Buffer.add_char buffer (Char.chr code);
+      (* Process the matched escape sequence and convert to the correct character *)
+      (match lex with
+       | "\\n" -> Buffer.add_char buffer '\n'
+       | "\\r" -> Buffer.add_char buffer '\r'
+       | "\\t" -> Buffer.add_char buffer '\t'
+       | "\\\\" -> Buffer.add_char buffer '\\'
+       | "\\0" -> Buffer.add_char buffer '\000'
+       | _ ->
+           (* Handle hexadecimal escape \xNN *)
+           let hex_code = String.sub lex 2 2 in
+           let code = int_of_string ("0x" ^ hex_code) in
+           Buffer.add_char buffer (Char.chr code));
       read_string buffer buf
 
   (* Handle Unicode escape \u{NNNN} *)
