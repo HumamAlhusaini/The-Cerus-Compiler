@@ -6,6 +6,8 @@ Parameter loc : Type.
 
 Parameter str : Type.
 
+Parameter char_code : Type.
+
 Inductive top_level :=
   | IDENTIFIER : identifier -> top_level
 
@@ -20,4 +22,5 @@ Require Import ExtrOcamlString.
 
 Extract Constant loc => "int * int".
 Extract Constant str => "string".
+Extract Constant char_code => "int64".
 

@@ -5,6 +5,21 @@ let string_of_loc loc =
   match loc with
   x,y -> Printf.sprintf "column: %d, offset: %n" x y
 
+
+
+let utf8_of_char_code_list (codes : int64 list) : string =
+  let buf = Buffer.create 16 in
+  Stdlib.List.iter
+    (fun code ->
+      let i = Int64.to_int code in
+      if Uchar.is_valid i then
+        Buffer.add_utf_8_uchar buf (Uchar.of_int i)
+      else
+        Buffer.add_utf_8_uchar buf (Uchar.of_int 0xFFFD)
+    )
+    codes;
+  Buffer.contents buf
+
 let string_of_token = function
   | Parser.IDENT (Cabs.Raw_Ident x, loc) -> Printf.sprintf "RAW_IDENT (%s), loc: %s" x (string_of_loc loc)
   | Parser.IDENT (Cabs.Ident x, loc) -> Printf.sprintf "IDENT (%s), loc: %s" x (string_of_loc loc)
@@ -108,5 +123,7 @@ let string_of_token = function
   | Parser.RBRACK loc -> Printf.sprintf "RBRACK, loc: %s" (string_of_loc loc)
   | Parser.LPAREN loc ->  Printf.sprintf"LPAREN, loc: %s" (string_of_loc loc)
   | Parser.RPAREN loc -> Printf.sprintf "RPAREN, loc: %s" (string_of_loc loc)
-  | Parser.STRING_LIT (str, loc) -> Printf.sprintf "STRING_LIT(%s), loc: %s" str (string_of_loc loc)
+  | Parser.STRING_LIT (str, loc) ->
+    let utf8_str = utf8_of_char_code_list str in
+      Printf.sprintf "STRING_LIT(%s), loc: %s" utf8_str (string_of_loc loc)
   | Parser.EOF loc -> "EOF"

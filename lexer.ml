@@ -97,6 +97,14 @@ let suffix = [%sedlex.regexp? identifier_or_keyword]
 
 let suffix_no_e = [%sedlex.regexp? suffix]
 
+let string_to_char_code_list (s : string) : Cabs.char_code list =
+  let len = String.length s in
+  let rec aux i acc =
+    if i < 0 then acc
+    else aux (i - 1) (Int64.of_int (Char.code s.[i]) :: acc)
+  in
+  aux (len - 1) []
+
 let rec token buf =
   match%sedlex buf with
     | white_space -> token buf
@@ -177,7 +185,7 @@ let rec token buf =
 
 and read_string buffer buf =
   match%sedlex buf with
-  | "\""   ->    STRING_LIT (Buffer.contents buffer, loc buf)
+  | "\""   ->    STRING_LIT (string_to_char_code_list (Buffer.contents buffer), loc buf)
   | '\\', 'n'  -> Buffer.add_char buffer '\n'; read_string buffer buf
 | Plus (Compl (Chars "\"\\")) ->
     Buffer.add_string buffer (Utf8.lexeme buf);
