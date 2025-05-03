@@ -31,7 +31,7 @@ Require Import Proj.Cabs.
 %token<Cabs.loc> LBRACE RBRACE LBRACK RBRACK LPAREN RPAREN 
 
 %token<Cabs.identifier * Cabs.loc> IDENT
-%token<list Cabs.char_code * Cabs.loc> STRING_LIT RAW_STRING_LIT BYTE_STRING
+%token<list Cabs.char_code * Cabs.loc> STRING_LIT RAW_STRING_LIT BYTE_STRING RAW_BYTE_STRING
 %token<Cabs.char_code * Cabs.loc> CHAR_LIT BYTE
 
 %token EOF

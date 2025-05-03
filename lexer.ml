@@ -185,6 +185,7 @@ let rec token buf =
     | "r#\""-> read_raw_string (Buffer.create 17) buf
     | "b'" -> read_byte (Buffer.create 17) buf
     | "b\"" -> read_byte_string (Buffer.create 17) buf
+    | "br#\"" -> read_raw_byte_string (Buffer.create 17) buf
     | eof -> EOF ()
     | _ -> failwith "Internal failure: Reached impossible place"
 
@@ -194,6 +195,18 @@ and read_raw_string buffer buf =
     | Plus (Compl (Chars "\"\\\n\r\t")) -> 
       Buffer.add_string buffer (Utf8.lexeme buf);
       read_raw_string buffer buf
+
+    (* Handle end of string or malformed string *)
+    | eof -> failwith "raw string is not terminated"
+    | _ -> failwith "illegal raw string char"
+
+
+and read_raw_byte_string buffer buf =
+  match%sedlex buf with
+    | "\"#"   -> RAW_BYTE_STRING (string_to_char_code_list (Buffer.contents buffer), loc buf)
+    | Plus (Compl (Chars "\"\\\n\r\t")) -> 
+      Buffer.add_string buffer (Utf8.lexeme buf);
+      read_raw_byte_string buffer buf
 
     (* Handle end of string or malformed string *)
     | eof -> failwith "raw string is not terminated"
