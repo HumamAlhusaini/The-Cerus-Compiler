@@ -1,5 +1,14 @@
-"Quote: \n and \" are valid."
-
-"Hex A: \x41, Hex newline: \x0A"
-
-"Unicode snowman: \u{2603}, Rocket: \u{1F680}, Music note: \u{266B}"
+'\n'
+'Z'
+'9'
+' '
+'~'
+'\n'
+'\r'
+'\t'
+'\\'
+'\''
+'\0'
+'\x7F'
+'🔥'
+' '

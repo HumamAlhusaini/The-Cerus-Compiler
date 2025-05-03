@@ -1,11 +1,17 @@
   open Parser
   open Cabs
+  open Uchar
 
 let string_of_loc loc =
   match loc with
   x,y -> Printf.sprintf "column: %d, offset: %n" x y
 
-
+let uchar_of_int64 (i : int64) : Uchar.t =
+  let n = Int64.to_int i in
+  if not (Uchar.is_valid n) then
+    failwith "int64 value out of valid Unicode scalar range"
+  else
+    Uchar.of_int n
 
 let utf8_of_char_code_list (codes : int64 list) : string =
   let buf = Buffer.create 16 in
@@ -126,4 +132,7 @@ let string_of_token = function
   | Parser.STRING_LIT (str, loc) ->
     let utf8_str = utf8_of_char_code_list str in
       Printf.sprintf "STRING_LIT(%s), loc: %s" utf8_str (string_of_loc loc)
+  | Parser.CHAR_LIT (str, loc) ->
+    let uchar = uchar_of_int64 str in
+      Printf.sprintf "CHAR_LIT(%c), loc: %s" (Uchar.to_char uchar) (string_of_loc loc)
   | Parser.EOF loc -> "EOF"
