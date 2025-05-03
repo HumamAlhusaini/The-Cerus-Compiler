@@ -108,4 +108,5 @@ let string_of_token = function
   | Parser.RBRACK loc -> Printf.sprintf "RBRACK, loc: %s" (string_of_loc loc)
   | Parser.LPAREN loc ->  Printf.sprintf"LPAREN, loc: %s" (string_of_loc loc)
   | Parser.RPAREN loc -> Printf.sprintf "RPAREN, loc: %s" (string_of_loc loc)
+  | Parser.STRING_LIT (str, loc) -> Printf.sprintf "STRING_LIT(%s), loc: %s" str (string_of_loc loc)
   | Parser.EOF loc -> "EOF"

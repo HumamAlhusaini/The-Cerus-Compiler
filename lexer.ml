@@ -3,6 +3,9 @@ open Sedlexing
 open Parser
 open Uchar
 
+let oct_digit = [%sedlex.regexp? '0'..'7']
+
+
 let keyword_token = function
   | "as", loc              -> AS loc
   | "break", loc           -> BREAK loc
@@ -47,61 +50,6 @@ let keyword_token = function
   | "static_lifetime", loc -> STATICLIFETIME loc
   | "safe", loc            -> SAFE loc
   | "raw", loc             -> RAW loc
-  (* Operators and symbols *)
-  | "+", loc               -> PLUS loc
-  | "-", loc               -> MINUS loc
-  | "*", loc               -> STAR loc
-  | "/", loc               -> SLASH loc
-  | "%", loc               -> PERCENT loc
-  | "^", loc               -> CARET loc
-  | "!", loc               -> NOT loc
-  | "&", loc               -> AND loc
-  | "|", loc               -> OR loc
-  | "&&", loc              -> ANDAND loc
-  | "||", loc              -> OROR loc
-  | "<<", loc              -> SHL loc
-  | ">>", loc              -> SHR loc
-  | "=", loc               -> EQ loc
-  | "+=", loc              -> PLUSEQ loc
-  | "-=", loc              -> MINUSEQ loc
-  | "*=", loc              -> STAREQ loc
-  | "/=", loc              -> SLASHEQ loc
-  | "%=", loc              -> PERCENTEQ loc
-  | "^=", loc              -> CARETEQ loc
-  | "&=", loc              -> ANDEQ loc
-  | "|=", loc              -> OREQ loc
-  | "<<=", loc             -> SHLEQ loc
-  | ">>=", loc             -> SHREQ loc
-  | "==", loc              -> EQEQ loc
-  | "!=", loc              -> NE loc
-  | "<", loc               -> LT loc
-  | ">", loc               -> GT loc
-  | "<=", loc              -> LE loc
-  | ">=", loc              -> GE loc
-  | "@", loc               -> AT loc
-  | "_", loc               -> UNDERSCORE loc
-  | ".", loc               -> DOT loc
-  | "..", loc              -> DOTDOT loc
-  | "...", loc             -> DOTDOTDOT loc
-  | "..=", loc             -> DOTDOTEQ loc
-  | ",", loc               -> COMMA loc
-  | ";", loc               -> SEMI loc
-  | ":", loc               -> COLON loc
-  | "::", loc              -> PATHSEP loc
-  | "->", loc              -> RARROW loc
-  | "=>", loc              -> FATARROW loc
-  | "<-", loc              -> LARROW loc
-  | "#", loc               -> POUND loc
-  | "$", loc               -> DOLLAR loc
-  | "?", loc               -> QUESTION loc
-  | "~", loc               -> TILDE loc
-  (* Parentheses and braces *)
-  | "{", loc               -> LBRACE loc
-  | "}", loc               -> RBRACE loc
-  | "[", loc               -> LBRACK loc
-  | "]", loc               -> RBRACK loc
-  | "(", loc               -> LPAREN loc
-  | ")", loc               -> RPAREN loc
   | _                      -> failwith "Unrecognized keyword"
 
 (* Convert a Uchar.t array to a string *)
@@ -119,6 +67,16 @@ let rust_keywords = [
   "struct"; "super"; "trait"; "true"; "type"; "unsafe"; "use"; "where"; "while"
 ]
 
+let ascii_escape = [%sedlex.regexp?
+  "\\n" | "\\r" | "\\t" | "\\\\" | "\\0" | "\\x", hex_digit, hex_digit]
+
+let byte_escape = [%sedlex.regexp?
+  "\\n" | "\\r" | "\\t" | "\\\\" | "\\0" | "\\x", hex_digit, hex_digit]
+
+let unicode_escape = [%sedlex.regexp? "\\u{" , Plus hex_digit , '}']
+
+let quote_escape = [%sedlex.regexp? "\\\'" | "\\\""]
+
 let is_keyword id = Stdlib.List.mem id rust_keywords
 
 let is_reserved_keyword id = is_keyword id || id = "_"
@@ -134,6 +92,10 @@ let raw_identifier =
 (* You can refine this with an actual keyword check in the lexer logic *)
 let reserved_raw_identifier =
   [%sedlex.regexp? "r#_"]
+
+let suffix = [%sedlex.regexp? identifier_or_keyword]
+
+let suffix_no_e = [%sedlex.regexp? suffix]
 
 let rec token buf =
   match%sedlex buf with
@@ -155,7 +117,70 @@ let rec token buf =
         keyword_token (id, loc buf)
       else
           IDENT (Ident id, loc buf)
-      | eof -> EOF ()
-      | _ -> failwith "Internal failure: Reached impossible place"
+    (* Operators and symbols *)
+    | "==" -> EQEQ (loc buf)
+    | "!=" -> NE (loc buf)
+    | "<=" -> LE (loc buf)
+    | ">=" -> GE (loc buf)
+    | "<<=" -> SHLEQ (loc buf)
+    | ">>=" -> SHREQ (loc buf)
+    | "+=" -> PLUSEQ (loc buf)
+    | "-=" -> MINUSEQ (loc buf)
+    | "*=" -> STAREQ (loc buf)
+    | "/=" -> SLASHEQ (loc buf)
+    | "%=" -> PERCENTEQ (loc buf)
+    | "^=" -> CARETEQ (loc buf)
+    | "&=" -> ANDEQ (loc buf)
+    | "|=" -> OREQ (loc buf)
+    | "&&" -> ANDAND (loc buf)
+    | "||" -> OROR (loc buf)
+    | "<<" -> SHL (loc buf)
+    | ">>" -> SHR (loc buf)
+    | "->" -> RARROW (loc buf)
+    | "=>" -> FATARROW (loc buf)
+    | "<-" -> LARROW (loc buf)
+    | "::" -> PATHSEP (loc buf)
+    | "..." -> DOTDOTDOT (loc buf)
+    | "..=" -> DOTDOTEQ (loc buf)
+    | ".." -> DOTDOT (loc buf)
+    | "+" -> PLUS (loc buf)
+    | "-" -> MINUS (loc buf)
+    | "*" -> STAR (loc buf)
+    | "/" -> SLASH (loc buf)
+    | "%" -> PERCENT (loc buf)
+    | "^" -> CARET (loc buf)
+    | "!" -> NOT (loc buf)
+    | "&" -> AND (loc buf)
+    | "|" -> OR (loc buf)
+    | "=" -> EQ (loc buf)
+    | "<" -> LT (loc buf)
+    | ">" -> GT (loc buf)
+    | "@" -> AT (loc buf)
+    | "_" -> UNDERSCORE (loc buf)
+    | "." -> DOT (loc buf)
+    | "," -> COMMA (loc buf)
+    | ";" -> SEMI (loc buf)
+    | ":" -> COLON (loc buf)
+    | "#" -> POUND (loc buf)
+    | "$" -> DOLLAR (loc buf)
+    | "?" -> QUESTION (loc buf)
+    | "~" -> TILDE (loc buf)
+    | "{" -> LBRACE (loc buf)
+    | "}" -> RBRACE (loc buf)
+    | "[" -> LBRACK (loc buf)
+    | "]" -> RBRACK (loc buf)
+    | "(" -> LPAREN (loc buf)
+    | ")" -> RPAREN (loc buf)
+    | '"' -> read_string (Buffer.create 17) buf 
+    | eof -> EOF ()
+    | _ -> failwith "Internal failure: Reached impossible place"
 
-
+and read_string buffer buf =
+  match%sedlex buf with
+  | "\""   ->    STRING_LIT (Buffer.contents buffer, loc buf)
+  | '\\', 'n'  -> Buffer.add_char buffer '\n'; read_string buffer buf
+| Plus (Compl (Chars "\"\\")) ->
+    Buffer.add_string buffer (Utf8.lexeme buf);
+    read_string buffer buf
+  | eof -> failwith "String is not terminated"
+  | _ -> failwith "illegal string char"
