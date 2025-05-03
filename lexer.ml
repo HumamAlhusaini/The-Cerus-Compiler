@@ -185,10 +185,38 @@ let rec token buf =
 
 and read_string buffer buf =
   match%sedlex buf with
-  | "\""   ->    STRING_LIT (string_to_char_code_list (Buffer.contents buffer), loc buf)
-  | '\\', 'n'  -> Buffer.add_char buffer '\n'; read_string buffer buf
-| Plus (Compl (Chars "\"\\")) ->
-    Buffer.add_string buffer (Utf8.lexeme buf);
-    read_string buffer buf
+  | "\""   -> STRING_LIT (string_to_char_code_list (Buffer.contents buffer), loc buf)
+  | quote_escape ->
+      let lex = Utf8.lexeme buf in
+      (* Here, we check the matched escape and handle accordingly *)
+      if lex = "\\\"" then
+        Buffer.add_char buffer '\"'
+      else if lex = "\\\'" then
+        Buffer.add_char buffer '\''
+      else
+        failwith "Unexpected quote escape sequence";
+      read_string buffer buf
+
+  (* Handle ASCII hexadecimal escape \xNN *)
+  | ascii_escape ->
+      let lex = Utf8.lexeme buf in
+      let code = int_of_string ("0x" ^ String.sub lex 2 2) in
+      Buffer.add_char buffer (Char.chr code);
+      read_string buffer buf
+
+  (* Handle Unicode escape \u{NNNN} *)
+  | unicode_escape ->
+      let lex = Utf8.lexeme buf in
+      let inner = String.sub lex 3 (String.length lex - 4) in
+      let code = int_of_string ("0x" ^ inner) in
+      Buffer.add_utf_8_uchar buffer (Uchar.of_int code);
+      read_string buffer buf
+
+  (* Handle any other non-special characters *)
+  | Plus (Compl (Chars "\"\\\n\r\t")) -> 
+      Buffer.add_string buffer (Utf8.lexeme buf);
+      read_string buffer buf
+
+  (* Handle end of string or malformed string *)
   | eof -> failwith "String is not terminated"
   | _ -> failwith "illegal string char"
