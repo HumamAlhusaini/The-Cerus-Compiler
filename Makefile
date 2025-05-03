@@ -16,7 +16,7 @@ VFILES = Cabs.v $(PARSER_OUTPUT) extraction.v
 VOFILES := $(VFILES:.v=.vo)
 
 # Default target
-all: $(VOFILES) ocaml-build
+all: $(VOFILES) ocaml-build clean
 
 # Generate Parser.v from Parser.vy
 $(PARSER_OUTPUT): $(PARSER_SOURCE)
@@ -55,7 +55,7 @@ clean:
 	rm -f *.vo *.glob *.vok *.vos .*.aux .depend \
 	      MenhirLib/*.vo MenhirLib/*.vos MenhirLib/*.glob MenhirLib/*.vok \
 	      Parser.v Parser.mli Parser.ml enter.byte \
-	      *.native *.byte *.o *.cm* *.d.byte *.d.native *.ml.d
+	      *.byte *.o *.cm* *.d.byte *.d.native *.ml.d
 	find $(EXTRACTED_DIR) -type f ! -name "_tags" -exec rm -f {} +
 
 -include .depend
