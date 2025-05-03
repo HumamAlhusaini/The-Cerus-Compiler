@@ -181,8 +181,23 @@ let rec token buf =
     | "(" -> LPAREN (loc buf)
     | ")" -> RPAREN (loc buf)
     | "'" -> read_char (Buffer.create 17) buf
-    | "\"" -> read_string (Buffer.create 17) buf   | eof -> EOF ()
+    | "\"" -> read_string (Buffer.create 17) buf 
+    | "r#\""-> read_raw_string (Buffer.create 17) buf
+    | "r#" -> LPAREN(loc buf)
+    | ""
+    | eof -> EOF ()
     | _ -> failwith "Internal failure: Reached impossible place"
+
+and read_raw_string buffer buf =
+  match%sedlex buf with
+    | "\"#"   -> RAW_STRING_LIT (string_to_char_code_list (Buffer.contents buffer), loc buf)
+    | Plus (Compl (Chars "\"\\\n\r\t")) -> 
+      Buffer.add_string buffer (Utf8.lexeme buf);
+      read_raw_string buffer buf
+
+    (* Handle end of string or malformed string *)
+    | eof -> failwith "raw string is not terminated"
+    | _ -> failwith "illegal raw string char"
 
 and read_string buffer buf =
   match%sedlex buf with

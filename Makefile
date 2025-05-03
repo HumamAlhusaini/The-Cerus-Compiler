@@ -58,14 +58,4 @@ clean:
 	      *.native *.byte *.o *.cm* *.d.byte *.d.native *.ml.d
 	find $(EXTRACTED_DIR) -type f ! -name "_tags" -exec rm -f {} +
 
-test_lexer:
-	@echo "Creating test input file..."
-	@printf "'a'\n'\\n'\n'\\t'\n'\\\\'\n'\\''\n'🔥'\n'\\x41'\n'\\x7F'\n'\\0'\n'\\u{1F525}'\n''\n'ab'\n'\\xZZ'\n'\\u{110000}'\n'🔥bar'\n\"Hello, world\"\n\"String with newline\\n\"\n\"Tab:\\tEnd\"\n\"Quote: \\\" and Backslash: \\\\\"\n\"Emoji: 🔥\"\n\"Hex: \\x41\\x42\\x43\"\n\"Unicode: \\u{1F525}\\u{1F600}\"\n" > test_input.txt
-
-	@echo "Running lexer..."
-	@./enter.native test_input.txt || echo "Lexer failed or returned error"
-
-	@echo "Cleaning up..."
-	@rm -f test_input.txt
-
 -include .depend
