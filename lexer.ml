@@ -183,8 +183,8 @@ let rec token buf =
     | "'" -> read_char (Buffer.create 17) buf
     | "\"" -> read_string (Buffer.create 17) buf 
     | "r#\""-> read_raw_string (Buffer.create 17) buf
-    | "r#" -> LPAREN(loc buf)
-    | ""
+    | "b'" -> read_byte (Buffer.create 17) buf
+    | "b\"" -> read_byte_string (Buffer.create 17) buf
     | eof -> EOF ()
     | _ -> failwith "Internal failure: Reached impossible place"
 
@@ -247,7 +247,6 @@ and read_string buffer buf =
   | eof -> failwith "String is not terminated"
   | _ -> failwith "illegal strin char"
 
-(*RUST ALREADY CHECKS FOR VALID CHARS, NO NEED TO COMPLICATE IT*)
 and read_char buffer buf =
   match%sedlex buf with
   (* Handle quote escapes *)
@@ -304,3 +303,65 @@ and read_char buffer buf =
   
   (* Handle illegal character literal *)
   | _ -> failwith "Illegal character literal"
+
+and read_byte buffer buf =
+  match%sedlex buf with
+  | byte_escape, "'" ->
+    let l = Utf8.lexeme buf in
+    let lex = String.sub l 0 (String.length l - 1) in (* Remove the trailing quote mark *)
+    (match lex with
+     | "\\n" -> Buffer.add_char buffer '\n'; BYTE (Int64.of_int (Char.code '\n'), loc buf)
+     | "\\r" -> Buffer.add_char buffer '\r'; BYTE (Int64.of_int (Char.code '\r'), loc buf)
+     | "\\t" -> Buffer.add_char buffer '\t'; BYTE (Int64.of_int (Char.code '\t'), loc buf)
+     | "\\\\" -> Buffer.add_char buffer '\\'; BYTE (Int64.of_int (Char.code '\\'), loc buf)
+     | "\\0" -> Buffer.add_char buffer '\000'; BYTE (Int64.of_int (Char.code '\000'), loc buf)
+     | _ -> 
+         let hex_code = String.sub lex 2 2 in
+         let code = int_of_string ("0x" ^ hex_code) in
+         if code < 0 || code > 127 then
+           failwith "Byte escape out of ASCII range";
+         Buffer.add_char buffer (Char.chr code);
+         BYTE (Int64.of_int code, loc buf))
+      
+  (* Handle normal, printable characters inside char literal *)
+  | Compl (Chars "'\\\n\r\t"), "'" ->
+      let l = Utf8.lexeme buf in
+      let lex = String.sub l 0 (String.length l - 1) in (* Remove the trailing quote mark *)
+      Buffer.add_char buffer lex.[0];
+      BYTE (Int64.of_int (Char.code lex.[0]), loc buf)
+
+  (* Handle end-of-file or malformed char *)
+  | eof -> failwith "Character literal is not terminated"
+  
+  (* Handle illegal character literal *)
+  | _ -> failwith "Illegal character literal"
+
+and read_byte_string buffer buf =
+  match%sedlex buf with
+  | "\"" -> BYTE_STRING (string_to_char_code_list (Buffer.contents buffer), loc buf)
+  | byte_escape ->
+      let lex = Utf8.lexeme buf in
+      (* Process the matched escape sequence and convert to the correct character *)
+      (match lex with
+       | "\\n" -> Buffer.add_char buffer '\n'
+       | "\\r" -> Buffer.add_char buffer '\r'
+       | "\\t" -> Buffer.add_char buffer '\t'
+       | "\\\\" -> Buffer.add_char buffer '\\'
+       | "\\0" -> Buffer.add_char buffer '\000'
+       | _ ->
+           (* Handle hexadecimal escape \xNN *)
+           let hex_code = String.sub lex 2 2 in
+           let code = int_of_string ("0x" ^ hex_code) in
+           Buffer.add_char buffer (Char.chr code));
+      read_byte_string buffer buf
+
+  | Plus (Compl (Chars "\"\\\n\r\t")) ->
+      let s = Utf8.lexeme buf in
+      if String.for_all (fun c -> Char.code c <= 127) s then
+        Buffer.add_string buffer s
+      else
+        failwith "Non-ASCII character in byte string";
+      read_byte_string buffer buf
+
+  | eof -> failwith "String is not terminated"
+  | _ -> failwith "Illegal string character"
