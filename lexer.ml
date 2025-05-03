@@ -185,9 +185,22 @@ let rec token buf =
     | "r#\""-> read_raw_string (Buffer.create 17) buf
     | "b'" -> read_byte (Buffer.create 17) buf
     | "b\"" -> read_byte_string (Buffer.create 17) buf
+    | "c\"" -> read_c_string (Buffer.create 17) buf
     | "br#\"" -> read_raw_byte_string (Buffer.create 17) buf
+    | "cr#\"" -> read_raw_c_string (Buffer.create 17) buf
     | eof -> EOF ()
     | _ -> failwith "Internal failure: Reached impossible place"
+
+and read_raw_c_string buffer buf =
+  match%sedlex buf with
+    | "\"#"   -> RAW_C_STRING (string_to_char_code_list (Buffer.contents buffer), loc buf)
+    | Plus (Compl (Chars "\"\\\n\r\t")) -> 
+      Buffer.add_string buffer (Utf8.lexeme buf);
+      read_raw_c_string buffer buf
+
+    (* Handle end of string or malformed string *)
+    | eof -> failwith "raw string is not terminated"
+    | _ -> failwith "illegal raw string char"
 
 and read_raw_string buffer buf =
   match%sedlex buf with
@@ -336,6 +349,19 @@ and read_byte buffer buf =
          Buffer.add_char buffer (Char.chr code);
          BYTE (Int64.of_int code, loc buf))
       
+    | quote_escape, "'" ->
+      let l = Utf8.lexeme buf in
+      let lex = String.sub l 0 (String.length l - 1) in (* Remove the trailing quote mark *)
+
+      (* Check the matched escape and handle accordingly *)
+      if lex = "\\\"" then begin
+        Buffer.add_char buffer '\"';
+        CHAR_LIT (Int64.of_int (Char.code '\"'), loc buf)
+      end else if lex = "\\\'" then begin
+        Buffer.add_char buffer '\'';
+        CHAR_LIT (Int64.of_int (Char.code '\''), loc buf)
+      end else
+        failwith "Unexpected quote escape sequence"
   (* Handle normal, printable characters inside char literal *)
   | Compl (Chars "'\\\n\r\t"), "'" ->
       let l = Utf8.lexeme buf in
@@ -367,7 +393,16 @@ and read_byte_string buffer buf =
            let code = int_of_string ("0x" ^ hex_code) in
            Buffer.add_char buffer (Char.chr code));
       read_byte_string buffer buf
-
+  | quote_escape ->
+      let lex = Utf8.lexeme buf in
+      (* Here, we check the matched escape and handle accordingly *)
+      if lex = "\\\"" then
+        Buffer.add_char buffer '\"'
+      else if lex = "\\\'" then
+        Buffer.add_char buffer '\''
+      else
+        failwith "Unexpected quote escape sequence";
+      read_byte_string buffer buf
   | Plus (Compl (Chars "\"\\\n\r\t")) ->
       let s = Utf8.lexeme buf in
       if String.for_all (fun c -> Char.code c <= 127) s then
@@ -375,6 +410,53 @@ and read_byte_string buffer buf =
       else
         failwith "Non-ASCII character in byte string";
       read_byte_string buffer buf
+
+  | eof -> failwith "String is not terminated"
+  | _ -> failwith "Illegal string character"
+
+and read_c_string buffer buf =
+  match%sedlex buf with
+  | "\"" -> C_STRING (string_to_char_code_list (Buffer.contents buffer), loc buf)
+  | byte_escape ->
+      let lex = Utf8.lexeme buf in
+      (* Process the matched escape sequence and convert to the correct character *)
+      (match lex with
+       | "\\n" -> Buffer.add_char buffer '\n'
+       | "\\r" -> Buffer.add_char buffer '\r'
+       | "\\t" -> Buffer.add_char buffer '\t'
+       | "\\\\" -> Buffer.add_char buffer '\\'
+       | "\\0" -> Buffer.add_char buffer '\000'
+       | _ ->
+           (* Handle hexadecimal escape \xNN *)
+           let hex_code = String.sub lex 2 2 in
+           let code = int_of_string ("0x" ^ hex_code) in
+           Buffer.add_char buffer (Char.chr code));
+      read_c_string buffer buf
+
+  | quote_escape ->
+      let lex = Utf8.lexeme buf in
+      (* Here, we check the matched escape and handle accordingly *)
+      if lex = "\\\"" then
+        Buffer.add_char buffer '\"'
+      else if lex = "\\\'" then
+        Buffer.add_char buffer '\''
+      else
+        failwith "Unexpected quote escape sequence";
+      read_c_string buffer buf
+  | unicode_escape ->
+      let lex = Utf8.lexeme buf in
+      let inner = String.sub lex 3 (String.length lex - 4) in
+      let code = int_of_string ("0x" ^ inner) in
+      Buffer.add_utf_8_uchar buffer (Uchar.of_int code);
+      read_string buffer buf
+
+  | Plus (Compl (Chars "\"\\\n\r\t")) ->
+      let s = Utf8.lexeme buf in
+      if String.for_all (fun c -> Char.code c <= 127) s then
+        Buffer.add_string buffer s
+      else
+        failwith "Non-ASCII character in byte string";
+      read_c_string buffer buf
 
   | eof -> failwith "String is not terminated"
   | _ -> failwith "Illegal string character"

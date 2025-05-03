@@ -141,6 +141,12 @@ let string_of_token = function
   | Parser.RAW_BYTE_STRING (str, loc) ->
     let utf8_str = utf8_of_char_code_list str in
       Printf.sprintf "RAW_BYTE_STRING(%s), loc: %s" utf8_str (string_of_loc loc)
+  | Parser.RAW_C_STRING (str, loc) ->
+    let utf8_str = utf8_of_char_code_list str in
+      Printf.sprintf "RAW_C_STRING(%s), loc: %s" utf8_str (string_of_loc loc)
+  | Parser.C_STRING (str, loc) ->
+    let utf8_str = utf8_of_char_code_list str in
+      Printf.sprintf "C_STRING(%s), loc: %s" utf8_str (string_of_loc loc)
   | Parser.BYTE (str, loc) ->
     let uchar = uchar_of_int64 str in
       Printf.sprintf "BYTE(%c), loc: %s" (Uchar.to_char uchar) (string_of_loc loc)
