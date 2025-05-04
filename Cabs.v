@@ -20,7 +20,7 @@ with identifier :=
 Require Import ExtrOcamlBasic.
 Require Import ExtrOcamlString.
 
-Extract Constant loc => "int * int".
+Extract Constant loc => "Lexing.position".
 Extract Constant str => "string".
 Extract Constant char_code => "int64".
 

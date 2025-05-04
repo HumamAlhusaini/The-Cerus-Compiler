@@ -116,76 +116,76 @@ let rec token buf =
   match%sedlex buf with
     | white_space -> token buf
     | '\n'        -> new_line buf; token buf
-    | reserved_raw_identifier -> RESERVED_RAW_IDENTIFIER (loc buf)
+    | reserved_raw_identifier -> RESERVED_RAW_IDENTIFIER (lexing_position_start buf)
     | raw_identifier ->
         let uArr = Sedlexing.lexeme buf in
           let id = uchar_array_to_string uArr in
         if is_reserved_keyword (String.sub id 2 ((String.length id) - 2)) then
-          IDENT (Raw_Ident id, loc buf)
+          IDENT (Raw_Ident id, lexing_position_start buf)
         else
-        IDENT (Ident id, loc buf)
+        IDENT (Ident id, lexing_position_start buf)
 
     | identifier_or_keyword ->
       let uArr = Sedlexing.lexeme buf in
           let id = uchar_array_to_string uArr in
       if is_keyword id then
-        keyword_token (id, loc buf)
+        keyword_token (id, lexing_position_start buf)
       else
-          IDENT (Ident id, loc buf)
+          IDENT (Ident id, lexing_position_start buf)
     (* Operators and symbols *)
-    | "==" -> EQEQ (loc buf)
-    | "!=" -> NE (loc buf)
-    | "<=" -> LE (loc buf)
-    | ">=" -> GE (loc buf)
-    | "<<=" -> SHLEQ (loc buf)
-    | ">>=" -> SHREQ (loc buf)
-    | "+=" -> PLUSEQ (loc buf)
-    | "-=" -> MINUSEQ (loc buf)
-    | "*=" -> STAREQ (loc buf)
-    | "/=" -> SLASHEQ (loc buf)
-    | "%=" -> PERCENTEQ (loc buf)
-    | "^=" -> CARETEQ (loc buf)
-    | "&=" -> ANDEQ (loc buf)
-    | "|=" -> OREQ (loc buf)
-    | "&&" -> ANDAND (loc buf)
-    | "||" -> OROR (loc buf)
-    | "<<" -> SHL (loc buf)
-    | ">>" -> SHR (loc buf)
-    | "->" -> RARROW (loc buf)
-    | "=>" -> FATARROW (loc buf)
-    | "<-" -> LARROW (loc buf)
-    | "::" -> PATHSEP (loc buf)
-    | "..." -> DOTDOTDOT (loc buf)
-    | "..=" -> DOTDOTEQ (loc buf)
-    | ".." -> DOTDOT (loc buf)
-    | "+" -> PLUS (loc buf)
-    | "-" -> MINUS (loc buf)
-    | "*" -> STAR (loc buf)
-    | "/" -> SLASH (loc buf)
-    | "%" -> PERCENT (loc buf)
-    | "^" -> CARET (loc buf)
-    | "!" -> NOT (loc buf)
-    | "&" -> AND (loc buf)
-    | "|" -> OR (loc buf)
-    | "=" -> EQ (loc buf)
-    | "<" -> LT (loc buf)
-    | ">" -> GT (loc buf)
-    | "@" -> AT (loc buf)
-   | "_" -> UNDERSCORE (loc buf)
-    | "." -> DOT (loc buf)
-    | "," -> COMMA (loc buf)
-    | ";" -> SEMI (loc buf)
-    | ":" -> COLON (loc buf)
-    | "#" -> POUND (loc buf)
-    | "$" -> DOLLAR (loc buf)
-    | "?" -> QUESTION (loc buf)
-    | "~" -> TILDE (loc buf)
-    | "{" -> LBRACE (loc buf)
-    | "}" -> RBRACE (loc buf)
-    | "[" -> LBRACK (loc buf)
-    | "]" -> RBRACK (loc buf)
-    | "(" -> LPAREN (loc buf)
-    | ")" -> RPAREN (loc buf)
+    | "==" -> EQEQ (lexing_position_start buf)
+    | "!=" -> NE (lexing_position_start buf)
+    | "<=" -> LE (lexing_position_start buf)
+    | ">=" -> GE (lexing_position_start buf)
+    | "<<=" -> SHLEQ (lexing_position_start buf)
+    | ">>=" -> SHREQ (lexing_position_start buf)
+    | "+=" -> PLUSEQ (lexing_position_start buf)
+    | "-=" -> MINUSEQ (lexing_position_start buf)
+    | "*=" -> STAREQ (lexing_position_start buf)
+    | "/=" -> SLASHEQ (lexing_position_start buf)
+    | "%=" -> PERCENTEQ (lexing_position_start buf)
+    | "^=" -> CARETEQ (lexing_position_start buf)
+    | "&=" -> ANDEQ (lexing_position_start buf)
+    | "|=" -> OREQ (lexing_position_start buf)
+    | "&&" -> ANDAND (lexing_position_start buf)
+    | "||" -> OROR (lexing_position_start buf)
+    | "<<" -> SHL (lexing_position_start buf)
+    | ">>" -> SHR (lexing_position_start buf)
+    | "->" -> RARROW (lexing_position_start buf)
+    | "=>" -> FATARROW (lexing_position_start buf)
+    | "<-" -> LARROW (lexing_position_start buf)
+    | "::" -> PATHSEP (lexing_position_start buf)
+    | "..." -> DOTDOTDOT (lexing_position_start buf)
+    | "..=" -> DOTDOTEQ (lexing_position_start buf)
+    | ".." -> DOTDOT (lexing_position_start buf)
+    | "+" -> PLUS (lexing_position_start buf)
+    | "-" -> MINUS (lexing_position_start buf)
+    | "*" -> STAR (lexing_position_start buf)
+    | "/" -> SLASH (lexing_position_start buf)
+    | "%" -> PERCENT (lexing_position_start buf)
+    | "^" -> CARET (lexing_position_start buf)
+    | "!" -> NOT (lexing_position_start buf)
+    | "&" -> AND (lexing_position_start buf)
+    | "|" -> OR (lexing_position_start buf)
+    | "=" -> EQ (lexing_position_start buf)
+    | "<" -> LT (lexing_position_start buf)
+    | ">" -> GT (lexing_position_start buf)
+    | "@" -> AT (lexing_position_start buf)
+   | "_" -> UNDERSCORE (lexing_position_start buf)
+    | "." -> DOT (lexing_position_start buf)
+    | "," -> COMMA (lexing_position_start buf)
+    | ";" -> SEMI (lexing_position_start buf)
+    | ":" -> COLON (lexing_position_start buf)
+    | "#" -> POUND (lexing_position_start buf)
+    | "$" -> DOLLAR (lexing_position_start buf)
+    | "?" -> QUESTION (lexing_position_start buf)
+    | "~" -> TILDE (lexing_position_start buf)
+    | "{" -> LBRACE (lexing_position_start buf)
+    | "}" -> RBRACE (lexing_position_start buf)
+    | "[" -> LBRACK (lexing_position_start buf)
+    | "]" -> RBRACK (lexing_position_start buf)
+    | "(" -> LPAREN (lexing_position_start buf)
+    | ")" -> RPAREN (lexing_position_start buf)
     | "'" -> read_char (Buffer.create 17) buf
     | "\"" -> read_string (Buffer.create 17) buf 
     | "r#\""-> read_raw_string (Buffer.create 17) buf
@@ -199,7 +199,7 @@ let rec token buf =
 
 and read_raw_c_string buffer buf =
   match%sedlex buf with
-    | "\"#"   -> RAW_C_STRING (string_to_char_code_list (Buffer.contents buffer), loc buf)
+    | "\"#"   -> RAW_C_STRING (string_to_char_code_list (Buffer.contents buffer), lexing_position_start buf)
     | Plus (Compl (Chars "\"\\\n\r\t")) -> 
       Buffer.add_string buffer (Utf8.lexeme buf);
       read_raw_c_string buffer buf
@@ -210,7 +210,7 @@ and read_raw_c_string buffer buf =
 
 and read_raw_string buffer buf =
   match%sedlex buf with
-    | "\"#"   -> RAW_STRING_LIT (string_to_char_code_list (Buffer.contents buffer), loc buf)
+    | "\"#"   -> RAW_STRING_LIT (string_to_char_code_list (Buffer.contents buffer), lexing_position_start buf)
     | Plus (Compl (Chars "\"\\\n\r\t")) -> 
       Buffer.add_string buffer (Utf8.lexeme buf);
       read_raw_string buffer buf
@@ -222,7 +222,7 @@ and read_raw_string buffer buf =
 
 and read_raw_byte_string buffer buf =
   match%sedlex buf with
-    | "\"#"   -> RAW_BYTE_STRING (string_to_char_code_list (Buffer.contents buffer), loc buf)
+    | "\"#"   -> RAW_BYTE_STRING (string_to_char_code_list (Buffer.contents buffer), lexing_position_start buf)
     | Plus (Compl (Chars "\"\\\n\r\t")) -> 
       Buffer.add_string buffer (Utf8.lexeme buf);
       read_raw_byte_string buffer buf
@@ -233,7 +233,7 @@ and read_raw_byte_string buffer buf =
 
 and read_string buffer buf =
   match%sedlex buf with
-  | "\""   -> STRING_LIT (string_to_char_code_list (Buffer.contents buffer), loc buf)
+  | "\""   -> STRING_LIT (string_to_char_code_list (Buffer.contents buffer), lexing_position_start buf)
   | quote_escape ->
       let lex = Utf8.lexeme buf in
       (* Here, we check the matched escape and handle accordingly *)
@@ -289,10 +289,10 @@ and read_char buffer buf =
       (* Check the matched escape and handle accordingly *)
       if lex = "\\\"" then begin
         Buffer.add_char buffer '\"';
-        CHAR_LIT (Int64.of_int (Char.code '\"'), loc buf)
+        CHAR_LIT (Int64.of_int (Char.code '\"'), lexing_position_start buf)
       end else if lex = "\\\'" then begin
         Buffer.add_char buffer '\'';
-        CHAR_LIT (Int64.of_int (Char.code '\''), loc buf)
+        CHAR_LIT (Int64.of_int (Char.code '\''), lexing_position_start buf)
       end else
         failwith "Unexpected quote escape sequence"
 
@@ -302,17 +302,17 @@ and read_char buffer buf =
       let lex = String.sub l 0 (String.length l - 1) in (* Remove the trailing quote mark *)
       (* Process the matched escape sequence and convert to the correct character *)
       (match lex with
-       | "\\n" -> Buffer.add_char buffer '\n'; CHAR_LIT (Int64.of_int (Char.code '\n'), loc buf)
-       | "\\r" -> Buffer.add_char buffer '\r'; CHAR_LIT (Int64.of_int (Char.code '\r'), loc buf)
-       | "\\t" -> Buffer.add_char buffer '\t'; CHAR_LIT (Int64.of_int (Char.code '\t'), loc buf)
-       | "\\\\" -> Buffer.add_char buffer '\\'; CHAR_LIT (Int64.of_int (Char.code '\\'), loc buf)
-       | "\\0" -> Buffer.add_char buffer '\000'; CHAR_LIT (Int64.of_int (Char.code '\000'), loc buf)
+       | "\\n" -> Buffer.add_char buffer '\n'; CHAR_LIT (Int64.of_int (Char.code '\n'), lexing_position_start buf)
+       | "\\r" -> Buffer.add_char buffer '\r'; CHAR_LIT (Int64.of_int (Char.code '\r'), lexing_position_start buf)
+       | "\\t" -> Buffer.add_char buffer '\t'; CHAR_LIT (Int64.of_int (Char.code '\t'), lexing_position_start buf)
+       | "\\\\" -> Buffer.add_char buffer '\\'; CHAR_LIT (Int64.of_int (Char.code '\\'), lexing_position_start buf)
+       | "\\0" -> Buffer.add_char buffer '\000'; CHAR_LIT (Int64.of_int (Char.code '\000'), lexing_position_start buf)
       | _ -> 
            (* Handle hexadecimal escape \xNN *)
            let hex_code = String.sub lex 2 2 in
            let code = int_of_string ("0x" ^ hex_code) in
            Buffer.add_char buffer (Char.chr code);
-           CHAR_LIT (Int64.of_int code, loc buf))
+           CHAR_LIT (Int64.of_int code, lexing_position_start buf))
 
   (* Handle Unicode escape \u{NNNN} *)
   | unicode_escape, "'" ->
@@ -321,14 +321,14 @@ and read_char buffer buf =
       let inner = String.sub lex 3 (String.length lex - 4) in
       let code = int_of_string ("0x" ^ inner) in
       Buffer.add_utf_8_uchar buffer (Uchar.of_int code);
-      CHAR_LIT (Int64.of_int code, loc buf)
+      CHAR_LIT (Int64.of_int code, lexing_position_start buf)
 
   (* Handle normal, printable characters inside char literal *)
   | Compl (Chars "'\\\n\r\t"), "'" ->
       let l = Utf8.lexeme buf in
       let lex = String.sub l 0 (String.length l - 1) in (* Remove the trailing quote mark *)
       Buffer.add_char buffer lex.[0];
-      CHAR_LIT (Int64.of_int (Char.code lex.[0]), loc buf)
+      CHAR_LIT (Int64.of_int (Char.code lex.[0]), lexing_position_start buf)
 
   (* Handle end-of-file or malformed char *)
   | eof -> failwith "Character literal is not terminated"
@@ -342,18 +342,18 @@ and read_byte buffer buf =
     let l = Utf8.lexeme buf in
     let lex = String.sub l 0 (String.length l - 1) in (* Remove the trailing quote mark *)
     (match lex with
-     | "\\n" -> Buffer.add_char buffer '\n'; BYTE (Int64.of_int (Char.code '\n'), loc buf)
-     | "\\r" -> Buffer.add_char buffer '\r'; BYTE (Int64.of_int (Char.code '\r'), loc buf)
-     | "\\t" -> Buffer.add_char buffer '\t'; BYTE (Int64.of_int (Char.code '\t'), loc buf)
-     | "\\\\" -> Buffer.add_char buffer '\\'; BYTE (Int64.of_int (Char.code '\\'), loc buf)
-     | "\\0" -> Buffer.add_char buffer '\000'; BYTE (Int64.of_int (Char.code '\000'), loc buf)
+     | "\\n" -> Buffer.add_char buffer '\n'; BYTE (Int64.of_int (Char.code '\n'), lexing_position_start buf)
+     | "\\r" -> Buffer.add_char buffer '\r'; BYTE (Int64.of_int (Char.code '\r'), lexing_position_start buf)
+     | "\\t" -> Buffer.add_char buffer '\t'; BYTE (Int64.of_int (Char.code '\t'), lexing_position_start buf)
+     | "\\\\" -> Buffer.add_char buffer '\\'; BYTE (Int64.of_int (Char.code '\\'), lexing_position_start buf)
+     | "\\0" -> Buffer.add_char buffer '\000'; BYTE (Int64.of_int (Char.code '\000'), lexing_position_start buf)
      | _ -> 
          let hex_code = String.sub lex 2 2 in
          let code = int_of_string ("0x" ^ hex_code) in
          if code < 0 || code > 127 then
            failwith "Byte escape out of ASCII range";
          Buffer.add_char buffer (Char.chr code);
-         BYTE (Int64.of_int code, loc buf))
+         BYTE (Int64.of_int code, lexing_position_start buf))
       
     | quote_escape, "'" ->
       let l = Utf8.lexeme buf in
@@ -362,10 +362,10 @@ and read_byte buffer buf =
       (* Check the matched escape and handle accordingly *)
       if lex = "\\\"" then begin
         Buffer.add_char buffer '\"';
-        CHAR_LIT (Int64.of_int (Char.code '\"'), loc buf)
+        CHAR_LIT (Int64.of_int (Char.code '\"'), lexing_position_start buf)
       end else if lex = "\\\'" then begin
         Buffer.add_char buffer '\'';
-        CHAR_LIT (Int64.of_int (Char.code '\''), loc buf)
+        CHAR_LIT (Int64.of_int (Char.code '\''), lexing_position_start buf)
       end else
         failwith "Unexpected quote escape sequence"
   (* Handle normal, printable characters inside char literal *)
@@ -373,7 +373,7 @@ and read_byte buffer buf =
       let l = Utf8.lexeme buf in
       let lex = String.sub l 0 (String.length l - 1) in (* Remove the trailing quote mark *)
       Buffer.add_char buffer lex.[0];
-      BYTE (Int64.of_int (Char.code lex.[0]), loc buf)
+      BYTE (Int64.of_int (Char.code lex.[0]), lexing_position_start buf)
 
   (* Handle end-of-file or malformed char *)
   | eof -> failwith "Character literal is not terminated"
@@ -383,7 +383,7 @@ and read_byte buffer buf =
 
 and read_byte_string buffer buf =
   match%sedlex buf with
-  | "\"" -> BYTE_STRING (string_to_char_code_list (Buffer.contents buffer), loc buf)
+  | "\"" -> BYTE_STRING (string_to_char_code_list (Buffer.contents buffer), lexing_position_start buf)
   | byte_escape ->
       let lex = Utf8.lexeme buf in
       (* Process the matched escape sequence and convert to the correct character *)
@@ -422,7 +422,7 @@ and read_byte_string buffer buf =
 
 and read_c_string buffer buf =
   match%sedlex buf with
-  | "\"" -> C_STRING (string_to_char_code_list (Buffer.contents buffer), loc buf)
+  | "\"" -> C_STRING (string_to_char_code_list (Buffer.contents buffer), lexing_position_start buf)
   | byte_escape ->
       let lex = Utf8.lexeme buf in
       (* Process the matched escape sequence and convert to the correct character *)

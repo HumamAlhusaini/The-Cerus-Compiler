@@ -2,9 +2,8 @@
   open Cabs
   open Uchar
 
-let string_of_loc loc =
-  match loc with
-  x,y -> Printf.sprintf "column: %d, offset: %n" x y
+let string_of_loc (loc : Lexing.position) =
+  Printf.sprintf "line: %d, offset: %d" loc.pos_lnum (loc.pos_cnum - loc.pos_bol)
 
 let uchar_of_int64 (i : int64) : Uchar.t =
   let n = Int64.to_int i in
