@@ -22,7 +22,7 @@ let oct_literal = [%sedlex.regexp? "0o", Star (oct_digit | underscore), oct_digi
 let hex_literal = [%sedlex.regexp? "0x", Star (hex_digit | underscore), hex_digit, Star (hex_digit | underscore)]
 
 let integer_literal = [%sedlex.regexp? (dec_literal | bin_literal | oct_literal | hex_literal), Opt suffix_no_e]
-
+ 
 let tuple_index = [%sedlex.regexp? integer_literal]
 
 let float_exponent =
@@ -30,6 +30,18 @@ let float_exponent =
 
 let float_literal = [%sedlex.regexp? dec_literal, '.' | dec_literal, '.', dec_literal, Opt suffix_no_e | dec_literal, Opt ('.',dec_literal),
   float_exponent, Opt suffix]
+
+let reserved_number =
+  [%sedlex.regexp?
+    (bin_literal, ('2'..'9')) |
+    (oct_literal, ('8'..'9')) |
+    (bin_literal | oct_literal | hex_literal), '.', Compl (xid_start | Chars "._") |
+    (bin_literal | oct_literal), ('e' | 'E') |
+    "0b", Star '_', (Compl (Chars "0123456789")) |
+    "0o", Star '_', (Compl (Chars "01234567")) |
+    "0x", Star '_', (Compl (Chars "0123456789abcdefABCDEF")) |
+    dec_literal, Opt ('.', dec_literal), ('e' | 'E'), Opt ('+' | '-')
+  ]
 
 let rust_keywords = [
   "as"; "break"; "const"; "continue"; "crate"; "else"; "enum"; "extern";
@@ -206,6 +218,7 @@ let rec token buf =
     | "c\"" -> read_c_string (Buffer.create 17) buf
     | "br#\"" -> read_raw_byte_string (Buffer.create 17) buf
     | "cr#\"" -> read_raw_c_string (Buffer.create 17) buf
+    | reserved_number -> failwith "issue with num literal"
     | integer_literal -> 
         let uArr = Sedlexing.lexeme buf in
           let x = uchar_array_to_string uArr in
