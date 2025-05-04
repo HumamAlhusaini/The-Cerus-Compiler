@@ -6,7 +6,7 @@ let identifier_or_keyword =
 
 let suffix = [%sedlex.regexp? identifier_or_keyword]
 
-let suffix_no_e = [%sedlex.regexp? suffix]
+let suffix_no_e = [%sedlex.regexp? Compl (Chars "eE"), suffix]
 
 let dec_digit = [%sedlex.regexp? '0'..'9']
 let bin_digit = [%sedlex.regexp? '0' | '1']
