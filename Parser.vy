@@ -33,6 +33,7 @@ Require Import Proj.Cabs.
 %token<Cabs.identifier * Cabs.loc> IDENT
 %token<list Cabs.char_code * Cabs.loc> STRING_LIT RAW_STRING_LIT BYTE_STRING RAW_BYTE_STRING RAW_C_STRING C_STRING
 %token<Cabs.char_code * Cabs.loc> CHAR_LIT BYTE
+%token<Cabs.constant * Cabs.loc> CONSTANT
 
 %token EOF
 

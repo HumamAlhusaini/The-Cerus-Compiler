@@ -10,6 +10,10 @@ Parameter char_code : Type.
 
 Inductive top_level :=
   | IDENTIFIER : identifier -> top_level
+  | CONSTANT : constant -> top_level
+
+with constant :=
+  | INT_LIT : str -> constant
 
 with identifier :=
   | Raw_Ident : str -> identifier

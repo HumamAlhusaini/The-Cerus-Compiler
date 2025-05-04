@@ -20,3 +20,18 @@ b"Quote: \" and Backslash: \\"
 br#"Raw byte string with quote inside"#
 c"Standard C-style string with newline\n"
 cr#"Raw C-string with quotes"#
+
+123dibs 123i32 123u32
+123_u32
+
+0xff;
+0xff_u8;
+0x01_f32;
+0x01_e3;
+
+0o70;
+0o70_i16;
+
+0b1111_1111_1001_0000;
+0b1111_1111_1001_0000i64;
+0b________1;

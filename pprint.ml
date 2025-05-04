@@ -152,4 +152,6 @@ let string_of_token = function
   | Parser.CHAR_LIT (str, loc) ->
     let uchar = uchar_of_int64 str in
       Printf.sprintf "CHAR_LIT(%c), loc: %s" (Uchar.to_char uchar) (string_of_loc loc)
+  | Parser.CONSTANT (Cabs.INT_LIT str, loc) ->
+      Printf.sprintf "INT_LIT(%s), loc %s" str (string_of_loc loc)
   | Parser.EOF loc -> "EOF"
