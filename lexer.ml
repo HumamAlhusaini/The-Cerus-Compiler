@@ -4,6 +4,13 @@ let underscore =  [%sedlex.regexp? '_']
 let identifier_or_keyword =
   [%sedlex.regexp? xid_start, Star xid_continue]
 
+let non_keyword_identifier =
+  [%sedlex.regexp?
+    xid_start, Star xid_continue, Compl (Chars " \t\n\r") |  (* Continue for any character that's not a space or newline *)
+    Compl (Chars "as break const continue crate else enum extern false fn for if impl in let                   
+     loop match mod move mut pub ref return selfvalue selftype static struct super trait true type unsafe use where while async await dyn           
+     macro_rules union static lifetime safe")]
+
 let suffix = [%sedlex.regexp? identifier_or_keyword]
 
 (* Suffix must be an identifier-like string that does NOT begin with e or E *)
@@ -67,8 +74,16 @@ let is_reserved_keyword id = is_keyword id || id = "_"
 
 let raw_identifier =[%sedlex.regexp? "r#", identifier_or_keyword]
 
-(* You can refine this with an actual keyword check in the lexer logic *)
 let reserved_raw_identifier = [%sedlex.regexp? "r#_"]
+
+let reserved_raw_lifetime = [%sedlex.regexp? "'r#_", Compl (Char "'")]
+
+let raw_lifetime = [%sedlex.regexp? "'r#", identifier_or_keyword, "'"]
+
+let lifetime_or_label = [%sedlex.regexp? "'", non_keyword_identifier, Compl (Char "'")]
+
+let lifetime_token = [%sedlex.regexp? "'", identifier_or_keyword, Compl (Char "'")
+  | "'_", Compl( Char "'") | raw_lifetime]
 
 open List
 open Sedlexing
