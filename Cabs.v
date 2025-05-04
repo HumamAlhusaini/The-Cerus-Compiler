@@ -2,15 +2,500 @@ From Stdlib Require Import String.
 From Stdlib Require Import Ascii.
 
 
+Inductive option (A : Type) : Type :=
+| Some : A -> option A
+| None : option A.
+
 Parameter loc : Type.
 
 Parameter str : Type.
 
 Parameter char_code : Type.
 
-Inductive top_level :=
-  | IDENTIFIER : identifier -> top_level
-  | CONSTANT : constant -> top_level
+Inductive item :=
+  | VISITEM : list outer_attribute -> visItem -> item
+  
+with outer_attribute :=
+  | OUTER_ATTRIBUTE : attr -> outer_attribute
+
+with inner_attribute :=
+  | INNER_ATTRIBUTE : attr -> inner_attribute
+
+with attr :=
+  | SAFE_ATTR : simple_path -> option attr_input -> attr
+  | UNSAFE_ATTR : simple_path -> option attr_input -> attr
+
+with attr_input :=
+  | ATTR_INPUT_EXP : expression -> attr_input
+
+(*  Expressions   *)
+with expression :=
+  | EXPRESSION_WITHOUT_BLOCK : expression_without_block -> expression
+  | EXPRESSION_WITH_BLOCK : expression_with_block -> expression
+
+with expression_without_block :=
+  | EXPRESSION_WITHOUT_BLOCK_CONSTRUCTOR : list outer_attribute -> type_expr_without_block -> expression_without_block
+
+with expression_with_block :=
+  | EXPRESSION_WITH_BLOCK_CONSTRUCTOR : list outer_attribute -> type_expr_with_block -> expression_with_block
+
+with type_expr_without_block :=
+  | LITERAL_EXPRESSION : literal_expression -> type_expr_without_block
+  | PATH_EXPRESSION : path_expression -> type_expr_without_block
+  | OPERATOR_EXPRESSION : operator_expression -> type_expr_without_block
+  | GROUPED_EXPRESSION : grouped_expression -> type_expr_without_block
+  | ARRAY_EXPRESSION : array_expression -> type_expr_without_block
+  | AWAIT_EXPRESSION : await_expression -> type_expr_without_block
+  | INDEX_EXPRESSION : index_expression -> type_expr_without_block
+  | TUPLE_EXPRESSION : tuple_expression -> type_expr_without_block
+  | TUPLE_INDEXING_EXPRESSION : tuple_indexing_expression -> type_expr_without_block
+  | STRUCT_EXPRESSION : struct_expression -> type_expr_without_block
+  | CALL_EXPRESSION : call_expression -> type_expr_without_block
+  | METHOD_CALL_EXPRESSION : method_call_expression -> type_expr_without_block
+  | FIELD_EXPRESSION : field_expression -> type_expr_without_block
+  | CLOSURE_EXPRESSION : closure_expression -> type_expr_with_block
+  | ASYNC_BLOCK_EXPRESSION : async_block_expression -> type_expr_with_block
+  | CONTINUE_EXPRESSION : continue_expression -> type_expr_without_block
+  | BREAK_EXPRESSION : break_expression -> type_expr_without_block
+  | RANGE_EXPRESSION : range_expression -> type_expr_without_block
+  | RETURN_EXPRESSION : return_expression -> type_expr_without_block
+  | UNDERSCORE_EXPRESSION
+  | MACRO_INVOCATION : macro_invocation -> type_expr_without_blockwith type_expr_without_block 
+
+with type_expr_with_block :=
+  | BLOCK_EXPRESSION : block_expression -> type_expr_with_block
+  | CONST_BLOCK_EXPRESSION : const_block_expression -> type_expr_with_block
+  | UNSAFE_BLOCK_EXPRESSION : unsafe_block_expression -> type_expr_with_block
+  | LOOP_EXPRESSION : loop_expression -> type_expr_with_block
+  | IF_EXPRESSION : if_expression -> type_expr_with_block
+  | IF_LET_EXPRESSION : if_let_expression -> type_expr_with_block
+  | MATCH_EXPRESSION : match_expression -> type_expr_with_block
+      (*  Expressions  *)
+
+      (* Grouped Expressions *)
+with grouped_expression :=
+  | GROUPED_EXPR : expression -> grouped_expression
+      (* Grouped Expressions *)
+      (* Array and Index Expression*)
+with array_expression :=
+  | ARRAY_EXPR : list array_elements -> array_expression
+
+with array_elements :=
+  | ARRAY_ElEMENT : list expression -> array_elements
+  | SEMI_ARRAY_ELEMENT : expression -> expression -> array_expression
+
+with index_expression :=
+  | INDEX_EXPR : expression -> expression -> index_expression
+
+      (* Array and Index Expression*)
+      (*Tuple and Tuple Indexing Expressions*)
+with tuple_expression :=
+  | TUPLE_EXPR : option tuple_elements -> tuple_expression
+
+with tuple_elements :=
+  | TUPLE_ELEMENTS : list expression -> opt expression -> tuple_elements
+
+with tuple_indexing_expression :=
+  | TUPLE_INDEXING_EXPR : expression -> str (*tuple index is equivalent to string, for now...*) -> tuple_indexing_expression
+      (*Tuple and Tuple Indexing Expressions*)
+      (*  Struct Expressions *)
+with struct_expression :=
+  | STRUCT_EXPRESSION_STRUCT : path_in_expression -> option struct_expr_field_or_struct_base -> struct_expression
+  | STRUCT_EXPRESSION_TUPLE :  path_in_expression -> option expr_list -> struct_expression
+  | STRUCT_EXPRESSION_UNIT :  path_in_expression -> struct_expr_unit -> struct_expression
+
+with struct_expr_field_or_struct_base :=
+  | STRUCT_EXPR_FIELD_OPT : struct_expr_fields -> struct_expr_field_or_struct_base
+  | STRUCT_BASE_OPT : struct_base -> struct_expr_field_or_struct_base
+
+with struct_expr_fields :=
+  | STRUCT_EXPR_FIELDS : struct_expr_field -> list struct_expr_field -> option struct_base -> struct_expr_fields
+
+with struct_expr_field :=
+  | STRUCT_EXPR_FIELD : list outer_attribute -> struct_expr_field
+
+with identifier_or_id_tup :=
+  | IDENTIFIER_ID_OPT : identifier -> identifier_or_id_tup
+  | ID_AND_TUP : id_or_tup -> expression -> identifier_or_id_tup
+
+with id_or_tup :=
+  | IDENTIFIER_OPT : identifier -> id_or_tup
+  | TUPLE_OPT : str -> id_or_tup
+
+with struct_base :=
+  | STRUCT_BASE : expression -> struct_base
+
+with expr_list :=
+  | EXPR_LIST : expression -> list expression -> expr_list
+
+      (*  Struct Expressions *)
+      (*  Call Expressions *)
+with call_expression :=
+  | CALL_EXPR : expression -> call_params -> call_expression
+
+with call_params :=
+  | CALL_PARAMS : expression -> list expression -> call_params
+      (*  Call Expressions *)
+      (*  Method Expressions *)
+with method_call_expression :=
+  | METHOD_CALL_EXPR : expression -> path_expr_segment -> option call_params -> method_call_expression
+      (*  Method Expressions *)
+      (*  Field Expressions *)
+with field_expression :=
+  | FIELD_EXPR : expression -> identifier -> field_expression
+      (*  Field Expressions *)
+      (*  Closure Expressions *)
+with closure_expression :=
+  | CLOSURE_EXPR : bool -> bool -> option closure_params -> expr_or_typ_no_bounds -> closure_expression
+
+with closure_params :=
+  | CLOSURE_PARAMS : closure_param -> list closure_param -> closure_params
+
+with closure_param :=
+  | CLOSURE_PARAM : list outer_attribute -> pattern_no_top_alt -> option type -> closure_param
+      (*  Closure Expressions *)
+      (*  Loop Expressions *)
+with loop_expression :=
+  | LOOP_EXPR : option loop_label -> loop_types -> loop_expression
+
+with loop_label :=
+  | LOOP_LABEL : lifetime_or_label -> loop_label
+
+with break_expression :=
+  | BREAK_EXPR : option lifetime_or_label -> option expression -> break_expression
+
+with continue_expression :=
+  | CONTINUE_EXPR : option lifetime_or_label -> continue_expression
+
+with loop_types :=
+  | INFINITE_LOOP_EXPRESSION : block_expression -> loop_types
+  | PREDICATE_LOOP_EXPRESSION : expression -> block_expression -> loop_types
+  | PREDICATE_PATTERN_LOOP_EXPRESSION : pattern -> scrutinee -> block_expression -> loop_types
+  | ITERATOR_LOOP_EXPRESSION : pattern -> expression -> block_expression -> loop_types
+  | LABEL_BLOCK_EXPRESSION : block_expression -> loop_types
+      (*  Loop Expressions *)
+      (* Range Expressions*)
+with range_expression :=
+  | RANGE_EXPR : expression -> expression -> range_expression
+  | RANGE_FROM_EXPR : expression -> range_expression
+  | RANGE_TO_EXPR : expression -> range_expression
+  | RANGE_FULL_EXPR : range_expression
+  | RANGE_INCLUSIVE_EXPR : expression -> expression -> range_expression
+  | RANGE_TO_INCLUSIVE_EXPR : expression -> range_expression
+      (* Range Expressions *)
+      (* if and if let expressions *)
+with if_expression :=
+  | IfExpr : expression -> block_expression -> option choice -> if_expression
+
+with choice :=
+  | BLOCK : block_expression -> choice 
+  | IF : if_expression -> choice 
+  | IF_LET : if_let_expression -> choice
+
+with if_let_expression :=
+  | IF_LET_EXPR : pattern -> scrutinee -> block_expression -> option choice -> if_let_expression
+
+      (* if and if let expressions *)
+      (*Match expressions*)
+with match_expression :=
+  | MATCH_EXPR : scrutinee -> list inner_attribute -> opt match_arms -> match_expression
+
+with scrutinee :=
+  | SCRUTINEE : expression -> scrutinee
+
+with match_arm_guard :=
+  | MatchArmGuard : expression -> match_arm_guard
+
+with match_arm :=
+  | MatchArm : list outer_attribute -> pattern -> option match_arm_guard -> match_arm
+
+with match_arms :=
+  | MatchArms :
+      list (match_arm * (expression_without_block + expression_with_block)) ->
+      option (match_arm * expression) ->
+      match_arms
+      (*Match expressions*)
+      (*Return expressions*)
+with return_expression :=
+  | RETURN_EXPR : option expression -> return_expression
+      (*Return expressions*)
+with await_expression :=
+  | AWAIT_EXPRESSION : expression -> return_expression
+      (*Return expressions*)
+
+      (*  Literal Expressions *)
+with literal_expression :=
+  | CHAR_LITERAL : char_code -> literal_expression
+  | STRING_LITERAL : list char_code -> literal_expression
+  | RAW_STRING_LITERAL : list char_code -> literal_expression
+  | BYTE_LITERAL : char_code -> literal_expression
+  | BYTE_STRING_LITERAL : list char_code -> literal_expression
+  | RAW_BYTE_STRING_LITERAL : list char_code -> literal_expression
+  | C_STRING_LITERAL : list char_code -> literal_expression
+  | RAW_C_STRING_LITERAL : list char_code  -> literal_expression
+  | INTEGER_LITERAL : str -> literal_expression
+  | FLOAT_LITERAL : str -> literal_expression
+  | TRUE
+  | FALSE
+(*  Literal Expressions *)
+
+(* Path Expressions *)
+with path_expression :=
+  | PATH_EXPR : path_in_expression -> path_expression
+  | QUALIFIED_PATH_EXPR : qualified_path_in_expression -> path_expression
+(* Path Expressions *)
+
+(* Block Expressions*)
+with block_expression := 
+  | BLOCK_EXPR : list inner_attribute -> option statements -> block_expression
+
+with statements :=
+  | STATEMENTS : list statement -> statements
+  | STATEMENTS_EXPR_WITHOUT_BLOCK : list statement -> expression_without_block -> statements
+  | S_EXPR_WITHOUT_BLOCK : expression_without_block -> statement
+
+with async_block_expression :=
+  | ASYNC_BLOCK_EXPR_MOVE : block_expression -> async_block_expression
+  | ASYNC_BLOCK_EXPR_STILL : block_expression -> async_block_expression
+
+with const_block_expression :=
+  | CONST_BLOCK_EXPR : block_expression -> const_block_expression
+
+with unsafe_block_expression :=
+  | UNSAFE_BLOCK_EXPR : block_expression -> unsafe_block_expression
+(*Block Expressions*)
+
+(*Statements*)
+with statement :=
+  | STATEMENT_ITEM : item -> statement
+  | STATEMENT_LET : let_statement -> statement
+  | STATEMENT_EXPR : expr_statement -> statement
+  | MACRO_INVOCATION_SEMI : macro_invocation_semi -> statement
+
+with delim_token_tree :=
+  | PAREN_TOKENS : list token_tree -> delim_token_tree
+  | BRACK_TOKENS : list token_tree -> delim_token_tree 
+  | BRACE_TOKENS : list token_tree -> delim_token_tree 
+
+with token_tree :=
+  | Token : str (*I believe all tokens can be represented as string, especially demonstrated by pretty printer*) -> token_tree
+  | DELIM : delim_token_tree -> token_tree
+
+with macro_invocation_semi :=
+  | PAREN_MACRO : list token_tree -> macro_invocation_semi
+  | BRACE_MACRO : list token_tree -> macro_invocation_semi
+  | BRACK_MACRO : list token_tree -> macro_invocation_semi
+
+with let_statement :=
+  | LET_STATEMENT : list outer_attribute -> pattern_no_top_alt -> option type -> option eq_expr -> let_statement
+
+with eq_expr :=
+  | EQ_EXPR : expression -> option block_expression -> eq_expr
+
+with expr_statement :=
+  | EXPR_STATEMENT_NO_BLOCK : expression_without_block -> expr_statement
+  | EXPR_STATEMENT_BLOCK : expression_with_block -> expr_statement
+
+      (*Statements*) 
+      (*Operator expression*)
+with operator_expression :=
+  | BORROW_EXPRESSION : borrow_expression -> operator_expression
+  | DEREFERENCE_EXPRESSION : dereference_expression -> operator_expression
+  | ERROR_PROPAGATION_EXPRESSION: error_propagation_expression -> operator_expression
+  | NEGATION_EXPRESSION : negation_expression -> operator_expression
+  | ARITHMETIC_OR_LOGICAL_EXPRESSION : arithmetic_or_logical_expression -> operator_expression
+  | COMPARISON_EXPRESSION : comparison_expression -> operator_expression
+  | LAZY_BOOLEAN_EXPRESSION : lazy_boolean_expression -> operator_expression
+  | TYPE_CAST_EXPRESSION : type_cast_expression -> operator_expression
+  | ASSIGNMENT_EXPRESSION : assignment_expression -> operator_expression
+  | COMPOUND_ASSIGNMENT_EXPRESSION : compound_assignment_expression -> operator_expression
+
+with borrow_kind :=
+  | BK_Shared
+  | BK_Mut
+  | BK_RawConst
+  | BK_RawMut
+
+with borrow_expression :=
+  | BORROW_EXPR : borrow_kind -> expression -> borrow_expression
+
+with dereference_expression :=
+  | DEREF_EXPR : expression -> dereference_expression
+
+with negation_expression :=
+  | NEG_EXPR : expression -> negation_expression
+  | NOT_EXPR : expression -> negation_expression
+
+with arithmetic_or_logical_operation :=
+  | AOP_ADD | AOP_SUB | AOP_MUL | AOP_DIV | AOP_REM
+  | AOP_AND | AOP_OR  | AOP_XOR | AOP_SHL | AOP_SHR
+
+with arithmetic_or_logical_expression :=
+  | ARITH_LOG_EXPR : expression -> arithmetic_or_logical_operation -> expression -> arithmetic_or_logical_operation
+
+with comparison_operation :=
+  | CMPOP_EQ | CMPOP_NE | CMPOP_GT | CMPOP_LT | CMPOP_GE | CMPOP_LE
+
+with comparison_expression :=
+  | COMPARE_EXPR : expression -> comparison_operation -> expression -> comparison_operation
+
+with lazy_boolean_operation :=
+  | LBOP_OR | LBOP_AND
+
+with lazy_boolean_expression :=
+  | LAZY_BOOL_EXPR : expression -> lazy_boolean_operation -> expression -> lazy_boolean_expression
+
+with type_cast_expression :=
+  | TYPECAST_EXPR : expression -> type_no_bounds -> type_cast_expression
+
+with assignment_expression :=
+  | ASSIGN_EXPR : expression -> expression -> assignment_expression
+
+with compound_assignment_operation :=
+  | CAOP_ADDASSIGN | CAOP_SUBASSIGN | CAOP_MULASSIGN | CAOP_DIVASSIGN | CAOP_REMASSIGN
+  | CAOP_ANDASSIGN | CAOP_ORASSIGN  | CAOP_XORASSIGN | CAOP_SHLASSIGN | CAOP_SHRASSIGN
+
+with compound_assignment_expression :=
+  | COMPOUND_ASSIGN_EXPR : expression -> compound_assignment_operation -> expression -> compound_assignment_expression
+
+      (*Operator expression*)
+
+(* Paths *)
+with simple_path :=
+  | SIMPLE_PATH : list simple_path_segment -> simple_path
+
+with simple_path_segment := 
+  | SIMPLE_PATH_SEGMENT_IDENT : identifier ->  simple_path_segment
+  | SIMPLE_PATH_SEGMENT_SUPER
+  | SIMPLE_PATH_SEGMENT_SELF
+  | SIMPLE_PATH_SEGMENT_CRATE
+  | SIMPLE_PATH_SEGMENT_SCRATE
+
+with path_in_expression :=
+  | PATH_IN_EXPRESSION : list path_expr_segment -> path_in_expression
+
+with path_expr_segment :=
+  | PATH_EXPR_SEGMENT : path_ident_segment -> option generic_args -> path_expr_segment
+
+
+with path_ident_segment :=
+  | PATH_IDENT_SEGMENT_IDENT : identifier -> path_ident_segment
+  | PATH_IDENT_SEGMENT_SUPER
+  | PATH_IDENT_SEGMENT_SELF
+  | PATH_IDENT_SEGMENT_self
+  | PATH_IDENT_SEGMENT_CRATE
+  | PATH_IDENT_SEGMENT_SCRATE
+
+with qualified_path_in_expression :=
+  | QUALIFIED_PATH_IN_EXPRESSION_CONSTRUCTOR : qualified_path_type -> list path_expr_segment -> qualified_path_in_expression
+
+with qualified_path_type :=
+  | QUALIFIED_PATH_TYPE : type -> option type_path -> qualified_path_type
+
+with qualified_path_in_type :=
+  | QUALIFIED_PATH_IN_TYPE : qualified_path_type -> list type_path_segment  -> qualified_path_in_type
+
+with generic_args :=
+  | EMPTY_GENERIC_ARGS 
+  | GENERIC_ARGS : list generic_arg -> generic_arg -> generic_args
+
+with generic_arg :=
+  | GENERIC_ARG_LIFETIME : lifetime -> generic_arg
+  | GENERIC_ARG_TYPE : type -> generic_arg
+  | GENERIC_ARG_CONST : generic_args_const -> generic_arg
+  | GENERIC_ARGS_BINDING : generic_args_binding -> generic_arg
+  | GENERIC_ARGS_BOUNDS : generic_args_bounds -> generic_arg
+
+with generic_args_const :=
+  | GENERIC_ARGS_CONST_BLOCK : block_expression -> generic_args_const
+  | GENERIC_ARGS_CONST_LIT : literal_expression -> generic_args_const
+  | NEG_GENERIC_ARGS_CONST_LIT : literal_expression -> generic_args_const
+  | GENERIC_ARGS_CONST_SIMPLE_PATH_SEG : simple_path_segment -> generic_args_const
+
+with generic_args_binding :=
+  | GENERIC_ARGS_BINDING_CONSTRUCTOR : identifier -> option generic_args -> type -> generic_args_binding
+
+with generic_args_bounds :=
+  | GENERIC_ARGS_BOUNDS_CONSTRUCTOR : identifier -> option generic_args -> type_param_bounds -> generic_args_bounds
+
+with type_path :=
+  | TYPE_PATH : list type_path_segment -> type_path
+
+with type_path_segment :=
+  | TYPE_PATH_SEGMENT : path_ident_segment -> option genargs_or_type_path_fn -> type_path_segment
+
+with genargs_or_type_path_fn :=
+  | GENARGS_OPT : generic_args -> genargs_or_type_path_fn
+  | TYPE_PATH_FN_OPT : type_path_fn -> genargs_or_type_path_fn
+
+with type_path_fn :=
+  | TYPE_PATH_FN : option type_path_fn_inputs -> option type_no_bounds -> type_path_fn
+
+with type_path_fn_inputs :=
+  | TYPE_PATH_FN_INPUTS : list type -> type_path_fn_inputs
+      (*Path*)
+
+(*Trait and Lifetime Bounds*)
+with type_param_bounds :=
+  | TYPE_PARAM_BOUNDS : list type_param_bound -> type_param_bounds
+  | TYPE_PARAM_BOUNDS_PLUS : list type_param_bound -> type_param_bounds
+
+with type_param_bound :=
+  | TYPE_PARAM_BOUND_LIFETIME : lifetime -> type_param_bounds
+  | TYPE_PARAM_BOUND_TRAIT_BOUND : trait_bound -> type_param_bounds
+  | TYPE_PARAM_BOUND_USE_BOUND : use_bound -> type_param_bounds
+
+with trait_bound :=
+  | ENCASED_TRAIT_BOUND : option question_or_for -> type_path -> trait_bound 
+  | TRAIT_BOUND : option question_or_for -> type_path -> trait_bound
+
+with lifetime_bounds := 
+  | LIFETIME_BOUNDS : list lifetime -> option lifetime -> lifetime_bounds
+
+with lifetime :=
+  | LIFETIME : lifetime_or_label -> lifetime
+  | LIFETIME_STATIC
+  | LIFETIME_UNDERSCORE
+
+with use_bound :=
+  | USE_BOUND : use_bound_generic_args -> use_bound
+
+with use_bound_generic_args :=
+  | USE_BOUND_GENERIC_ARGS_EMPTY
+  | USE_BOUND_GENERIC_ARGS : list use_bound_generic_arg -> use_bound_generic_arg -> use_bound_generic_args
+
+with use_bound_generic_arg :=
+  | USE_BOUND_GENERIC_ARG_LIFETIME : lifetime -> use_bound_generic_arg
+  | USE_BOUND_GENERIC_ARG_IDENT : identifier -> use_bound_generic_arg
+  | USE_BOUND_GENERIC_ARG_SELF
+
+with question_or_for :=
+  | QUESTION 
+  | FOR_LF : for_lifetimes -> question_or_for
+
+with for_lifetimes :=
+  | FOR_LIFETIMES : generic_params -> for_lifetimes
+
+(*Trait and Lifetime Bounds*)
+
+with visItem :=
+  | MODULE : module -> visItem
+  | EXTERN_CRATE : extern_crate -> visItem
+  | USE_DECLARATION : use_declaration -> visItem
+  | FUNCTION : function -> visItem
+  | TYPE_ALIAS : type_alias -> visItem
+  | STRUCT : _struct -> visItem
+  | ENUM : enum -> visItem
+  | UNION : union -> visItem
+  | CONSTANT_ITEM : constant_Item -> visItem
+  | STATIC_ITEM : static_item -> visItem
+  | TRAIT : trait -> visItem
+  | IMPLEMENTATION : implementation -> visItem
+  | EXTERN_BLOCK : extern_block -> visItem
+
+with module :=
+  | MOD_BLOCK : (is_unsafe : bool) -> identifier -> module
+  | MOD_DEC : (is_unsafe : bool) -> identifier -> list  -> module
 
 with constant :=
   | INT_LIT : str -> constant
