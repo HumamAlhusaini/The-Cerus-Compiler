@@ -14,6 +14,7 @@ Inductive top_level :=
 
 with constant :=
   | INT_LIT : str -> constant
+  | FLOAT_LIT : str -> constant
 
 with identifier :=
   | Raw_Ident : str -> identifier

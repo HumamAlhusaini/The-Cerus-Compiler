@@ -23,6 +23,14 @@ let hex_literal = [%sedlex.regexp? "0x", Star (hex_digit | underscore), hex_digi
 
 let integer_literal = [%sedlex.regexp? (dec_literal | bin_literal | oct_literal | hex_literal), Opt suffix_no_e]
 
+let tuple_index = [%sedlex.regexp? integer_literal]
+
+let float_exponent =
+  [%sedlex.regexp? ('e' | 'E'),  Opt ('+' | '-'), Star(dec_digit | white_space), dec_digit, Star (dec_digit | white_space)]
+
+let float_literal = [%sedlex.regexp? dec_literal, '.' | dec_literal, '.', dec_literal, Opt suffix_no_e | dec_literal, Opt ('.',dec_literal),
+  float_exponent, Opt suffix]
+
 let rust_keywords = [
   "as"; "break"; "const"; "continue"; "crate"; "else"; "enum"; "extern";
   "false"; "fn"; "for"; "if"; "impl"; "in"; "let"; "loop"; "match";
@@ -202,6 +210,10 @@ let rec token buf =
         let uArr = Sedlexing.lexeme buf in
           let x = uchar_array_to_string uArr in
     CONSTANT (Cabs.INT_LIT x, lexing_position_start buf)
+    | float_literal ->
+        let uArr = Sedlexing.lexeme buf in
+          let x = uchar_array_to_string uArr in
+    CONSTANT (Cabs.FLOAT_LIT x, lexing_position_start buf)
     | eof -> EOF ()
     | _ -> failwith "Internal failure: Reached impossible place"
 
