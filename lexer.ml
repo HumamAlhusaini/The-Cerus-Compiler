@@ -1,10 +1,55 @@
+
+let underscore =  [%sedlex.regexp? '_']
+
+let identifier_or_keyword =
+  [%sedlex.regexp? xid_start, Star xid_continue]
+
+let suffix = [%sedlex.regexp? identifier_or_keyword]
+
+let suffix_no_e = [%sedlex.regexp? suffix]
+
+let dec_digit = [%sedlex.regexp? '0'..'9']
+let bin_digit = [%sedlex.regexp? '0' | '1']
+let oct_digit = [%sedlex.regexp? '0' | '7']
+
+let dec_literal = [%sedlex.regexp? dec_digit, Star (dec_digit | white_space)]
+let bin_literal = [%sedlex.regexp? "0o", Star (bin_digit | underscore), bin_digit, Star (bin_digit | white_space)]
+let oct_literal = [%sedlex.regexp? "0o", Star (oct_digit | underscore), oct_digit, Star (oct_digit | white_space)]
+let hex_literal = [%sedlex.regexp? "0x", Star (hex_digit | underscore), hex_digit, Star (hex_digit | white_space)]
+
+let integer_literal = [%sedlex.regexp? (dec_literal | bin_literal | oct_literal | hex_literal), Opt suffix_no_e]
+
+let rust_keywords = [
+  "as"; "break"; "const"; "continue"; "crate"; "else"; "enum"; "extern";
+  "false"; "fn"; "for"; "if"; "impl"; "in"; "let"; "loop"; "match";
+  "mod"; "move"; "mut"; "pub"; "ref"; "return"; "self"; "Self"; "static";
+  "struct"; "super"; "trait"; "true"; "type"; "unsafe"; "use"; "where"; "while"
+]
+
+let ascii_escape =
+  [%sedlex.regexp?
+"\\n" | "\\r" | "\\t" | "\\\\" | "\\0" | "\\x", hex_digit, hex_digit]
+
+let byte_escape = [%sedlex.regexp?
+"\\n" | "\\r" | "\\t" | "\\\\" | "\\0" | "\\x", hex_digit, hex_digit]
+
+let unicode_escape = [%sedlex.regexp? "\\u{" , Plus hex_digit , '}']
+
+let quote_escape = [%sedlex.regexp? "\\\'" | "\\\""]
+
+let is_keyword id = Stdlib.List.mem id rust_keywords
+
+let is_reserved_keyword id = is_keyword id || id = "_"
+
+let raw_identifier =[%sedlex.regexp? "r#", identifier_or_keyword]
+
+(* You can refine this with an actual keyword check in the lexer logic *)
+let reserved_raw_identifier = [%sedlex.regexp? "r#_"]
+
 open List
 open Sedlexing
 open Parser
 open Uchar
-
-let oct_digit = [%sedlex.regexp? '0'..'7']
-
 
 let keyword_token = function
   | "as", loc              -> AS loc
@@ -56,47 +101,8 @@ let keyword_token = function
 let uchar_array_to_string (arr: Uchar.t array) : string =
   Array.fold_left (fun acc uchar ->
     acc ^ (Uchar.to_char uchar |> String.make 1)
-  ) "" arr
+) "" arr
 
-exception SyntaxError of string
-
-let rust_keywords = [
-  "as"; "break"; "const"; "continue"; "crate"; "else"; "enum"; "extern";
-  "false"; "fn"; "for"; "if"; "impl"; "in"; "let"; "loop"; "match";
-  "mod"; "move"; "mut"; "pub"; "ref"; "return"; "self"; "Self"; "static";
-  "struct"; "super"; "trait"; "true"; "type"; "unsafe"; "use"; "where"; "while"
-]
-
-let ascii_escape =
-  [%sedlex.regexp?
-    "\\n" | "\\r" | "\\t" | "\\\\" | "\\0" | "\\x", hex_digit, hex_digit]
-
-let byte_escape = [%sedlex.regexp?
-  "\\n" | "\\r" | "\\t" | "\\\\" | "\\0" | "\\x", hex_digit, hex_digit]
-
-let unicode_escape = [%sedlex.regexp? "\\u{" , Plus hex_digit , '}']
-
-let quote_escape = [%sedlex.regexp? "\\\'" | "\\\""]
-
-let is_keyword id = Stdlib.List.mem id rust_keywords
-
-let is_reserved_keyword id = is_keyword id || id = "_"
-
-let underscore = '_'
-
-let identifier_or_keyword =
-  [%sedlex.regexp? xid_start, Star xid_continue]
-
-let raw_identifier =
-  [%sedlex.regexp? "r#", identifier_or_keyword]
-
-(* You can refine this with an actual keyword check in the lexer logic *)
-let reserved_raw_identifier =
-  [%sedlex.regexp? "r#_"]
-
-let suffix = [%sedlex.regexp? identifier_or_keyword]
-
-let suffix_no_e = [%sedlex.regexp? suffix]
 
 let string_to_char_code_list (s : string) : Cabs.char_code list =
   let len = String.length s in
@@ -104,7 +110,7 @@ let string_to_char_code_list (s : string) : Cabs.char_code list =
     if i < 0 then acc
     else aux (i - 1) (Int64.of_int (Char.code s.[i]) :: acc)
   in
-  aux (len - 1) []
+aux (len - 1) []
 
 let rec token buf =
   match%sedlex buf with
@@ -117,7 +123,7 @@ let rec token buf =
         if is_reserved_keyword (String.sub id 2 ((String.length id) - 2)) then
           IDENT (Raw_Ident id, loc buf)
         else
-          IDENT (Ident id, loc buf)
+        IDENT (Ident id, loc buf)
 
     | identifier_or_keyword ->
       let uArr = Sedlexing.lexeme buf in
@@ -412,7 +418,7 @@ and read_byte_string buffer buf =
       read_byte_string buffer buf
 
   | eof -> failwith "String is not terminated"
-  | _ -> failwith "Illegal string character"
+  | _ -> failwith "Illegal string character";
 
 and read_c_string buffer buf =
   match%sedlex buf with
@@ -448,7 +454,7 @@ and read_c_string buffer buf =
       let inner = String.sub lex 3 (String.length lex - 4) in
       let code = int_of_string ("0x" ^ inner) in
       Buffer.add_utf_8_uchar buffer (Uchar.of_int code);
-      read_string buffer buf
+      read_c_string buffer buf
 
   | Plus (Compl (Chars "\"\\\n\r\t")) ->
       let s = Utf8.lexeme buf in
@@ -459,4 +465,4 @@ and read_c_string buffer buf =
       read_c_string buffer buf
 
   | eof -> failwith "String is not terminated"
-  | _ -> failwith "Illegal string character"
+| _ -> failwith "Illegal c string character"
