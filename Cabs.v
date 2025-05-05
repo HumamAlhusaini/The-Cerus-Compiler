@@ -256,7 +256,7 @@ with statement :=
   | STATEMENT_ITEM : item -> statement
   | STATEMENT_LET : let_statement -> statement
   | STATEMENT_EXPRESSION_: expr_statement -> statement
-  | MACRO_INVOCATION_SEMI : macro_invocation_semi -> statement
+  | STATEMENT_MACRO_INVOCATION_SEMI : macro_invocation_semi -> statement
 
 with let_statement :=
   | LET_STATEMENT : list outer_attribute -> pattern_no_top_alt -> option type_ -> option eq_expr -> let_statement
@@ -279,7 +279,7 @@ with delim_token_tree :=
   | BRACE_TOKENS : list token_tree -> delim_token_tree 
 
 with token_tree :=
-  | Token : str -> token_tree (*I believe all tokens can be represented as string, especially demonstrated by pretty printer*) -> token_tree
+  | TOKEN : str -> token_tree (*I believe all tokens can be represented as string, especially demonstrated by pretty printer*) 
   | DELIM : delim_token_tree -> token_tree
 
 with macro_invocation_semi :=
@@ -287,6 +287,63 @@ with macro_invocation_semi :=
   | BRACE_MACRO : list token_tree -> macro_invocation_semi
   | BRACK_MACRO : list token_tree -> macro_invocation_semi
       (*Macros*)
+      (*Macros by Example*)
+with macro_rules_definition :=
+  | MACRO_RULES_DEF :
+      identifier ->
+      macro_rules_def ->
+      macro_rules_definition
+
+with macro_rules_def :=
+  | MACRO_RULES_PARENS : macro_rules -> macro_rules_def
+  | MACRO_RULES_BRACKETS : macro_rules -> macro_rules_def
+  | MACRO_RULES_BRACES : macro_rules -> macro_rules_def
+
+with macro_rules :=
+  | MACRO_RULES : list macro_rule -> macro_rules
+
+with macro_rule :=
+  | MACRO_RULE : macro_matcher -> macro_transcriber -> macro_rule
+
+with macro_matcher :=
+  | MATCHER_PARENS   : list macro_match -> macro_matcher
+  | MATCHER_BRACKETS : list macro_match -> macro_matcher
+  | MATCHER_BRACES   : list macro_match -> macro_matcher
+
+with macro_match :=
+  | MM_TOKEN : str -> macro_match
+  | MM_NESTED : macro_matcher -> macro_match
+  | MM_FRAGMENT : identifier -> macro_frag_spec -> macro_match
+  | MM_REPEAT : list macro_match -> option macro_rep_sep -> macro_rep_op ->  macro_match
+
+with macro_frag_spec :=
+  | FRAG_BLOCK
+  | FRAG_EXPR
+  | FRAG_EXPR_2021
+  | FRAG_IDENT
+  | FRAG_ITEM
+  | FRAG_LIFETIME
+  | FRAG_LITERAL
+  | FRAG_META
+  | FRAG_PAT
+  | FRAG_PAT_PARAM
+  | FRAG_PATH
+  | FRAG_STMT
+  | FRAG_TT
+  | FRAG_TYPE
+  | FRAG_VIS
+
+with macro_rep_sep :=
+  | MACRO_REP_SEP : str -> macro_rep_sep    
+
+with macro_rep_op :=
+  | REP_ZERO_OR_MORE    
+  | REP_ONE_OR_MORE     
+  | REP_ZERO_OR_ONE     
+
+with macro_transcriber :=
+  | MACRO_TRANSCRIBE : delim_token_tree -> macro_transcriber
+      (*Macros by Example*)
       (*Operator expression*)
 with operator_expression :=
   | BORROW_EXPRESSION : borrow_kind -> expression -> operator_expression
@@ -446,6 +503,11 @@ with for_lifetimes :=
 (*Item*)
 with item :=
   | VISITEM : list outer_attribute -> visItem -> item
+  | MACRO_ITEM: macro_item -> item
+
+with macro_item :=
+  | MACRO_INVOCATION_SEMI : macro_invocation_semi -> macro_item
+  | MACRO_RULES_DEFINITION : macro_rules_definition -> macro_item
  
 with visItem :=
   | MODULE : module -> visItem

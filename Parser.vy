@@ -33,23 +33,15 @@ Require Import Proj.Cabs.
 %token<Cabs.identifier * Cabs.loc> IDENT
 %token<list Cabs.char_code * Cabs.loc> STRING_LIT RAW_STRING_LIT BYTE_STRING RAW_BYTE_STRING RAW_C_STRING C_STRING
 %token<Cabs.char_code * Cabs.loc> CHAR_LIT BYTE
-%token<Cabs.constant * Cabs.loc> CONSTANT
+%
+%token<Cabs.item * Cabs.loc> ITEM
+
 
 %token EOF
 
-%type<Cabs.top_level * Cabs.loc> id
-%type< list (Cabs.top_level * Cabs.loc) > id_list
-
-%start<list (Cabs.top_level * Cabs.loc) > program
+%start<list (Cabs.item * Cabs.loc) > program
 %%
 
-id:
-| id = IDENT      { 
-  (Cabs.IDENT (fst id), snd id) }
+program: 
 
-program:
-| ids = id_list EOF { ids }
 
-id_list:
-| i = id             { [i] }
-| i = id; rest = id_list { i :: rest }
