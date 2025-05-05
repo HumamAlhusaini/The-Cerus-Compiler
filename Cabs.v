@@ -141,17 +141,17 @@ with field_expression :=
       (*  Field Expressions *)
       (*  Closure Expressions *)
       with closure_expression :=
-  | CLOSURE_EXPR : bool -> bool -> option closure_params -> expr_or_typ_no_bounds -> closure_expression
+  | CLOSURE_EXPR : bool -> bool -> option closure_params -> expr_or_type_no_bounds -> closure_expression
 
-with expr_or_typ_no_bounds :=
-  | EXPR_OPT : expression -> expr_or_typ_no_bounds
-  | TYPE_BLOCK_OPT : typ_no_bounds -> block_expression -> expr_or_typ_no_bounds
+with expr_or_type_no_bounds :=
+  | EXPR_OPT : expression -> expr_or_type_no_bounds
+  | TYPE_BLOCK_OPT : type_no_bounds -> block_expression -> expr_or_type_no_bounds
 
 with closure_params :=
   | CLOSURE_PARAMS : closure_param -> list closure_param -> closure_params
 
 with closure_param :=
-         | CLOSURE_PARAM : list outer_attribute -> pattern_no_top_alt -> option type -> closure_param
+  | CLOSURE_PARAM : list outer_attribute -> pattern_no_top_alt -> option type -> closure_param
       (*  Closure Expressions *)
       (*  Loop Expressions *)
 with loop_expression :=
@@ -197,7 +197,7 @@ with if_let_expression :=
       (* if and if let expressions *)
       (*Match expressions*)
 with match_expression :=
-  | MATCH_EXPR : scrutinee -> list inner_attribute -> opt match_arms -> match_expression
+  | MATCH_EXPR : scrutinee -> list inner_attribute -> option match_arms -> match_expression
 
 with scrutinee :=
   | SCRUTINEE : expression -> scrutinee
@@ -216,15 +216,15 @@ with organized_matching :=
   | ORGANIZE : match_arm -> block_or_not -> organized_matching
 
 with block_or_not :=
-  | YES_BLOCK : expression_with_block -> block_or_not
-  | NO_BLOCK : expression_without_block -> block_or_not
+  | YES_BLOCK : type_expr_with_block -> block_or_not
+  | NO_BLOCK : type_expr_without_block -> block_or_not
       (*Match expressions*)
       (*Return expressions*)
 with return_expression :=
   | RETURN_EXPR : option expression -> return_expression
       (*Return expressions*)
 with await_expression :=
-  | AWAIT_EXPR : expression -> return_expression
+  | AWAIT_EXPR : expression -> await_expression
       (*Return expressions*)
 
       (*  Literal Expressions *)
@@ -255,8 +255,8 @@ with block_expression :=
 
 with statements :=
   | STATEMENTS : list statement -> statements
-  | STATEMENTS_EXPR_WITHOUT_BLOCK : list statement -> expression_without_block -> statements
-  | S_EXPR_WITHOUT_BLOCK : expression_without_block -> statement
+  | STATEMENTS_EXPR_WITHOUT_BLOCK : list statement -> type_expr_without_block -> statements
+  | S_EXPR_WITHOUT_BLOCK : type_expr_without_block -> statements
 
 with async_block_expression :=
   | ASYNC_BLOCK_EXPR_MOVE : block_expression -> async_block_expression
@@ -283,8 +283,8 @@ with eq_expr :=
   | EQ_EXPR : expression -> option block_expression -> eq_expr
 
 with expr_statement :=
-  | EXPR_STATEMENT_NO_BLOCK : expression_without_block -> expr_statement
-  | EXPR_STATEMENT_BLOCK : expression_with_block -> expr_statement
+  | EXPR_STATEMENT_NO_BLOCK : type_expr_without_block -> expr_statement
+  | EXPR_STATEMENT_BLOCK : type_expr_with_block -> expr_statement
       (*Statements*) 
 
       (*Macros*)
@@ -307,28 +307,22 @@ with macro_invocation_semi :=
       (*Macros*)
       (*Operator expression*)
 with operator_expression :=
-  | BORROW_EXPRESSION : borrow_expression -> operator_expression
-  | DEREFERENCE_EXPRESSION : dereference_expression -> operator_expression
-  | ERROR_PROPAGATION_EXPRESSION: error_propagation_expression -> operator_expression
+  | BORROW_EXPRESSION : borrow_kind -> expression -> operator_expression
+  | DEREFERENCE_EXPRESSION : expression -> operator_expression
+  | ERROR_PROPAGATION_EXPRESSION:  expression -> operator_expression
   | NEGATION_EXPRESSION : negation_expression -> operator_expression
-  | ARITHMETIC_OR_LOGICAL_EXPRESSION : arithmetic_or_logical_expression -> operator_expression
-  | COMPARISON_EXPRESSION : comparison_expression -> operator_expression
-  | LAZY_BOOLEAN_EXPRESSION : lazy_boolean_expression -> operator_expression
-  | TYPE_CAST_EXPRESSION : type_cast_expression -> operator_expression
-  | ASSIGNMENT_EXPRESSION : assignment_expression -> operator_expression
-  | COMPOUND_ASSIGNMENT_EXPRESSION : compound_assignment_expression -> operator_expression
+  | ARITHMETIC_OR_LOGICAL_EXPRESSION :  expression -> arithmetic_or_logical_operation -> expression -> operator_expression
+  | COMPARISON_EXPRESSION : expression -> comparison_operation -> expression -> operator_expression
+  | LAZY_BOOLEAN_EXPRESSION : expression -> lazy_boolean_operation -> expression -> operator_expression
+  | TYPE_CAST_EXPRESSION :  expression -> type_no_bounds -> operator_expression
+  | ASSIGNMENT_EXPRESSION :  expression -> expression -> operator_expression
+  | COMPOUND_ASSIGNMENT_EXPRESSION : expression -> compound_assignment_operation -> expression -> operator_expression
 
 with borrow_kind :=
   | BK_Shared
   | BK_Mut
   | BK_RawConst
   | BK_RawMut
-
-with borrow_expression :=
-  | BORROW_EXPR : borrow_kind -> expression -> borrow_expression
-
-with dereference_expression :=
-  | DEREF_EXPR : expression -> dereference_expression
 
 with negation_expression :=
   | NEG_EXPR : expression -> negation_expression
@@ -338,33 +332,15 @@ with arithmetic_or_logical_operation :=
   | AOP_ADD | AOP_SUB | AOP_MUL | AOP_DIV | AOP_REM
   | AOP_AND | AOP_OR  | AOP_XOR | AOP_SHL | AOP_SHR
 
-with arithmetic_or_logical_expression :=
-  | ARITH_LOG_EXPR : expression -> arithmetic_or_logical_operation -> expression -> arithmetic_or_logical_operation
-
 with comparison_operation :=
   | CMPOP_EQ | CMPOP_NE | CMPOP_GT | CMPOP_LT | CMPOP_GE | CMPOP_LE
-
-with comparison_expression :=
-  | COMPARE_EXPR : expression -> comparison_operation -> expression -> comparison_operation
 
 with lazy_boolean_operation :=
   | LBOP_OR | LBOP_AND
 
-with lazy_boolean_expression :=
-  | LAZY_BOOL_EXPR : expression -> lazy_boolean_operation -> expression -> lazy_boolean_expression
-
-with type_cast_expression :=
-  | TYPECAST_EXPR : expression -> type_no_bounds -> type_cast_expression
-
-with assignment_expression :=
-  | ASSIGN_EXPR : expression -> expression -> assignment_expression
-
 with compound_assignment_operation :=
   | CAOP_ADDASSIGN | CAOP_SUBASSIGN | CAOP_MULASSIGN | CAOP_DIVASSIGN | CAOP_REMASSIGN
   | CAOP_ANDASSIGN | CAOP_ORASSIGN  | CAOP_XORASSIGN | CAOP_SHLASSIGN | CAOP_SHRASSIGN
-
-with compound_assignment_expression :=
-  | COMPOUND_ASSIGN_EXPR : expression -> compound_assignment_operation -> expression -> compound_assignment_expression
 
       (*Operator expression*)
 
@@ -427,7 +403,7 @@ with generic_args_bounds :=
   | GENERIC_ARGS_BOUNDS_CONSTRUCTOR : identifier -> option generic_args -> type_param_bounds -> generic_args_bounds
 
 with type_path :=
-  | TYPE_PATH : list type_path_segment -> type_path
+  | TYP_PATH : list type_path_segment -> type_path
 
 with type_path_segment :=
   | TYPE_PATH_SEGMENT : path_ident_segment -> option genargs_or_type_path_fn -> type_path_segment
@@ -449,9 +425,9 @@ with type_param_bounds :=
   | TYPE_PARAM_BOUNDS_PLUS : list type_param_bound -> type_param_bounds
 
 with type_param_bound :=
-  | TYPE_PARAM_BOUND_LIFETIME : lifetime -> type_param_bounds
-  | TYPE_PARAM_BOUND_TRAIT_BOUND : trait_bound -> type_param_bounds
-  | TYPE_PARAM_BOUND_USE_BOUND : use_bound -> type_param_bounds
+  | TYPE_PARAM_BOUND_LIFETIME : lifetime -> type_param_bound
+  | TYPE_PARAM_BOUND_TRAIT_BOUND : trait_bound -> type_param_bound
+  | TYPE_PARAM_BOUND_USE_BOUND : use_bound -> type_param_bound
 
 with trait_bound :=
   | ENCASED_TRAIT_BOUND : option question_or_for -> type_path -> trait_bound 
@@ -581,10 +557,91 @@ with range_exclusive_pattern :=
 with range_pattern :=
   | RANGE_INCLUSIVE_PATTERN : range_pattern_bound -> range_pattern_bound -> range_pattern
   | RANGE_FROM_PATTERN : range_pattern_bound -> range_pattern
-  | RANGE_TOINCLUSIVE_PATTERN : range_pattern_bound -> range_pattern
+  | RANGE_TO_INCLUSIVE_PATTERN : range_pattern_bound -> range_pattern
   | RANGE_OBSOLETE_PATTERN : range_pattern_bound -> range_pattern_bound -> range_pattern
-
 (* Pattern *)
+(* Types *)
+with type :=
+  | TYPE_NO_BOUNDS : type_no_bounds -> type
+  | TRAIT_TYPE : trait_object_type -> type
+  | IMPL_TYPE : impl_trait_type -> type
+
+with type_no_bounds :=
+  | PARENTHESIZED_TYPE : type -> type_no_bounds
+  | IMPL_ONE_BOUND : trait_bound -> type_no_bounds
+  | TRAIT_ONE_BOUND : bool (*dyn*) -> trait_bound -> type_no_bounds
+  | TYPE_PATH : type_path -> type_no_bounds
+  | TUPLE_TYPE : tuple_type -> type_no_bounds
+  | NEVER_TYPE : type_no_bounds                        (* corresponds to `!` *)
+  | RAW_POINTER_TYPE : raw_pointer_type -> type_no_bounds
+  | REFERENCE_TYPE : reference_type -> type_no_bounds
+  | ARRAY_TYPE : type -> expr -> type_no_bounds         (* e.g., [T; N] *)
+  | SLICE_TYPE : type -> type_no_bounds                (* e.g., [T] *)
+  | INFERRED_TYPE : type_no_bounds                     (* `_` *)
+  | QUALIFIED_PATH : qualified_path_in_type -> type_no_bounds
+  | BARE_FUNCTION_TYPE : bare_function_type -> type_no_bounds
+  | NO_BOUND_MACRO_INVOCATION : macro_invocation -> type_no_bounds
+(* Types *)
+
+(*Raw Pointer Type*)
+with raw_pointer_type :=
+  | MUT_RAW_POINTER : type_no_bounds -> raw_pointer_type
+  | CONST_RAW_POINTER : type_no_bounds -> raw_pointer_type
+(*Raw Pointer Type*)
+
+(* Pointer Type*)
+with reference_type :=
+  | REFER_TYP : option lifetime -> bool (*mut*) -> type_no_bounds -> reference_type
+(*Pointer Type*)
+
+(*Function Pointer Type*)
+
+with bare_function_type :=
+  | BARE_FUNC_TYPE : option for_lifetimes -> function_type_qualifiers -> 
+      option function_parameters_maybe_named_variadic ->
+      option bare_function_return_type -> bare_function_type
+
+with function_type_qualifiers :=
+  | FUNC_QUAL_NONE : function_type_qualifiers
+  | FUNC_QUAL_UNSAFE : function_type_qualifiers
+  | FUNC_QUAL_EXTERN : option abi -> function_type_qualifiers
+  | FUNC_QUAL_UNSAFE_EXTERN : option abi -> function_type_qualifiers
+
+with bare_function_return_type :=
+  | BARE_RETURN_TYPE : type_no_bounds -> bare_function_return_type
+
+with function_parameters_maybe_named_variadic :=
+  | FN_PARAMS_NORMAL : maybe_named_function_parameters -> function_parameters_maybe_named_variadic
+  | FN_PARAMS_VARIADIC : maybe_named_function_parameters_variadic -> function_parameters_maybe_named_variadic
+
+with maybe_named_function_parameters :=
+  | MAYBE_NAMED_FN_PARAMS : list maybe_named_param -> maybe_named_function_parameters
+
+with maybe_named_param :=
+  | MAYBE_NAMED_PARAM : list outer_attribute -> option id_or_underscore -> type -> maybe_named_param
+
+with id_or_underscore :=
+  | ID_OPT : identifier -> id_or_underscore
+  | UNDERSCORE_OPT
+
+with maybe_named_function_parameters_variadic :=
+  | FN_PARAMS_VAR : list maybe_named_param ->  list outer_attribute  -> maybe_named_function_parameters_variadic
+(*Function Pointer Type*)
+(*Impl trait*)
+with impl_trait_type :=
+  | IMPL_TRAIT_TYPE : type_param_bounds -> impl_trait_type
+(*Impl trait*)
+
+(*Trait Object*)
+with trait_object_type :=
+  | TRAIT_OBJECT_TYPE : bool (*dyn*) -> type_param_bounds -> trait_object_type
+(*Trait Object*)
+(*Tuple Types*)
+with tuple_type :=
+  | TUPLE_TYPE_EMPTY
+  | TUPLE_TYPE_FULL : list type -> tuple_type
+(*Tuple Types*)
+
 
 Require Import ExtrOcamlBasic.
 Require Import ExtrOcamlString.
