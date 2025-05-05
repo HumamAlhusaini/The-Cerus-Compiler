@@ -124,7 +124,7 @@ with field_expression :=
       (*  Field Expressions *)
       (*  Closure Expressions *)
       with closure_expression :=
-  | CLOSURE_EXPR : bool -> bool -> option closure_params -> expr_or_type_no_bounds -> closure_expression
+  | CLOSURE_EXPR : (async : bool) -> (move : bool) -> option closure_params -> expr_or_type_no_bounds -> closure_expression
 
 with expr_or_type_no_bounds :=
   | EXPR_OPT : expression -> expr_or_type_no_bounds
@@ -447,20 +447,7 @@ with for_lifetimes :=
 (*Item*)
 with item :=
   | VISITEM : list outer_attribute -> visItem -> item
-  
-with outer_attribute :=
-  | OUTER_ATTRIBUTE : attr -> outer_attribute
-
-with inner_attribute :=
-  | INNER_ATTRIBUTE : attr -> inner_attribute
-
-with attr :=
-  | SAFE_ATTR : simple_path -> option attr_input -> attr
-  | UNSAFE_ATTR : simple_path -> option attr_input -> attr
-
-with attr_input :=
-  | ATTR_INPUT_EXP : expression -> attr_input
-
+ 
 with visItem :=
   | MODULE : module -> visItem
   | EXTERN_CRATE : extern_crate -> visItem
@@ -476,18 +463,38 @@ with visItem :=
   | IMPLEMENTATION : implementation -> visItem
   | EXTERN_BLOCK : extern_block -> visItem
 
-with module :=
-  | MOD_BLOCK : (is_unsafe : bool) -> identifier -> module
-  | MOD_DEC : (is_unsafe : bool) -> identifier -> list  -> module
 
 with constant :=
   | INT_LIT : str -> constant
   | FLOAT_LIT : str -> constant
+(*Item*)
 
+(* modules *)
+with module :=
+  | MOD_BLOCK : (is_unsafe : bool) -> identifier -> module
+  | MOD_DEC : (is_unsafe : bool) -> identifier -> list inner_attribute -> list item -> module
+
+(* modules *)
+(*Identifier*)
 with identifier :=
   | RAW_IDENT : str -> identifier
   | IDENT : str -> identifier
-(*Item*)
+(*Identifier*)
+
+(*Attributes*)
+with outer_attribute :=
+  | OUTER_ATTRIBUTE : attr -> outer_attribute
+
+with inner_attribute :=
+  | INNER_ATTRIBUTE : attr -> inner_attribute
+
+with attr :=
+  | SAFE_ATTR : simple_path -> option attr_input -> attr
+  | UNSAFE_ATTR : simple_path -> option attr_input -> attr
+
+with attr_input :=
+  | ATTR_INPUT_EXP : expression -> attr_input
+(*Attributes*)
 
 (* Pattern *)
 with pattern :=
@@ -502,8 +509,8 @@ with pattern_without_range :=
   | IDENTIFIER_PATTERN : identifier_pattern -> pattern_without_range
   | WILDCARD_PATTERN : pattern_without_range
   | REST_PATTERN : rest_pattern -> pattern_without_range
-  | DOUBLE_REFERENCE_PATTERN : bool -> pattern -> pattern_without_range
-  | SINGLE_REFERENCE_PATTERN : bool -> pattern -> pattern_without_range
+  | DOUBLE_REFERENCE_PATTERN : (is_mut : bool) -> pattern -> pattern_without_range
+  | SINGLE_REFERENCE_PATTERN : (is_mut : bool) -> pattern -> pattern_without_range
   | STRUCT_PATTERN : path_in_expression -> option struct_pattern_elements -> pattern_without_range
   | TUPLE_STRUCT_PATTERN : path_in_expression -> option (pattern * list pattern) -> pattern_without_range
   | TUPLE_PATTERN : option tuple_pattern_items -> pattern_without_range
@@ -533,16 +540,16 @@ with struct_pattern_fields :=
 with struct_pattern_field :=
   | STRUCT_PATTERN_FIELD : list outer_attribute -> tuple_or_idPat_or_id -> struct_pattern_field
 
+with tuple_or_idPat_or_id :=
+  | TUPLE_PAT : str -> identifier -> tuple_or_idPat_or_id
+  | ID_PAT : identifier -> tuple_or_idPat_or_id
+  | ID : (ref : bool) -> (mut : bool) -> tuple_or_idPat_or_id
+
 with struct_pattern_etcetara :=
   | STRUCT_PATTERN_ETCETERA : list outer_attribute -> struct_pattern_etcetara
 
 with tuple_struct_items :=
   | TUPLE_STRUCT_ITEMS : pattern -> list pattern -> tuple_struct_items
-
-with tuple_or_idPat_or_id :=
-  | TUPLE_PAT : str -> identifier -> tuple_or_idPat_or_id
-  | ID_PAT : identifier -> tuple_or_idPat_or_id
-  | ID : bool -> bool -> tuple_or_idPat_or_id
 
 with range_pattern_bound :=
   | RANGE_PATTERN_BOUND_CHAR : str -> range_pattern_bound
@@ -569,7 +576,7 @@ with type :=
 with type_no_bounds :=
   | PARENTHESIZED_TYPE : type -> type_no_bounds
   | IMPL_ONE_BOUND : trait_bound -> type_no_bounds
-  | TRAIT_ONE_BOUND : bool (*dyn*) -> trait_bound -> type_no_bounds
+  | TRAIT_ONE_BOUND : (dyn : bool) (*dyn*) -> trait_bound -> type_no_bounds
   | TYPE_PATH : type_path -> type_no_bounds
   | TUPLE_TYPE : tuple_type -> type_no_bounds
   | NEVER_TYPE : type_no_bounds                        (* corresponds to `!` *)
@@ -591,7 +598,7 @@ with raw_pointer_type :=
 
 (* Pointer Type*)
 with reference_type :=
-  | REFER_TYP : option lifetime -> bool (*mut*) -> type_no_bounds -> reference_type
+  | REFER_TYP : option lifetime -> (mut : bool)(*mut*) -> type_no_bounds -> reference_type
 (*Pointer Type*)
 
 (*Function Pointer Type*)
@@ -634,7 +641,7 @@ with impl_trait_type :=
 
 (*Trait Object*)
 with trait_object_type :=
-  | TRAIT_OBJECT_TYPE : bool (*dyn*) -> type_param_bounds -> trait_object_type
+  | TRAIT_OBJECT_TYPE : (dyn : bool) (*dyn*) -> type_param_bounds -> trait_object_type
 (*Trait Object*)
 (*Tuple Types*)
 with tuple_type :=
