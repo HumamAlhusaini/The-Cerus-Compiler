@@ -45,7 +45,7 @@ Require Import Proj.Cabs.
 
 id:
 | id = IDENT      { 
-  (Cabs.IDENTIFIER (fst id), snd id) }
+  (Cabs.IDENT (fst id), snd id) }
 
 program:
 | ids = id_list EOF { ids }

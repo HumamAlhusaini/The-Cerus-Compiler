@@ -12,27 +12,10 @@ Parameter str : Type.
 
 Parameter char_code : Type.
 
-Inductive item :=
-  | VISITEM : list outer_attribute -> visItem -> item
-  
-with outer_attribute :=
-  | OUTER_ATTRIBUTE : attr -> outer_attribute
-
-with inner_attribute :=
-  | INNER_ATTRIBUTE : attr -> inner_attribute
-
-with attr :=
-  | SAFE_ATTR : simple_path -> option attr_input -> attr
-  | UNSAFE_ATTR : simple_path -> option attr_input -> attr
-
-with attr_input :=
-  | ATTR_INPUT_EXP : expression -> attr_input
-
 (*  Expressions   *)
-with expression :=
+Inductive expression :=
   | EXPRESSION_WITHOUT_BLOCK :  list outer_attribute -> type_expr_without_block -> expression
   | EXPRESSION_WITH_BLOCK : list outer_attribute -> type_expr_with_block -> expression
-
 
 with type_expr_without_block :=
   | LITERAL_EXPRESSION : literal_expression -> type_expr_without_block
@@ -203,13 +186,13 @@ with scrutinee :=
   | SCRUTINEE : expression -> scrutinee
 
 with match_arm_guard :=
-  | MatchArmGuard : expression -> match_arm_guard
+  | MATCHARMGUARD : expression -> match_arm_guard
 
 with match_arm :=
-  | MatchArm : list outer_attribute -> pattern -> option match_arm_guard -> match_arm
+  | MATCHARM : list outer_attribute -> pattern -> option match_arm_guard -> match_arm
 
 with match_arms :=
-  | MatchArms :
+  | MATCHARMS :
       list organized_matching -> match_arm -> expression -> match_arms
 
 with organized_matching :=
@@ -461,6 +444,22 @@ with for_lifetimes :=
   | FOR_LIFETIMES : generic_params -> for_lifetimes
 
 (*Trait and Lifetime Bounds*)
+(*Item*)
+with item :=
+  | VISITEM : list outer_attribute -> visItem -> item
+  
+with outer_attribute :=
+  | OUTER_ATTRIBUTE : attr -> outer_attribute
+
+with inner_attribute :=
+  | INNER_ATTRIBUTE : attr -> inner_attribute
+
+with attr :=
+  | SAFE_ATTR : simple_path -> option attr_input -> attr
+  | UNSAFE_ATTR : simple_path -> option attr_input -> attr
+
+with attr_input :=
+  | ATTR_INPUT_EXP : expression -> attr_input
 
 with visItem :=
   | MODULE : module -> visItem
@@ -486,8 +485,9 @@ with constant :=
   | FLOAT_LIT : str -> constant
 
 with identifier :=
-  | Raw_Ident : str -> identifier
-  | Ident : str -> identifier
+  | RAW_IDENT : str -> identifier
+  | IDENT : str -> identifier
+(*Item*)
 
 (* Pattern *)
 with pattern :=
@@ -642,6 +642,14 @@ with tuple_type :=
   | TUPLE_TYPE_FULL : list type -> tuple_type
 (*Tuple Types*)
 
+(*Visibility*)
+with visibility :=
+  | PUB 
+  | PUB_CRATE
+  | PUB_SUPER 
+  | PUB_SELF
+  | PUB_IN : simple_path -> visibility
+(*Visibility*)
 
 Require Import ExtrOcamlBasic.
 Require Import ExtrOcamlString.

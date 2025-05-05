@@ -160,9 +160,9 @@ let rec token buf =
         let uArr = Sedlexing.lexeme buf in
           let id = uchar_array_to_string uArr in
         if is_reserved_keyword (Stdlib.String.sub id 2 ((Stdlib.String.length id) - 2)) then
-          IDENT (Raw_Ident id, lexing_position_start buf)
+          IDENT (Cabs.RAW_IDENT id, lexing_position_start buf)
         else
-        IDENT (Ident id, lexing_position_start buf)
+        IDENT (Cabs.IDENT id, lexing_position_start buf)
 
     | identifier_or_keyword ->
       let uArr = Sedlexing.lexeme buf in
