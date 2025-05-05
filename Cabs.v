@@ -134,7 +134,7 @@ with closure_params :=
   | CLOSURE_PARAMS : closure_param -> list closure_param -> closure_params
 
 with closure_param :=
-  | CLOSURE_PARAM : list outer_attribute -> pattern_no_top_alt -> option type -> closure_param
+  | CLOSURE_PARAM : list outer_attribute -> pattern_no_top_alt -> option type_ -> closure_param
       (*  Closure Expressions *)
       (*  Loop Expressions *)
 with loop_expression :=
@@ -260,7 +260,7 @@ with statement :=
   | MACRO_INVOCATION_SEMI : macro_invocation_semi -> statement
 
 with let_statement :=
-  | LET_STATEMENT : list outer_attribute -> pattern_no_top_alt -> option type -> option eq_expr -> let_statement
+  | LET_STATEMENT : list outer_attribute -> pattern_no_top_alt -> option type_ -> option eq_expr -> let_statement
 
 with eq_expr :=
   | EQ_EXPR : expression -> option block_expression -> eq_expr
@@ -354,10 +354,10 @@ with path_ident_segment :=
   | PATH_IDENT_SEGMENT_SCRATE
 
 with qualified_path_in_expression :=
-  | QUALIFIED_PATH_IN_EXPRESSION_CONSTRUCTOR : qualified_path_type -> list path_expr_segment -> qualified_path_in_expression
+  | QUALIFIED_PATH_IN_EXPRESSION_ : qualified_path_type -> list path_expr_segment -> qualified_path_in_expression
 
 with qualified_path_type :=
-  | QUALIFIED_PATH_TYPE : type -> option type_path -> qualified_path_type
+  | QUALIFIED_PATH_TYPE : type_ -> option type_path -> qualified_path_type
 
 with qualified_path_in_type :=
   | QUALIFIED_PATH_IN_TYPE : qualified_path_type -> list type_path_segment  -> qualified_path_in_type
@@ -368,7 +368,7 @@ with generic_args :=
 
 with generic_arg :=
   | GENERIC_ARG_LIFETIME : lifetime -> generic_arg
-  | GENERIC_ARG_TYPE : type -> generic_arg
+  | GENERIC_ARG_TYPE : type_ -> generic_arg
   | GENERIC_ARG_CONST : generic_args_const -> generic_arg
   | GENERIC_ARGS_BINDING : generic_args_binding -> generic_arg
   | GENERIC_ARGS_BOUNDS : generic_args_bounds -> generic_arg
@@ -380,10 +380,10 @@ with generic_args_const :=
   | GENERIC_ARGS_CONST_SIMPLE_PATH_SEG : simple_path_segment -> generic_args_const
 
 with generic_args_binding :=
-  | GENERIC_ARGS_BINDING_CONSTRUCTOR : identifier -> option generic_args -> type -> generic_args_binding
+  | GENERIC_ARGS_BINDING_: identifier -> option generic_args -> type_ -> generic_args_binding
 
 with generic_args_bounds :=
-  | GENERIC_ARGS_BOUNDS_CONSTRUCTOR : identifier -> option generic_args -> type_param_bounds -> generic_args_bounds
+  | GENERIC_ARGS_BOUNDS_ : identifier -> option generic_args -> type_param_bounds -> generic_args_bounds
 
 with type_path :=
   | TYP_PATH : list type_path_segment -> type_path
@@ -399,7 +399,7 @@ with type_path_fn :=
   | TYPE_PATH_FN : option type_path_fn_inputs -> option type_no_bounds -> type_path_fn
 
 with type_path_fn_inputs :=
-  | TYPE_PATH_FN_INPUTS : list type -> type_path_fn_inputs
+  | TYPE_PATH_FN_INPUTS : list type_ -> type_path_fn_inputs
       (*Path*)
 
 (*Trait and Lifetime Bounds*)
@@ -454,10 +454,10 @@ with visItem :=
   | USE_DECLARATION : use_declaration -> visItem
   | FUNCTION : function -> visItem
   | TYPE_ALIAS : type_alias -> visItem
-  | STRUCT : _struct -> visItem
+  | STRUCT : struct_ -> visItem
   | ENUM : enum -> visItem
   | UNION : union -> visItem
-  | CONSTANT_ITEM : constant_Item -> visItem
+  | CONSTANT_ITEM : constant_item -> visItem
   | STATIC_ITEM : static_item -> visItem
   | TRAIT : trait -> visItem
   | IMPLEMENTATION : implementation -> visItem
@@ -468,13 +468,308 @@ with constant :=
   | INT_LIT : str -> constant
   | FLOAT_LIT : str -> constant
 (*Item*)
+(*Struct*)
 
-(* modules *)
+with struct_ :=
+  | STRUCT_STRUCT : 
+      identifier -> 
+      option generic_params -> 
+      option where_clause -> 
+      struct_struct_body -> 
+      struct_
+
+  | STRUCT_TUPLE : 
+      identifier -> 
+      option generic_params -> 
+      option tuple_fields -> 
+      option where_clause -> 
+      struct_
+
+with struct_struct_body :=
+  | STRUCT_BODY_BRACED : option struct_fields -> struct_struct_body
+  | STRUCT_BODY_SEMI
+
+with struct_fields :=
+  | STRUCT_FIELDS : list struct_field -> struct_fields
+
+with struct_field :=
+  | STRUCT_FIELD : 
+      list outer_attribute -> 
+      option visibility -> 
+      identifier -> 
+      type -> 
+      struct_field
+
+with tuple_fields :=
+  | TUPLE_FIELDS : list tuple_field -> tuple_fields
+
+with tuple_field :=
+  | TUPLE_FIELD :
+      list outer_attribute ->
+      option visibility ->
+      type ->
+      tuple_field
+(*Struct*)
+(*Enum*)
+
+with enumeration :=
+  | ENUM :
+      identifier ->
+      option generic_params ->
+      option where_clause ->
+      option enum_items ->
+      enumeration
+
+with enum_items :=
+  | ENUM_ITEMS : list enum_item -> enum_items
+
+with enum_item :=
+  | ENUM_ITEM :
+      list outer_attribute ->
+      option visibility ->
+      identifier ->
+      option enum_item_kind ->
+      option enum_item_discriminant ->
+      enum_item
+
+with enum_item_kind :=
+  | ENUM_ITEM_TUPLE : option tuple_fields -> enum_item_kind
+  | ENUM_ITEM_STRUCT : option struct_fields -> enum_item_kind
+
+with enum_item_discriminant :=
+  | ENUM_DISCRIMINANT : expression -> enum_item_discriminant
+(*Enum*)
+(*Union*)
+with union :=
+  | UNION_ : identifier -> option generic_params -> option where_clause -> option struct_fields -> union
+(*Union*)
+(*Constant Item*)
+with constant_item :=
+  | CONSTANT_ITEM_ : ident_or_whitespace -> type_ -> option expression -> constant_item
+
+with ident_or_whitespace :=
+  | IDENT_OPT : identifier -> ident_or_whitespace
+  | UNDERSCORE_OP
+(*Constant Item*)
+(*Type Alias*)
+with type_alias :=
+  | TYPE_ALIBI : identifier -> option generic_params -> 
+      option type_param_bounds -> option where_clause -> 
+      option type_and_where -> type_alias
+
+with type_and_where :=
+  | TYPE_AND_WHERE : type_ -> where_clause -> type_and_where
+  | TYPE_OPT : type_ -> type_and_where
+(*Type Alias*)
+(*Static Item*)
+with static_item :=
+  | STATIC_ITEM_ : option item_safety -> (mut : bool) -> identifier -> type_ -> option expression -> static_item
+(*Static Item*)
+(*Traits*)
+with trait :=
+  | TRAIT_ : (safe : bool) -> identifier -> option generic_params -> option type_param_bounds ->
+      option where_clause -> list inner_attribute -> list associated_item -> trait
+(*Traits*)
+(*Implementations *)
+with implementation :=
+  | INHERENT_IMPL :
+      option generic_params ->
+      type ->
+      option where_clause ->
+      list inner_attribute ->
+      list associated_item ->
+      implementation
+
+  | TRAIT_IMPL :
+      bool ->                    (* is_unsafe *)
+      option generic_params ->
+      bool ->                    (* is_negative (i.e., `!`) *)
+      type_path ->              (* the trait being implemented *)
+      type ->                   (* the type it's implemented for *)
+      option where_clause ->
+      list inner_attribute ->
+      list associated_item ->
+      implementation
+(*Implementations*)
+(*Extern block*)
+with extern_block :=
+  | EXTERN_BLOCK :
+      bool ->                    (* is_unsafe *)
+      option abi ->             (* optional ABI string *)
+      list inner_attribute ->
+      list external_item ->
+      extern_block
+
+with external_item :=
+  | EXTERNAL_MACRO :
+      list outer_attribute ->
+      macro_invocation ->
+      external_item
+  | EXTERNAL_STATIC_OR_FN :
+      list outer_attribute ->
+      option visibility ->
+      external_decl ->
+      external_item
+
+with external_decl :=
+  | EXT_STATIC : static_item -> external_decl
+  | EXT_FUNCTION : function_ -> external_decl
+(*Extern block*)
+(*Generic Params*)
+with generic_params :=
+  | GENERIC_PARAMS_EMPTY
+  | GENERIC_PARAMS :
+      list generic_param ->
+      generic_params
+
+with generic_param :=
+  | GP_LIFETIME : list outer_attribute -> lifetime_param -> generic_param
+  | GP_TYPE     : list outer_attribute -> type_param -> generic_param
+  | GP_CONST    : list outer_attribute -> const_param -> generic_param
+
+with lifetime_param :=
+  | LIFETIME_PARAM :
+      lifetime ->
+      option lifetime_bounds ->
+      lifetime_param
+
+with type_param :=
+  | TYPE_PARAM :
+      identifier ->
+      option type_param_bounds ->
+      option type ->              (* default value, if any *)
+      type_param
+
+with const_param :=
+  | CONST_PARAM :
+      identifier ->
+      type ->
+      option const_default ->
+      const_param
+
+with const_default :=
+  | CONST_DEFAULT_BLOCK : block -> const_default
+  | CONST_DEFAULT_IDENT : identifier -> const_default
+  | CONST_DEFAULT_LIT   : literal -> const_default
+  | CONST_DEFAULT_NEG_LIT : literal -> const_default  (* for -N literals *)
+(*Generic Params*)
+(*Associated item*)
+
+with associated_item :=
+  | ASSOC_MACRO :
+      list outer_attribute ->
+      macro_invocation ->
+      associated_item
+
+  | ASSOC_ITEM :
+      list outer_attribute ->
+      option visibility ->
+      assoc_decl ->
+      associated_item
+
+with assoc_decl :=
+  | ASSOC_TYPE_ALIAS : type_alias -> assoc_decl
+  | ASSOC_CONST_ITEM : constant_item -> assoc_decl
+  | ASSOC_FUNCTION   : function_ -> assoc_decl
+
+(*Associated item*)
+(* Function *)
+with function :=
+  | FUNCTION_DEF :
+      function_qualifiers ->
+      identifier ->
+      option generic_params ->
+      option function_parameters ->
+      option function_return_type ->
+      option where_clause ->
+      function_body ->
+      function
+
+with function_qualifiers :=
+  | FUNCTION_QUALIFIERS :
+      (const : bool) ->           (* is_const *)
+      (async : bool) ->           (* is_async *)
+      option item_safety ->
+      option abi ->
+      function_qualifiers
+
+with item_safety :=
+  | SAFE
+  | UNSAFE
+
+with abi :=
+  | ABI_STRING : string -> abi
+
+with function_parameters :=
+  | FN_PARAMS_SELF : self_param -> function_parameters
+  | FN_PARAMS_SELF_COMMA : self_param -> function_parameters
+  | FN_PARAMS_FULL :
+      option self_param ->
+      list function_param ->
+      function_parameters
+
+with self_param :=
+  | SELF_SHORT : list outer_attribute -> shorthand_self -> self_param
+  | SELF_TYPED : list outer_attribute -> typed_self -> self_param
+
+with shorthand_self :=
+  | SELF_SHORTHAND : option reference_modifier -> bool -> shorthand_self
+
+with reference_modifier :=
+  | REF_LF : option lifetime -> reference_modifier  (* & or &'a *)
+  | REF : reference_modifier
+
+with typed_self :=
+  | SELF_TYPED : bool -> type_ -> typed_self
+
+with function_param :=
+  | FN_PARAM_PATTERN : list outer_attribute -> function_param_pattern -> function_param
+  | FN_PARAM_DOTS : list outer_attribute -> function_param
+  | FN_PARAM_TYPE : list outer_attribute -> type_ -> function_param
+
+with function_param_pattern :=
+  | FN_PARAM_PAT : pattern_no_top_alt -> function_param_pattern_rhs -> function_param_pattern
+
+with function_param_pattern_rhs :=
+  | FNPAT_TYPE : type_ -> function_param_pattern_rhs
+  | FNPAT_DOTS : function_param_pattern_rhs
+
+with function_return_type :=
+  | FN_RETURN_TYPE : type_ -> function_return_type
+
+with function_body :=
+  | FN_BODY_BLOCK : block_expression -> function_body
+  | FN_BODY_SEMI
+(* Function *)
+(* Modules *)
 with module :=
   | MOD_BLOCK : (is_unsafe : bool) -> identifier -> module
   | MOD_DEC : (is_unsafe : bool) -> identifier -> list inner_attribute -> list item -> module
 
-(* modules *)
+(* Modules *)
+(*Extern Crate*)
+with extern_crate :=
+  | EXT_CRATE : crate_ref -> option as_clause -> extern_crate
+
+with crate_ref :=
+  | ID_CRATE_REF : identifier -> crate_ref
+  | SELF_CRATE_REF : crate_ref
+
+with as_clause :=
+  | ID_AS_CLAUSE : identifier -> as_clause
+  | UNDERSCORE_AS_CLAUSE : as_clause
+
+(*Extern Crate*)
+(* Use Declaration*)
+with use_declaration :=
+  | USE_DECL : use_tree -> use_declaration
+
+with use_tree :=
+  | USE_TREE : option simple_path -> use_tree
+  | USE_TREE_LIST : option simple_path -> list use_tree -> use_tree
+  | USE_TREE_ID : simple_path -> option identifier -> use_tree
+
+(* Use Declaration*)
 (*Identifier*)
 with identifier :=
   | RAW_IDENT : str -> identifier
@@ -568,13 +863,13 @@ with range_pattern :=
   | RANGE_OBSOLETE_PATTERN : range_pattern_bound -> range_pattern_bound -> range_pattern
 (* Pattern *)
 (* Types *)
-with type :=
-  | TYPE_NO_BOUNDS : type_no_bounds -> type
-  | TRAIT_TYPE : trait_object_type -> type
-  | IMPL_TYPE : impl_trait_type -> type
+with type_ :=
+  | TYPE_NO_BOUNDS : type_no_bounds -> type_
+  | TRAIT_TYPE : trait_object_type -> type_
+  | IMPL_TYPE : impl_trait_type -> type_
 
 with type_no_bounds :=
-  | PARENTHESIZED_TYPE : type -> type_no_bounds
+  | PARENTHESIZED_TYPE : type_ -> type_no_bounds
   | IMPL_ONE_BOUND : trait_bound -> type_no_bounds
   | TRAIT_ONE_BOUND : (dyn : bool) (*dyn*) -> trait_bound -> type_no_bounds
   | TYPE_PATH : type_path -> type_no_bounds
@@ -582,8 +877,8 @@ with type_no_bounds :=
   | NEVER_TYPE : type_no_bounds                        (* corresponds to `!` *)
   | RAW_POINTER_TYPE : raw_pointer_type -> type_no_bounds
   | REFERENCE_TYPE : reference_type -> type_no_bounds
-  | ARRAY_TYPE : type -> expr -> type_no_bounds         (* e.g., [T; N] *)
-  | SLICE_TYPE : type -> type_no_bounds                (* e.g., [T] *)
+  | ARRAY_TYPE : type_ -> expr -> type_no_bounds         (* e.g., [T; N] *)
+  | SLICE_TYPE : type_ -> type_no_bounds                (* e.g., [T] *)
   | INFERRED_TYPE : type_no_bounds                     (* `_` *)
   | QUALIFIED_PATH : qualified_path_in_type -> type_no_bounds
   | BARE_FUNCTION_TYPE : bare_function_type -> type_no_bounds
@@ -625,7 +920,7 @@ with maybe_named_function_parameters :=
   | MAYBE_NAMED_FN_PARAMS : list maybe_named_param -> maybe_named_function_parameters
 
 with maybe_named_param :=
-  | MAYBE_NAMED_PARAM : list outer_attribute -> option id_or_underscore -> type -> maybe_named_param
+  | MAYBE_NAMED_PARAM : list outer_attribute -> option id_or_underscore -> type_ -> maybe_named_param
 
 with id_or_underscore :=
   | ID_OPT : identifier -> id_or_underscore
@@ -646,7 +941,7 @@ with trait_object_type :=
 (*Tuple Types*)
 with tuple_type :=
   | TUPLE_TYPE_EMPTY
-  | TUPLE_TYPE_FULL : list type -> tuple_type
+  | TUPLE_TYPE_FULL : list type_ -> tuple_type
 (*Tuple Types*)
 
 (*Visibility*)
