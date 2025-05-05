@@ -52,29 +52,29 @@ with type_expr_with_block :=
 
       (* Grouped Expressions *)
 with grouped_expression :=
-  | GROUPED_EXPR : expression -> grouped_expression
+  | GROUPED_EXPRESSION_ : expression -> grouped_expression
       (* Grouped Expressions *)
       (* Array and Index Expression*)
 with array_expression :=
-  | ARRAY_EXPR : list array_elements -> array_expression
+  | ARRAY_EXPRESSION_ : list array_elements -> array_expression
 
 with array_elements :=
   | ARRAY_ElEMENT : list expression -> array_elements
   | SEMI_ARRAY_ELEMENT : expression -> expression -> array_elements
 
 with index_expression :=
-  | INDEX_EXPR : expression -> expression -> index_expression
+  | INDEX_EXPRESSION_ : expression -> expression -> index_expression
 
       (* Array and Index Expression*)
       (*Tuple and Tuple Indexing Expressions*)
 with tuple_expression :=
-  | TUPLE_EXPR : option tuple_elements -> tuple_expression
+  | TUPLE_EXPRESSION_ : option tuple_elements -> tuple_expression
 
 with tuple_elements :=
   | TUPLE_ELEMENTS : list expression -> option expression -> tuple_elements
 
 with tuple_indexing_expression :=
-  | TUPLE_INDEXING_EXPR : expression -> str (*tuple index is equivalent to string, for now...*) -> tuple_indexing_expression
+  | TUPLE_INDEXING_EXPRESSION_ : expression -> str (*tuple index is equivalent to string, for now...*) -> tuple_indexing_expression
       (*Tuple and Tuple Indexing Expressions*)
       (*  Struct Expressions *)
 with struct_expression :=
@@ -109,22 +109,22 @@ with expr_list :=
       (*  Struct Expressions *)
       (*  Call Expressions *)
 with call_expression :=
-  | CALL_EXPR : expression -> call_params -> call_expression
+  | CALL_EXPRESSION_ : expression -> call_params -> call_expression
 
 with call_params :=
   | CALL_PARAMS : expression -> list expression -> call_params
       (*  Call Expressions *)
       (*  Method Expressions *)
 with method_call_expression :=
-  | METHOD_CALL_EXPR : expression -> path_expr_segment -> option call_params -> method_call_expression
+  | METHOD_CALL_EXPRESSION_ : expression -> path_expr_segment -> option call_params -> method_call_expression
       (*  Method Expressions *)
       (*  Field Expressions *)
 with field_expression :=
-  | FIELD_EXPR : expression -> identifier -> field_expression
+  | FIELD_EXPRESSION_ : expression -> identifier -> field_expression
       (*  Field Expressions *)
       (*  Closure Expressions *)
       with closure_expression :=
-  | CLOSURE_EXPR : (async : bool) -> (move : bool) -> option closure_params -> expr_or_type_no_bounds -> closure_expression
+  | CLOSURE_EXPRESSION_ : bool -> bool -> option closure_params -> expr_or_type_no_bounds -> closure_expression
 
 with expr_or_type_no_bounds :=
   | EXPR_OPT : expression -> expr_or_type_no_bounds
@@ -138,16 +138,16 @@ with closure_param :=
       (*  Closure Expressions *)
       (*  Loop Expressions *)
 with loop_expression :=
-  | LOOP_EXPR : option loop_label -> loop_types -> loop_expression
+  | LOOP_EXPRESSION_ : option loop_label -> loop_types -> loop_expression
 
 with loop_label :=
   | LOOP_LABEL : str -> loop_label
 
 with break_expression :=
-  | BREAK_EXPR : option str -> option expression -> break_expression
+  | BREAK_EXPRESSION_: option str -> option expression -> break_expression
 
 with continue_expression :=
-  | CONTINUE_EXPR : option str -> continue_expression
+  | CONTINUE_EXPRESSION_ : option str -> continue_expression
 
 with loop_types :=
   | INFINITE_LOOP_EXPRESSION : block_expression -> loop_types
@@ -158,12 +158,12 @@ with loop_types :=
       (*  Loop Expressions *)
       (* Range Expressions*)
 with range_expression :=
-  | RANGE_EXPR : expression -> expression -> range_expression
-  | RANGE_FROM_EXPR : expression -> range_expression
-  | RANGE_TO_EXPR : expression -> range_expression
-  | RANGE_FULL_EXPR : range_expression
-  | RANGE_INCLUSIVE_EXPR : expression -> expression -> range_expression
-  | RANGE_TO_INCLUSIVE_EXPR : expression -> range_expression
+  | RANGE_EXPRESSION_: expression -> expression -> range_expression
+  | RANGE_FROM_EXPRESSION_: expression -> range_expression
+  | RANGE_TO_EXPRESSION_: expression -> range_expression
+  | RANGE_FULL_EXPRESSION_: range_expression
+  | RANGE_INCLUSIVE_EXPRESSION_: expression -> expression -> range_expression
+  | RANGE_TO_INCLUSIVE_EXPRESSION_: expression -> range_expression
       (* Range Expressions *)
       (* if and if let expressions *)
 with if_expression :=
@@ -175,25 +175,24 @@ with choice :=
   | IF_LET : if_let_expression -> choice
 
 with if_let_expression :=
-  | IF_LET_EXPR : pattern -> scrutinee -> block_expression -> option choice -> if_let_expression
+  | IF_LET_EXPRESSION_: pattern -> scrutinee -> block_expression -> option choice -> if_let_expression
 
       (* if and if let expressions *)
       (*Match expressions*)
 with match_expression :=
-  | MATCH_EXPR : scrutinee -> list inner_attribute -> option match_arms -> match_expression
+  | MATCH_EXPRESSION_: scrutinee -> list inner_attribute -> option match_arms -> match_expression
 
 with scrutinee :=
   | SCRUTINEE : expression -> scrutinee
 
 with match_arm_guard :=
-  | MATCHARMGUARD : expression -> match_arm_guard
+  | MATCH_ARM_GUARD : expression -> match_arm_guard
 
 with match_arm :=
-  | MATCHARM : list outer_attribute -> pattern -> option match_arm_guard -> match_arm
+  | MATCH_ARM : list outer_attribute -> pattern -> option match_arm_guard -> match_arm
 
 with match_arms :=
-  | MATCHARMS :
-      list organized_matching -> match_arm -> expression -> match_arms
+  | MATCH_ARMS : list organized_matching -> match_arm -> expression -> match_arms
 
 with organized_matching :=
   | ORGANIZE : match_arm -> block_or_not -> organized_matching
@@ -204,10 +203,10 @@ with block_or_not :=
       (*Match expressions*)
       (*Return expressions*)
 with return_expression :=
-  | RETURN_EXPR : option expression -> return_expression
+  | RETURN_EXPRESSION_: option expression -> return_expression
       (*Return expressions*)
 with await_expression :=
-  | AWAIT_EXPR : expression -> await_expression
+  | AWAIT_EXPRESSION_: expression -> await_expression
       (*Return expressions*)
 
       (*  Literal Expressions *)
@@ -228,13 +227,13 @@ with literal_expression :=
 
 (* Path Expressions *)
 with path_expression :=
-  | PATH_EXPR : path_in_expression -> path_expression
-  | QUALIFIED_PATH_EXPR : qualified_path_in_expression -> path_expression
+  | PATH_EXPRESSION_ : path_in_expression -> path_expression
+  | QUALIFIED_PATH_IN_EXPRESSION : qualified_path_in_expression -> path_expression
 (* Path Expressions *)
 
 (* Block Expressions*)
 with block_expression := 
-  | BLOCK_EXPR : list inner_attribute -> option statements -> block_expression
+  | BLOCK_EXPRESSION_: list inner_attribute -> option statements -> block_expression
 
 with statements :=
   | STATEMENTS : list statement -> statements
@@ -246,24 +245,24 @@ with async_block_expression :=
   | ASYNC_BLOCK_EXPR_STILL : block_expression -> async_block_expression
 
 with const_block_expression :=
-  | CONST_BLOCK_EXPR : block_expression -> const_block_expression
+  | CONST_BLOCK_EXPRESSION_: block_expression -> const_block_expression
 
 with unsafe_block_expression :=
-  | UNSAFE_BLOCK_EXPR : block_expression -> unsafe_block_expression
+  | UNSAFE_BLOCK_EXPRESSION_: block_expression -> unsafe_block_expression
 (*Block Expressions*)
 
 (*Statements*)
 with statement :=
   | STATEMENT_ITEM : item -> statement
   | STATEMENT_LET : let_statement -> statement
-  | STATEMENT_EXPR : expr_statement -> statement
+  | STATEMENT_EXPRESSION_: expr_statement -> statement
   | MACRO_INVOCATION_SEMI : macro_invocation_semi -> statement
 
 with let_statement :=
   | LET_STATEMENT : list outer_attribute -> pattern_no_top_alt -> option type_ -> option eq_expr -> let_statement
 
 with eq_expr :=
-  | EQ_EXPR : expression -> option block_expression -> eq_expr
+  | EQ_EXPRESSION_: expression -> option block_expression -> eq_expr
 
 with expr_statement :=
   | EXPR_STATEMENT_NO_BLOCK : type_expr_without_block -> expr_statement
@@ -308,8 +307,8 @@ with borrow_kind :=
   | BK_RawMut
 
 with negation_expression :=
-  | NEG_EXPR : expression -> negation_expression
-  | NOT_EXPR : expression -> negation_expression
+  | NEG_EXPRESSION_: expression -> negation_expression
+  | NOT_EXPRESSION_: expression -> negation_expression
 
 with arithmetic_or_logical_operation :=
   | AOP_ADD | AOP_SUB | AOP_MUL | AOP_DIV | AOP_REM
@@ -455,7 +454,7 @@ with visItem :=
   | FUNCTION : function -> visItem
   | TYPE_ALIAS : type_alias -> visItem
   | STRUCT : struct_ -> visItem
-  | ENUM : enum -> visItem
+  | ENUM : enumeration -> visItem
   | UNION : union -> visItem
   | CONSTANT_ITEM : constant_item -> visItem
   | STATIC_ITEM : static_item -> visItem
@@ -497,7 +496,7 @@ with struct_field :=
       list outer_attribute -> 
       option visibility -> 
       identifier -> 
-      type -> 
+      type_ -> 
       struct_field
 
 with tuple_fields :=
@@ -507,13 +506,13 @@ with tuple_field :=
   | TUPLE_FIELD :
       list outer_attribute ->
       option visibility ->
-      type ->
+      type_ ->
       tuple_field
 (*Struct*)
 (*Enum*)
 
 with enumeration :=
-  | ENUM :
+  | ENUM_ :
       identifier ->
       option generic_params ->
       option where_clause ->
@@ -563,18 +562,18 @@ with type_and_where :=
 (*Type Alias*)
 (*Static Item*)
 with static_item :=
-  | STATIC_ITEM_ : option item_safety -> (mut : bool) -> identifier -> type_ -> option expression -> static_item
+  | STATIC_ITEM_ : option item_safety -> bool -> identifier -> type_ -> option expression -> static_item
 (*Static Item*)
 (*Traits*)
 with trait :=
-  | TRAIT_ : (safe : bool) -> identifier -> option generic_params -> option type_param_bounds ->
+  | TRAIT_ : bool -> identifier -> option generic_params -> option type_param_bounds ->
       option where_clause -> list inner_attribute -> list associated_item -> trait
 (*Traits*)
 (*Implementations *)
 with implementation :=
   | INHERENT_IMPL :
       option generic_params ->
-      type ->
+      type_ ->
       option where_clause ->
       list inner_attribute ->
       list associated_item ->
@@ -585,7 +584,7 @@ with implementation :=
       option generic_params ->
       bool ->                    (* is_negative (i.e., `!`) *)
       type_path ->              (* the trait being implemented *)
-      type ->                   (* the type it's implemented for *)
+      type_ ->                   (* the type it's implemented for *)
       option where_clause ->
       list inner_attribute ->
       list associated_item ->
@@ -593,7 +592,7 @@ with implementation :=
 (*Implementations*)
 (*Extern block*)
 with extern_block :=
-  | EXTERN_BLOCK :
+  | EXTERN_BLOCK_ :
       bool ->                    (* is_unsafe *)
       option abi ->             (* optional ABI string *)
       list inner_attribute ->
@@ -613,7 +612,7 @@ with external_item :=
 
 with external_decl :=
   | EXT_STATIC : static_item -> external_decl
-  | EXT_FUNCTION : function_ -> external_decl
+  | EXT_FUNCTION : function -> external_decl
 (*Extern block*)
 (*Generic Params*)
 with generic_params :=
@@ -637,21 +636,36 @@ with type_param :=
   | TYPE_PARAM :
       identifier ->
       option type_param_bounds ->
-      option type ->              (* default value, if any *)
+      option type_ ->              (* default value, if any *)
       type_param
 
 with const_param :=
   | CONST_PARAM :
       identifier ->
-      type ->
+      type_ ->
       option const_default ->
       const_param
 
 with const_default :=
-  | CONST_DEFAULT_BLOCK : block -> const_default
+  | CONST_DEFAULT_BLOCK : block_expression -> const_default
   | CONST_DEFAULT_IDENT : identifier -> const_default
-  | CONST_DEFAULT_LIT   : literal -> const_default
-  | CONST_DEFAULT_NEG_LIT : literal -> const_default  (* for -N literals *)
+  | CONST_DEFAULT_LIT   : literal_expression -> const_default
+  | CONST_DEFAULT_NEG_LIT : literal_expression -> const_default  (* for -N literals *)
+
+with where_clause :=
+  | WHERE_CLAUSE : list where_clause_item -> where_clause
+
+with where_clause_item :=
+  | WC_LIFETIME :
+      lifetime ->
+      lifetime_bounds ->
+      where_clause_item
+
+  | WC_TYPE :
+      option for_lifetimes ->
+      type_ ->
+      option type_param_bounds ->
+      where_clause_item
 (*Generic Params*)
 (*Associated item*)
 
@@ -670,7 +684,7 @@ with associated_item :=
 with assoc_decl :=
   | ASSOC_TYPE_ALIAS : type_alias -> assoc_decl
   | ASSOC_CONST_ITEM : constant_item -> assoc_decl
-  | ASSOC_FUNCTION   : function_ -> assoc_decl
+  | ASSOC_FUNCTION   : function -> assoc_decl
 
 (*Associated item*)
 (* Function *)
@@ -687,8 +701,8 @@ with function :=
 
 with function_qualifiers :=
   | FUNCTION_QUALIFIERS :
-      (const : bool) ->           (* is_const *)
-      (async : bool) ->           (* is_async *)
+      bool ->           (* is_const *)
+      bool ->           (* is_async *)
       option item_safety ->
       option abi ->
       function_qualifiers
@@ -720,7 +734,7 @@ with reference_modifier :=
   | REF : reference_modifier
 
 with typed_self :=
-  | SELF_TYPED : bool -> type_ -> typed_self
+  | TYPED_SELF : bool -> type_ -> typed_self
 
 with function_param :=
   | FN_PARAM_PATTERN : list outer_attribute -> function_param_pattern -> function_param
@@ -743,8 +757,8 @@ with function_body :=
 (* Function *)
 (* Modules *)
 with module :=
-  | MOD_BLOCK : (is_unsafe : bool) -> identifier -> module
-  | MOD_DEC : (is_unsafe : bool) -> identifier -> list inner_attribute -> list item -> module
+  | MOD_BLOCK : bool -> identifier -> module
+  | MOD_DEC : bool -> identifier -> list inner_attribute -> list item -> module
 
 (* Modules *)
 (*Extern Crate*)
@@ -801,11 +815,11 @@ with pattern_no_top_alt :=
 
 with pattern_without_range :=
   | LITERAL_PATTERN : literal_expression -> pattern_without_range
-  | IDENTIFIER_PATTERN : identifier_pattern -> pattern_without_range
+  | IDENTIFIER_PATTERN : bool -> bool -> identifier -> option pattern_no_top_alt -> pattern_without_range
   | WILDCARD_PATTERN : pattern_without_range
   | REST_PATTERN : rest_pattern -> pattern_without_range
-  | DOUBLE_REFERENCE_PATTERN : (is_mut : bool) -> pattern -> pattern_without_range
-  | SINGLE_REFERENCE_PATTERN : (is_mut : bool) -> pattern -> pattern_without_range
+  | DOUBLE_REFERENCE_PATTERN : bool -> pattern -> pattern_without_range
+  | SINGLE_REFERENCE_PATTERN : bool -> pattern -> pattern_without_range
   | STRUCT_PATTERN : path_in_expression -> option struct_pattern_elements -> pattern_without_range
   | TUPLE_STRUCT_PATTERN : path_in_expression -> option (pattern * list pattern) -> pattern_without_range
   | TUPLE_PATTERN : option tuple_pattern_items -> pattern_without_range
@@ -838,7 +852,7 @@ with struct_pattern_field :=
 with tuple_or_idPat_or_id :=
   | TUPLE_PAT : str -> identifier -> tuple_or_idPat_or_id
   | ID_PAT : identifier -> tuple_or_idPat_or_id
-  | ID : (ref : bool) -> (mut : bool) -> tuple_or_idPat_or_id
+  | ID : bool -> bool -> tuple_or_idPat_or_id
 
 with struct_pattern_etcetara :=
   | STRUCT_PATTERN_ETCETERA : list outer_attribute -> struct_pattern_etcetara
@@ -849,8 +863,10 @@ with tuple_struct_items :=
 with range_pattern_bound :=
   | RANGE_PATTERN_BOUND_CHAR : str -> range_pattern_bound
   | RANGE_PATTERN_BOUND_BYTE : str -> range_pattern_bound
-  | RANGE_PATTERN_BOUND_INTEGER : option neg_sign -> str -> range_pattern_bound
-  | RANGE_PATTERN_BOUND_FLOAT : option neg_sign -> str -> range_pattern_bound
+  | RANGE_PATTERN_BOUND_NEG_INTEGER : str -> range_pattern_bound
+  | RANGE_PATTERN_BOUND_INTEGER : str -> range_pattern_bound
+  | RANGE_PATTERN_BOUND_NEG_FLOAT : str -> range_pattern_bound
+  | RANGE_PATTERN_BOUND_FLOAT : str -> range_pattern_bound
   | RANGE_PATTERN_BOUND_PATH : path_expression -> range_pattern_bound
 
 with range_exclusive_pattern :=
@@ -871,13 +887,13 @@ with type_ :=
 with type_no_bounds :=
   | PARENTHESIZED_TYPE : type_ -> type_no_bounds
   | IMPL_ONE_BOUND : trait_bound -> type_no_bounds
-  | TRAIT_ONE_BOUND : (dyn : bool) (*dyn*) -> trait_bound -> type_no_bounds
+  | TRAIT_ONE_BOUND : bool (*dyn*) -> trait_bound -> type_no_bounds
   | TYPE_PATH : type_path -> type_no_bounds
   | TUPLE_TYPE : tuple_type -> type_no_bounds
   | NEVER_TYPE : type_no_bounds                        (* corresponds to `!` *)
   | RAW_POINTER_TYPE : raw_pointer_type -> type_no_bounds
   | REFERENCE_TYPE : reference_type -> type_no_bounds
-  | ARRAY_TYPE : type_ -> expr -> type_no_bounds         (* e.g., [T; N] *)
+  | ARRAY_TYPE : type_ -> expression -> type_no_bounds         (* e.g., [T; N] *)
   | SLICE_TYPE : type_ -> type_no_bounds                (* e.g., [T] *)
   | INFERRED_TYPE : type_no_bounds                     (* `_` *)
   | QUALIFIED_PATH : qualified_path_in_type -> type_no_bounds
@@ -893,7 +909,7 @@ with raw_pointer_type :=
 
 (* Pointer Type*)
 with reference_type :=
-  | REFER_TYP : option lifetime -> (mut : bool)(*mut*) -> type_no_bounds -> reference_type
+  | REFER_TYP : option lifetime -> bool(*mut*) -> type_no_bounds -> reference_type
 (*Pointer Type*)
 
 (*Function Pointer Type*)
@@ -936,7 +952,7 @@ with impl_trait_type :=
 
 (*Trait Object*)
 with trait_object_type :=
-  | TRAIT_OBJECT_TYPE : (dyn : bool) (*dyn*) -> type_param_bounds -> trait_object_type
+  | TRAIT_OBJECT_TYPE : bool (*dyn*) -> type_param_bounds -> trait_object_type
 (*Trait Object*)
 (*Tuple Types*)
 with tuple_type :=
@@ -950,7 +966,7 @@ with visibility :=
   | PUB_CRATE
   | PUB_SUPER 
   | PUB_SELF
-  | PUB_IN : simple_path -> visibility
+  | PUB_IN : simple_path -> visibility.
 (*Visibility*)
 
 Require Import ExtrOcamlBasic.
