@@ -30,14 +30,9 @@ with attr_input :=
 
 (*  Expressions   *)
 with expression :=
-  | EXPRESSION_WITHOUT_BLOCK : expression_without_block -> expression
-  | EXPRESSION_WITH_BLOCK : expression_with_block -> expression
+  | EXPRESSION_WITHOUT_BLOCK :  list outer_attribute -> type_expr_without_block -> expression
+  | EXPRESSION_WITH_BLOCK : list outer_attribute -> type_expr_with_block -> expression
 
-with expression_without_block :=
-  | EXPRESSION_WITHOUT_BLOCK_CONSTRUCTOR : list outer_attribute -> type_expr_without_block -> expression_without_block
-
-with expression_with_block :=
-  | EXPRESSION_WITH_BLOCK_CONSTRUCTOR : list outer_attribute -> type_expr_with_block -> expression_with_block
 
 with type_expr_without_block :=
   | LITERAL_EXPRESSION : literal_expression -> type_expr_without_block
@@ -53,14 +48,14 @@ with type_expr_without_block :=
   | CALL_EXPRESSION : call_expression -> type_expr_without_block
   | METHOD_CALL_EXPRESSION : method_call_expression -> type_expr_without_block
   | FIELD_EXPRESSION : field_expression -> type_expr_without_block
-  | CLOSURE_EXPRESSION : closure_expression -> type_expr_with_block
-  | ASYNC_BLOCK_EXPRESSION : async_block_expression -> type_expr_with_block
+  | CLOSURE_EXPRESSION : closure_expression -> type_expr_without_block
+  | ASYNC_BLOCK_EXPRESSION : async_block_expression -> type_expr_without_block
   | CONTINUE_EXPRESSION : continue_expression -> type_expr_without_block
   | BREAK_EXPRESSION : break_expression -> type_expr_without_block
   | RANGE_EXPRESSION : range_expression -> type_expr_without_block
   | RETURN_EXPRESSION : return_expression -> type_expr_without_block
   | UNDERSCORE_EXPRESSION
-  | MACRO_INVOCATION : macro_invocation -> type_expr_without_blockwith type_expr_without_block 
+  | MACRO_INVOCATION : macro_invocation -> type_expr_without_block 
 
 with type_expr_with_block :=
   | BLOCK_EXPRESSION : block_expression -> type_expr_with_block
@@ -82,7 +77,7 @@ with array_expression :=
 
 with array_elements :=
   | ARRAY_ElEMENT : list expression -> array_elements
-  | SEMI_ARRAY_ELEMENT : expression -> expression -> array_expression
+  | SEMI_ARRAY_ELEMENT : expression -> expression -> array_elements
 
 with index_expression :=
   | INDEX_EXPR : expression -> expression -> index_expression
@@ -93,7 +88,7 @@ with tuple_expression :=
   | TUPLE_EXPR : option tuple_elements -> tuple_expression
 
 with tuple_elements :=
-  | TUPLE_ELEMENTS : list expression -> opt expression -> tuple_elements
+  | TUPLE_ELEMENTS : list expression -> option expression -> tuple_elements
 
 with tuple_indexing_expression :=
   | TUPLE_INDEXING_EXPR : expression -> str (*tuple index is equivalent to string, for now...*) -> tuple_indexing_expression
@@ -102,7 +97,7 @@ with tuple_indexing_expression :=
 with struct_expression :=
   | STRUCT_EXPRESSION_STRUCT : path_in_expression -> option struct_expr_field_or_struct_base -> struct_expression
   | STRUCT_EXPRESSION_TUPLE :  path_in_expression -> option expr_list -> struct_expression
-  | STRUCT_EXPRESSION_UNIT :  path_in_expression -> struct_expr_unit -> struct_expression
+  | STRUCT_EXPRESSION_UNIT :  path_in_expression -> struct_expression
 
 with struct_expr_field_or_struct_base :=
   | STRUCT_EXPR_FIELD_OPT : struct_expr_fields -> struct_expr_field_or_struct_base
@@ -145,27 +140,31 @@ with field_expression :=
   | FIELD_EXPR : expression -> identifier -> field_expression
       (*  Field Expressions *)
       (*  Closure Expressions *)
-with closure_expression :=
+      with closure_expression :=
   | CLOSURE_EXPR : bool -> bool -> option closure_params -> expr_or_typ_no_bounds -> closure_expression
+
+with expr_or_typ_no_bounds :=
+  | EXPR_OPT : expression -> expr_or_typ_no_bounds
+  | TYPE_BLOCK_OPT : typ_no_bounds -> block_expression -> expr_or_typ_no_bounds
 
 with closure_params :=
   | CLOSURE_PARAMS : closure_param -> list closure_param -> closure_params
 
 with closure_param :=
-  | CLOSURE_PARAM : list outer_attribute -> pattern_no_top_alt -> option type -> closure_param
+         | CLOSURE_PARAM : list outer_attribute -> pattern_no_top_alt -> option type -> closure_param
       (*  Closure Expressions *)
       (*  Loop Expressions *)
 with loop_expression :=
   | LOOP_EXPR : option loop_label -> loop_types -> loop_expression
 
 with loop_label :=
-  | LOOP_LABEL : lifetime_or_label -> loop_label
+  | LOOP_LABEL : str -> loop_label
 
 with break_expression :=
-  | BREAK_EXPR : option lifetime_or_label -> option expression -> break_expression
+  | BREAK_EXPR : option str -> option expression -> break_expression
 
 with continue_expression :=
-  | CONTINUE_EXPR : option lifetime_or_label -> continue_expression
+  | CONTINUE_EXPR : option str -> continue_expression
 
 with loop_types :=
   | INFINITE_LOOP_EXPRESSION : block_expression -> loop_types
@@ -211,16 +210,21 @@ with match_arm :=
 
 with match_arms :=
   | MatchArms :
-      list (match_arm * (expression_without_block + expression_with_block)) ->
-      option (match_arm * expression) ->
-      match_arms
+      list organized_matching -> match_arm -> expression -> match_arms
+
+with organized_matching :=
+  | ORGANIZE : match_arm -> block_or_not -> organized_matching
+
+with block_or_not :=
+  | YES_BLOCK : expression_with_block -> block_or_not
+  | NO_BLOCK : expression_without_block -> block_or_not
       (*Match expressions*)
       (*Return expressions*)
 with return_expression :=
   | RETURN_EXPR : option expression -> return_expression
       (*Return expressions*)
 with await_expression :=
-  | AWAIT_EXPRESSION : expression -> return_expression
+  | AWAIT_EXPR : expression -> return_expression
       (*Return expressions*)
 
       (*  Literal Expressions *)
@@ -272,20 +276,6 @@ with statement :=
   | STATEMENT_EXPR : expr_statement -> statement
   | MACRO_INVOCATION_SEMI : macro_invocation_semi -> statement
 
-with delim_token_tree :=
-  | PAREN_TOKENS : list token_tree -> delim_token_tree
-  | BRACK_TOKENS : list token_tree -> delim_token_tree 
-  | BRACE_TOKENS : list token_tree -> delim_token_tree 
-
-with token_tree :=
-  | Token : str (*I believe all tokens can be represented as string, especially demonstrated by pretty printer*) -> token_tree
-  | DELIM : delim_token_tree -> token_tree
-
-with macro_invocation_semi :=
-  | PAREN_MACRO : list token_tree -> macro_invocation_semi
-  | BRACE_MACRO : list token_tree -> macro_invocation_semi
-  | BRACK_MACRO : list token_tree -> macro_invocation_semi
-
 with let_statement :=
   | LET_STATEMENT : list outer_attribute -> pattern_no_top_alt -> option type -> option eq_expr -> let_statement
 
@@ -295,8 +285,26 @@ with eq_expr :=
 with expr_statement :=
   | EXPR_STATEMENT_NO_BLOCK : expression_without_block -> expr_statement
   | EXPR_STATEMENT_BLOCK : expression_with_block -> expr_statement
-
       (*Statements*) 
+
+      (*Macros*)
+with macro_invocation :=
+  | MACRO_INVOC : simple_path -> delim_token_tree -> macro_invocation
+
+with delim_token_tree :=
+  | PAREN_TOKENS : list token_tree -> delim_token_tree
+  | BRACK_TOKENS : list token_tree -> delim_token_tree 
+  | BRACE_TOKENS : list token_tree -> delim_token_tree 
+
+with token_tree :=
+  | Token : str -> token_tree (*I believe all tokens can be represented as string, especially demonstrated by pretty printer*) -> token_tree
+  | DELIM : delim_token_tree -> token_tree
+
+with macro_invocation_semi :=
+  | PAREN_MACRO : list token_tree -> macro_invocation_semi
+  | BRACE_MACRO : list token_tree -> macro_invocation_semi
+  | BRACK_MACRO : list token_tree -> macro_invocation_semi
+      (*Macros*)
       (*Operator expression*)
 with operator_expression :=
   | BORROW_EXPRESSION : borrow_expression -> operator_expression
@@ -453,7 +461,7 @@ with lifetime_bounds :=
   | LIFETIME_BOUNDS : list lifetime -> option lifetime -> lifetime_bounds
 
 with lifetime :=
-  | LIFETIME : lifetime_or_label -> lifetime
+  | LIFETIME : str -> lifetime
   | LIFETIME_STATIC
   | LIFETIME_UNDERSCORE
 
@@ -503,9 +511,80 @@ with constant :=
 
 with identifier :=
   | Raw_Ident : str -> identifier
-  | Ident : str -> identifier.
+  | Ident : str -> identifier
 
+(* Pattern *)
+with pattern :=
+  | PATTERN : pattern_no_top_alt -> list pattern_no_top_alt -> pattern
 
+with pattern_no_top_alt :=
+  | PATTERN_NO_RANGE : pattern_without_range -> pattern_no_top_alt
+  | PATTERN_RANGE : range_pattern -> pattern_no_top_alt
+
+with pattern_without_range :=
+  | LITERAL_PATTERN : literal_expression -> pattern_without_range
+  | IDENTIFIER_PATTERN : identifier_pattern -> pattern_without_range
+  | WILDCARD_PATTERN : pattern_without_range
+  | REST_PATTERN : rest_pattern -> pattern_without_range
+  | DOUBLE_REFERENCE_PATTERN : bool -> pattern -> pattern_without_range
+  | SINGLE_REFERENCE_PATTERN : bool -> pattern -> pattern_without_range
+  | STRUCT_PATTERN : path_in_expression -> option struct_pattern_elements -> pattern_without_range
+  | TUPLE_STRUCT_PATTERN : path_in_expression -> option (pattern * list pattern) -> pattern_without_range
+  | TUPLE_PATTERN : option tuple_pattern_items -> pattern_without_range
+  | GROUPED_PATTERN : pattern -> pattern_without_range
+  | SLICE_PATTERN : option slice_pattern_items -> pattern_without_range
+  | PATH_PATTERN : path_expression -> pattern_without_range
+  | PATTERN_MACRO_INVOCATION : macro_invocation -> pattern_without_range
+
+with slice_pattern_items :=
+  | SLICE_PATTERN_ITEMS : pattern -> list pattern -> slice_pattern_items
+
+with rest_pattern :=
+  | REST_PAT
+
+with tuple_pattern_items :=
+  | PATTERN_ITEM : pattern -> tuple_pattern_items
+  | REST_ITEM : rest_pattern -> tuple_pattern_items
+  | PATTERN_ITEMS : pattern -> list pattern -> tuple_pattern_items
+
+with struct_pattern_elements :=
+  | STRUCT_PATTERN_ELEMENTS_FIELDS : struct_pattern_fields -> option struct_pattern_etcetara -> struct_pattern_elements
+  | STRUCT_PATTERN_ELEMENTS_ETCETERA : struct_pattern_etcetara -> struct_pattern_elements
+
+with struct_pattern_fields :=
+  | STRUCT_PATTERN_FIELDS : struct_pattern_field -> list struct_pattern_field -> struct_pattern_fields
+
+with struct_pattern_field :=
+  | STRUCT_PATTERN_FIELD : list outer_attribute -> tuple_or_idPat_or_id -> struct_pattern_field
+
+with struct_pattern_etcetara :=
+  | STRUCT_PATTERN_ETCETERA : list outer_attribute -> struct_pattern_etcetara
+
+with tuple_struct_items :=
+  | TUPLE_STRUCT_ITEMS : pattern -> list pattern -> tuple_struct_items
+
+with tuple_or_idPat_or_id :=
+  | TUPLE_PAT : str -> identifier -> tuple_or_idPat_or_id
+  | ID_PAT : identifier -> tuple_or_idPat_or_id
+  | ID : bool -> bool -> tuple_or_idPat_or_id
+
+with range_pattern_bound :=
+  | RANGE_PATTERN_BOUND_CHAR : str -> range_pattern_bound
+  | RANGE_PATTERN_BOUND_BYTE : str -> range_pattern_bound
+  | RANGE_PATTERN_BOUND_INTEGER : option neg_sign -> str -> range_pattern_bound
+  | RANGE_PATTERN_BOUND_FLOAT : option neg_sign -> str -> range_pattern_bound
+  | RANGE_PATTERN_BOUND_PATH : path_expression -> range_pattern_bound
+
+with range_exclusive_pattern :=
+  | RangeExclusivePattern : range_pattern_bound -> range_pattern_bound -> range_exclusive_pattern
+
+with range_pattern :=
+  | RANGE_INCLUSIVE_PATTERN : range_pattern_bound -> range_pattern_bound -> range_pattern
+  | RANGE_FROM_PATTERN : range_pattern_bound -> range_pattern
+  | RANGE_TOINCLUSIVE_PATTERN : range_pattern_bound -> range_pattern
+  | RANGE_OBSOLETE_PATTERN : range_pattern_bound -> range_pattern_bound -> range_pattern
+
+(* Pattern *)
 
 Require Import ExtrOcamlBasic.
 Require Import ExtrOcamlString.
