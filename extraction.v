@@ -3,5 +3,5 @@ Require Import Proj.Cabs.
 
 Cd "extraction".
 
-Separate Extraction program top_level identifier.
+Separate Extraction program.
 
