@@ -6,10 +6,10 @@
 %token <Cabs.loc> ELSE ENUM EXTERN FALSE FN
 %token <Cabs.loc> FOR IF IMPL IN LET
 %token <Cabs.loc> LOOP MATCH MOD MOVE MUT
-%token <Cabs.loc> PUB REF RETURN HASH
+%token <Cabs.loc> PUB REF RETURN 
 %token <Cabs.loc> SELFVALUE SELFTYPE STATIC STRUCT SUPER
 %token <Cabs.loc> TRAIT TRUE TYPE UNSAFE USE
-%token <Cabs.loc> WHERE WHILE ASYNC AWAIT DYN EXCLAMATION
+%token <Cabs.loc> WHERE WHILE ASYNC AWAIT DYN 
 %token <Cabs.loc> MACRO_RULES UNION STATICLIFETIME SAFE RAW
 
 %token <Cabs.loc> PLUS MINUS STAR SLASH PERCENT    (* + - * / % *)
@@ -34,6 +34,9 @@
 %type <Cabs.item list> items
 %type <Cabs.item> item
 %type <Cabs.visItem> vis_item
+%type <Cabs.extern_crate> extern_crate
+%type <Cabs.crate_ref> crate_ref
+%type <Cabs.as_clause> as_clause
 %type <Cabs.module_> unsafe_module safe_module
 %type <(Cabs.identifier * Cabs.loc)> ident
 %type <Cabs.outer_attribute list> outer_attrs
@@ -64,19 +67,32 @@ item:
 
 vis_item:
   | m = unsafe_module { Cabs.MODULE m }
+  | e = extern_crate { Cabs.EXTERN_CRATE e }
 
-safe_module:
-  | MOD name = ident SEMI
-    { MOD_BLOCK (false, (fst name)) }
-  | MOD name = ident LBRACE attrs = inner_attrs content = items RBRACE
-    { MOD_DEC (false, (fst name), attrs, content) }
+extern_crate:
+  | EXTERN CRATE ref = crate_ref SEMI { Cabs.EXT_CRATE ref }
+  | EXTERN CRATE ref = crate_ref AS clause = as_clause SEMI { Cabs.EXT_CRATE_CLAUSE (ref, clause) }
+
+crate_ref:
+  | id = ident { Cabs.ID_CRATE_REF (fst id) }
+  |  SELFVALUE {Cabs.SELF_CRATE_REF}
+
+as_clause:
+  | id = ident { Cabs.ID_AS_CLAUSE (fst id) }
+  | UNDERSCORE { Cabs.UNDERSCORE_AS_CLAUSE }
 
 unsafe_module:
   | sm = safe_module { sm }
   | UNSAFE MOD name = ident SEMI
     { MOD_BLOCK (true, (fst name)) }
   | UNSAFE MOD name = ident LBRACE attrs = inner_attrs content = items RBRACE
-    { MOD_DEC (true, (fst name), attrs, content) }
+    { MOD_DEC (true, (fst name), Stdlib.List.rev (attrs), content) }
+
+safe_module:
+  | MOD name = ident SEMI
+    { MOD_BLOCK (false, (fst name)) }
+  | MOD name = ident LBRACE attrs = inner_attrs content = items RBRACE
+    { MOD_DEC (false, (fst name), Stdlib.List.rev (attrs), content) }
 
 ident:
   | id = IDENT { (IDENT (fst id), snd id) }
@@ -84,17 +100,17 @@ ident:
 
 outer_attrs:
   | /* empty */ { [] }
-  | HASH a = outer_attr rest = outer_attrs { a :: rest }
+  | POUND a = outer_attr rest = outer_attrs { a :: rest }
 
 outer_attr:
   | LBRACK a = attr RBRACK { OUTER_ATTRIBUTE a }
 
 inner_attrs:
   | /* empty */ { [] }
-  | rest = inner_attrs HASH a = inner_attr { a :: rest }
+  | rest = inner_attrs POUND a = inner_attr { a :: rest }
 
 inner_attr:
-  | EXCLAMATION LBRACK a = attr RBRACK { INNER_ATTRIBUTE a }
+  | NOT LBRACK a = attr RBRACK { INNER_ATTRIBUTE a }
 
 attr:
   | path = simple_path input = maybe_attr_input { SAFE_ATTR (path, input) }

@@ -1,2 +1,10 @@
-mod something;
+
+extern crate self;
+
+extern crate skibidi as _;
+mod something {
+#![skibidi]
+#![skibidi]
+    mod somethi;
+  }
 

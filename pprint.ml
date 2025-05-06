@@ -290,6 +290,23 @@ and print_item fmt = function
 
 and print_vis_item fmt = function
   | Cabs.MODULE m -> print_module fmt m
+  | Cabs.EXTERN_CRATE ext -> print_extern_crate fmt ext
+
+and print_extern_crate fmt = function
+  | Cabs.EXT_CRATE ref ->
+      fprintf fmt "extern crate %s;\n" (string_of_crate_ref ref)
+  | Cabs.EXT_CRATE_CLAUSE (ref, clause) ->
+      fprintf fmt "extern crate %s as %s;\n"
+        (string_of_crate_ref ref)
+        (string_of_as_clause clause)
+
+and string_of_crate_ref = function
+  | Cabs.ID_CRATE_REF id -> string_of_ident id
+  | Cabs.SELF_CRATE_REF -> "self"
+
+and string_of_as_clause = function
+  | Cabs.ID_AS_CLAUSE id -> string_of_ident id
+  | Cabs.UNDERSCORE_AS_CLAUSE -> "_"
 
 and print_module fmt = function
   | MOD_BLOCK (unsafe, name) ->

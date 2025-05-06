@@ -821,8 +821,8 @@ with module_ :=
 (* Modules *)
 (*Extern Crate*)
 with extern_crate :=
-  | EXT_CRATE : crate_ref -> option as_clause -> extern_crate
-
+  | EXT_CRATE_CLAUSE : crate_ref -> as_clause -> extern_crate
+  | EXT_CRATE : crate_ref -> extern_crate
 with crate_ref :=
   | ID_CRATE_REF : identifier -> crate_ref
   | SELF_CRATE_REF : crate_ref
