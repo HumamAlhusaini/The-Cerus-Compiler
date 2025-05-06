@@ -42,7 +42,7 @@ Require Import Proj.Cabs.
 %type <Cabs.visItem> vis_item
 %type <Cabs.extern_crate> extern_crate
 %type <Cabs.crate_ref> crate_ref
-%type <Cabs.as_clause> as_clause
+%type <option Cabs.as_clause> as_clause
 %type <Cabs.module_> unsafe_module safe_module
 %type <(Cabs.identifier * Cabs.loc)> ident
 %type <list Cabs.outer_attribute> outer_attrs
@@ -76,16 +76,16 @@ vis_item:
   | e = extern_crate { Cabs.EXTERN_CRATE e }
 
 extern_crate:
-  | EXTERN CRATE ref = crate_ref SEMI { Cabs.EXT_CRATE ref }
-  | EXTERN CRATE ref = crate_ref AS clause = as_clause SEMI { Cabs.EXT_CRATE_CLAUSE ref clause }
+  | EXTERN CRATE ref = crate_ref clause = as_clause SEMI { Cabs.EXT_CRATE_CLAUSE ref clause }
 
 crate_ref:
   | id = ident { Cabs.ID_CRATE_REF (fst id) }
-  | SELFVALUE {Cabs.SELF_CRATE_REF}
+  |  SELFVALUE {Cabs.SELF_CRATE_REF}
 
 as_clause:
-  | id = ident { Cabs.ID_AS_CLAUSE (fst id) }
-  | UNDERSCORE { Cabs.UNDERSCORE_AS_CLAUSE }
+  | AS id = ident { Some (Cabs.ID_AS_CLAUSE (fst id)) }
+  |  AS UNDERSCORE { Some (Cabs.UNDERSCORE_AS_CLAUSE) }
+  | { None }
 
 safe_module:
   | MOD name = ident SEMI
