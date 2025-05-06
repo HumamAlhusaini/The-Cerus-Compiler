@@ -2,7 +2,8 @@ open Lexer
 open Parser
 open Cabs
 open Sedlexing
-  open Pprint
+open Pprint
+open MenhirLib.Convert
 
 let print_tokens_from_file filename =
   let chan = open_in filename in
@@ -16,7 +17,13 @@ let print_tokens_from_file filename =
         loop ()
   in
   loop ()
-
+let print_ast_from_file filename = 
+    let chan = open_in filename in
+    let lexbuf = Sedlexing.Utf8.from_channel chan in
+    let supplier = Sedlexing.with_tokenizer token lexbuf in
+    let parser = MenhirLib.Convert.Simplified.traditional2revised Parser.program in
+    let ast = parser supplier in
+    print_endline (Pprint.string_of_something ast)
 
 let () =
   if Array.length Sys.argv <> 2 then
