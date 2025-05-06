@@ -87,7 +87,7 @@ let lifetime_token = [%sedlex.regexp? "'", identifier_or_keyword, Compl (Chars "
 
 open List
 open Sedlexing
-open Parser
+open Pre_parser
 open Uchar
 
 let keyword_token = function
@@ -135,24 +135,24 @@ let keyword_token = function
   | "safe", loc            -> SAFE loc
   | "raw", loc             -> RAW loc
   | _                      -> failwith "Unrecognized keyword"
-
+                              
 (* Convert a Uchar.t array to a string *)
 let uchar_array_to_string (arr: Uchar.t array) : string =
   Array.fold_left (fun acc uchar ->
     acc ^ (Uchar.to_char uchar |> Stdlib.String.make 1)
-) "" arr
-
-
+) "" arr                      
+                              
+                              
 let string_to_char_code_list (s : string) : Cabs.char_code list =
   let len = Stdlib.String.length s in
-  let rec aux i acc =
-    if i < 0 then acc
+  let rec aux i acc =         
+    if i < 0 then acc         
     else aux (i - 1) (Stdlib.Int64.of_int (Stdlib.Char.code (Stdlib.String.get s i)) :: acc)
-  in
-aux (len - 1) []
-
-let rec token buf =
-  match%sedlex buf with
+  in                          
+aux (len - 1) []              
+                              
+let rec token buf =           
+  match%sedlex buf with       
     | white_space -> token buf
     | '\n'        -> new_line buf; token buf
     | reserved_raw_identifier -> RESERVED_RAW_IDENTIFIER (lexing_position_start buf)
@@ -176,8 +176,8 @@ let rec token buf =
     | "!=" -> NE (lexing_position_start buf)
     | "<=" -> LE (lexing_position_start buf)
     | ">=" -> GE (lexing_position_start buf)
-    | "<<=" -> SHLEQ (lexing_position_start buf)
-    | ">>=" -> SHREQ (lexing_position_start buf)
+    | "<<=" ->SHLEQ (lexing_position_start buf)
+    | ">>=" ->SHREQ (lexing_position_start buf)
     | "+=" -> PLUSEQ (lexing_position_start buf)
     | "-=" -> MINUSEQ (lexing_position_start buf)
     | "*=" -> STAREQ (lexing_position_start buf)
@@ -242,7 +242,7 @@ let rec token buf =
         let uArr = Sedlexing.lexeme buf in
           let x = uchar_array_to_string uArr in
     CONSTANT (Cabs.FLOAT_LIT x, lexing_position_start buf)
-    | eof -> EOF ()
+    | eof -> EOF 
     | _ -> failwith "Internal failure: Reached impossible place"
 
 and read_raw_c_string buffer buf =
