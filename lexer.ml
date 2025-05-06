@@ -76,14 +76,14 @@ let raw_identifier =[%sedlex.regexp? "r#", identifier_or_keyword]
 
 let reserved_raw_identifier = [%sedlex.regexp? "r#_"]
 
-let reserved_raw_lifetime = [%sedlex.regexp? "'r#_", Compl (Char "'")]
+let reserved_raw_lifetime = [%sedlex.regexp? "'r#_", Compl (Chars "'")]
 
 let raw_lifetime = [%sedlex.regexp? "'r#", identifier_or_keyword, "'"]
 
-let lifetime_or_label = [%sedlex.regexp? "'", non_keyword_identifier, Compl (Char "'")]
+let lifetime_or_label = [%sedlex.regexp? "'", non_keyword_identifier, Compl (Chars "'")]
 
-let lifetime_token = [%sedlex.regexp? "'", identifier_or_keyword, Compl (Char "'")
-  | "'_", Compl( Char "'") | raw_lifetime]
+let lifetime_token = [%sedlex.regexp? "'", identifier_or_keyword, Compl (Chars "'")
+  | "'_", Compl( Chars "'") | raw_lifetime]
 
 open List
 open Sedlexing
@@ -160,9 +160,9 @@ let rec token buf =
         let uArr = Sedlexing.lexeme buf in
           let id = uchar_array_to_string uArr in
         if is_reserved_keyword (Stdlib.String.sub id 2 ((Stdlib.String.length id) - 2)) then
-          IDENT (Cabs.RAW_IDENT id, lexing_position_start buf)
+        keyword_token (id, lexing_position_start buf)
         else
-        IDENT (Cabs.IDENT id, lexing_position_start buf)
+          RAW_IDENT (id, lexing_position_start buf)
 
     | identifier_or_keyword ->
       let uArr = Sedlexing.lexeme buf in
@@ -170,7 +170,7 @@ let rec token buf =
       if is_keyword id then
         keyword_token (id, lexing_position_start buf)
       else
-          IDENT (Ident id, lexing_position_start buf)
+          IDENT (id, lexing_position_start buf)
     (* Operators and symbols *)
     | "==" -> EQEQ (lexing_position_start buf)
     | "!=" -> NE (lexing_position_start buf)
