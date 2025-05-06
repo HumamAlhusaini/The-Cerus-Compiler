@@ -33,6 +33,7 @@ Require Import Proj.Cabs.
 %token<Cabs.str * Cabs.loc> IDENT RAW_IDENT
 %token<list Cabs.char_code * Cabs.loc> STRING_LIT RAW_STRING_LIT BYTE_STRING RAW_BYTE_STRING RAW_C_STRING C_STRING
 %token<Cabs.char_code * Cabs.loc> CHAR_LIT BYTE
+%token<Cabs.constant * Cabs.loc> CONSTANT
 
 %token EOF
 
@@ -89,7 +90,7 @@ ident:
 
 outer_attrs:
   | /* empty */                             { [] }
-  | outer_attrs HASH outer_attr                  { $3 :: $1 }
+  | HASH outer_attr outer_attrs                 { $2 :: $3 }
 
 outer_attr:
   | LBRACK a = attr RBRACK             { Cabs.OUTER_ATTRIBUTE a }
