@@ -506,7 +506,7 @@ with macro_item :=
   | MACRO_RULES_DEFINITION : macro_rules_definition -> macro_item
  
 with visItem :=
-  | MODULE : module -> visItem
+  | MODULE : module_ -> visItem
   | EXTERN_CRATE : extern_crate -> visItem
   | USE_DECLARATION : use_declaration -> visItem
   | FUNCTION : function -> visItem
@@ -814,9 +814,9 @@ with function_body :=
   | FN_BODY_SEMI
 (* Function *)
 (* Modules *)
-with module :=
-  | MOD_BLOCK : bool -> identifier -> module
-  | MOD_DEC : bool -> identifier -> list inner_attribute -> list item -> module
+with module_ :=
+  | MOD_BLOCK : bool -> identifier -> module_
+  | MOD_DEC : bool -> identifier -> list inner_attribute -> list item -> module_
 
 (* Modules *)
 (*Extern Crate*)
