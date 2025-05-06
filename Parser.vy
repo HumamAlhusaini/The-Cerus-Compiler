@@ -12,10 +12,10 @@ Require Import Proj.Cabs.
 %token<Cabs.loc> ELSE ENUM EXTERN FALSE FN
 %token<Cabs.loc> FOR IF IMPL IN LET
 %token<Cabs.loc> LOOP MATCH MOD MOVE MUT
-%token<Cabs.loc> PUB REF RETURN
+%token<Cabs.loc> PUB REF RETURN HASH
 %token<Cabs.loc> SELFVALUE SELFTYPE STATIC STRUCT SUPER
 %token<Cabs.loc> TRAIT TRUE TYPE UNSAFE USE
-%token<Cabs.loc> WHERE WHILE ASYNC AWAIT DYN
+%token<Cabs.loc> WHERE WHILE ASYNC AWAIT DYN EXCLAMATION
 %token<Cabs.loc> MACRO_RULES UNION STATICLIFETIME SAFE RAW
 
 %token<Cabs.loc> PLUS MINUS STAR SLASH PERCENT              /* + - * / % */
@@ -39,9 +39,8 @@ Require Import Proj.Cabs.
 %type <list Cabs.item> items
 %type <Cabs.item> item
 %type <Cabs.visItem> vis_item
-%type <Cabs.module> module_
+%type <Cabs.module> unsafe_module safe_module
 %type <(Cabs.identifier * Cabs.loc)> ident
-%type <bool> unsafe_kw_opt
 %type <list Cabs.outer_attribute> outer_attrs
 %type <Cabs.outer_attribute> outer_attr
 %type <list Cabs.inner_attribute> inner_attrs
@@ -69,35 +68,38 @@ item:
   | attrs = outer_attrs v = vis_item      { Cabs.VISITEM attrs v }
 
 vis_item:
-  | m = module_                           { Cabs.MODULE m }
+  | m = unsafe_module                           { Cabs.MODULE m }
 
-module_:
-  | is_unsafe = unsafe_kw_opt _mod_kw = MOD name = ident _semi = SEMI
-      { Cabs.MOD_BLOCK is_unsafe (fst name) }
-  | is_unsafe = unsafe_kw_opt _mod_kw = MOD name = ident _lbrace = LBRACE attrs = inner_attrs content = items _rbrace = RBRACE
-      { Cabs.MOD_DEC is_unsafe (fst name) attrs content }
+safe_module:
+  | MOD name = ident SEMI
+      { Cabs.MOD_BLOCK false (fst name) }
+  | MOD name = ident LBRACE attrs = inner_attrs content = items RBRACE
+      { Cabs.MOD_DEC false (fst name) attrs content }
+
+unsafe_module:
+  | safe_module { $1 }
+  | UNSAFE MOD name = ident SEMI
+      { Cabs.MOD_BLOCK true (fst name) }
+  | UNSAFE MOD name = ident LBRACE attrs = inner_attrs content = items RBRACE
+      { Cabs.MOD_DEC true (fst name) attrs content }
 
 ident:
-  | id = IDENT        { (Cabs.RAW_IDENT (fst id), snd id) }
-  | raw = RAW_IDENT   { (Cabs.IDENT (fst raw), snd raw) }
-
-unsafe_kw_opt:
-  | UNSAFE            { true }
-  |                   { false }
+  | id = IDENT        { (Cabs.IDENT (fst id), snd id) }
+  | raw = RAW_IDENT   { (Cabs.RAW_IDENT (fst raw), snd raw) }
 
 outer_attrs:
-  | single = outer_attr                     { [single] }
-  | first = outer_attr rest = outer_attrs   { first :: rest }
+  | /* empty */                             { [] }
+  | outer_attrs HASH outer_attr                  { $3 :: $1 }
 
 outer_attr:
-  | a = attr             { Cabs.OUTER_ATTRIBUTE a }
+  | LBRACK a = attr RBRACK             { Cabs.OUTER_ATTRIBUTE a }
 
 inner_attrs:
-  | single = inner_attr                     { [single] }
-  | first = inner_attr rest = inner_attrs   { first :: rest }
+  | /* empty */                             { [] }
+  | inner_attrs HASH inner_attr                  { $3 :: $1 }
 
 inner_attr:
-  | a = attr             { Cabs.INNER_ATTRIBUTE a }
+  | EXCLAMATION LBRACK a = attr RBRACK      { Cabs.INNER_ATTRIBUTE a }
 
 attr:
   | path = simple_path input = maybe_attr_input { Cabs.SAFE_ATTR path input }
