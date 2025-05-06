@@ -1,4 +1,5 @@
   open Parser
+  open Pre_parser
   open Cabs
   open Uchar
 
@@ -24,6 +25,125 @@ let utf8_of_char_code_list (codes : int64 list) : string =
     )
     codes;
   Buffer.contents buf
+
+let convert_token = function
+  | Pre_parser.RAW_IDENT (x, loc) -> Parser.RAW_IDENT (x, loc)
+  | Pre_parser.IDENT (x, loc) -> Parser.IDENT (x, loc)
+
+  | Pre_parser.AS loc -> Parser.AS loc
+  | Pre_parser.BREAK loc -> Parser.BREAK loc
+  | Pre_parser.CONST loc -> Parser.CONST loc
+  | Pre_parser.CONTINUE loc -> Parser.CONTINUE loc
+  | Pre_parser.CRATE loc -> Parser.CRATE loc
+  | Pre_parser.ELSE loc -> Parser.ELSE loc
+  | Pre_parser.ENUM loc -> Parser.ENUM loc
+  | Pre_parser.EXTERN loc -> Parser.EXTERN loc
+  | Pre_parser.FALSE loc -> Parser.FALSE loc
+  | Pre_parser.FN loc -> Parser.FN loc
+  | Pre_parser.FOR loc -> Parser.FOR loc
+  | Pre_parser.IF loc -> Parser.IF loc
+  | Pre_parser.IMPL loc -> Parser.IMPL loc
+  | Pre_parser.IN loc -> Parser.IN loc
+  | Pre_parser.LET loc -> Parser.LET loc
+  | Pre_parser.LOOP loc -> Parser.LOOP loc
+  | Pre_parser.MATCH loc -> Parser.MATCH loc
+  | Pre_parser.MOD loc -> Parser.MOD loc
+  | Pre_parser.MOVE loc -> Parser.MOVE loc
+  | Pre_parser.MUT loc -> Parser.MUT loc
+  | Pre_parser.PUB loc -> Parser.PUB loc
+  | Pre_parser.REF loc -> Parser.REF loc
+  | Pre_parser.RETURN loc -> Parser.RETURN loc
+  | Pre_parser.SELFVALUE loc -> Parser.SELFVALUE loc
+  | Pre_parser.SELFTYPE loc -> Parser.SELFTYPE loc
+  | Pre_parser.STATIC loc -> Parser.STATIC loc
+  | Pre_parser.STRUCT loc -> Parser.STRUCT loc
+  | Pre_parser.SUPER loc -> Parser.SUPER loc
+  | Pre_parser.TRAIT loc -> Parser.TRAIT loc
+  | Pre_parser.TRUE loc -> Parser.TRUE loc
+  | Pre_parser.TYPE loc -> Parser.TYPE loc
+  | Pre_parser.UNSAFE loc -> Parser.UNSAFE loc
+  | Pre_parser.USE loc -> Parser.USE loc
+  | Pre_parser.WHERE loc -> Parser.WHERE loc
+  | Pre_parser.WHILE loc -> Parser.WHILE loc
+  | Pre_parser.ASYNC loc -> Parser.ASYNC loc
+  | Pre_parser.AWAIT loc -> Parser.AWAIT loc
+  | Pre_parser.DYN loc -> Parser.DYN loc
+  | Pre_parser.MACRO_RULES loc -> Parser.MACRO_RULES loc
+  | Pre_parser.UNION loc -> Parser.UNION loc
+  | Pre_parser.STATICLIFETIME loc -> Parser.STATICLIFETIME loc
+  | Pre_parser.SAFE loc -> Parser.SAFE loc
+  | Pre_parser.RAW loc -> Parser.RAW loc
+
+  (* Operators and punctuation *)
+  | Pre_parser.PLUS loc -> Parser.PLUS loc
+  | Pre_parser.MINUS loc -> Parser.MINUS loc
+  | Pre_parser.STAR loc -> Parser.STAR loc
+  | Pre_parser.SLASH loc -> Parser.SLASH loc
+  | Pre_parser.PERCENT loc -> Parser.PERCENT loc
+  | Pre_parser.CARET loc -> Parser.CARET loc
+  | Pre_parser.NOT loc -> Parser.NOT loc
+  | Pre_parser.AND loc -> Parser.AND loc
+  | Pre_parser.OR loc -> Parser.OR loc
+  | Pre_parser.ANDAND loc -> Parser.ANDAND loc
+  | Pre_parser.OROR loc -> Parser.OROR loc
+  | Pre_parser.SHL loc -> Parser.SHL loc
+  | Pre_parser.SHR loc -> Parser.SHR loc
+  | Pre_parser.EQ loc -> Parser.EQ loc
+  | Pre_parser.PLUSEQ loc -> Parser.PLUSEQ loc
+  | Pre_parser.MINUSEQ loc -> Parser.MINUSEQ loc
+  | Pre_parser.STAREQ loc -> Parser.STAREQ loc
+  | Pre_parser.SLASHEQ loc -> Parser.SLASHEQ loc
+  | Pre_parser.PERCENTEQ loc -> Parser.PERCENTEQ loc
+  | Pre_parser.CARETEQ loc -> Parser.CARETEQ loc
+  | Pre_parser.ANDEQ loc -> Parser.ANDEQ loc
+  | Pre_parser.OREQ loc -> Parser.OREQ loc
+  | Pre_parser.SHLEQ loc -> Parser.SHLEQ loc
+  | Pre_parser.SHREQ loc -> Parser.SHREQ loc
+  | Pre_parser.EQEQ loc -> Parser.EQEQ loc
+  | Pre_parser.NE loc -> Parser.NE loc
+  | Pre_parser.LT loc -> Parser.LT loc
+  | Pre_parser.GT loc -> Parser.GT loc
+  | Pre_parser.LE loc -> Parser.LE loc
+  | Pre_parser.GE loc -> Parser.GE loc
+  | Pre_parser.AT loc -> Parser.AT loc
+  | Pre_parser.UNDERSCORE loc -> Parser.UNDERSCORE loc
+  | Pre_parser.DOT loc -> Parser.DOT loc
+  | Pre_parser.DOTDOT loc -> Parser.DOTDOT loc
+  | Pre_parser.DOTDOTDOT loc -> Parser.DOTDOTDOT loc
+  | Pre_parser.DOTDOTEQ loc -> Parser.DOTDOTEQ loc
+  | Pre_parser.COMMA loc -> Parser.COMMA loc
+  | Pre_parser.SEMI loc -> Parser.SEMI loc
+  | Pre_parser.COLON loc -> Parser.COLON loc
+  | Pre_parser.RESERVED_RAW_IDENTIFIER loc -> Parser.RESERVED_RAW_IDENTIFIER loc
+  | Pre_parser.PATHSEP loc -> Parser.PATHSEP loc
+  | Pre_parser.RARROW loc -> Parser.RARROW loc
+  | Pre_parser.FATARROW loc -> Parser.FATARROW loc
+  | Pre_parser.LARROW loc -> Parser.LARROW loc
+  | Pre_parser.POUND loc -> Parser.POUND loc
+  | Pre_parser.DOLLAR loc -> Parser.DOLLAR loc
+  | Pre_parser.QUESTION loc -> Parser.QUESTION loc
+  | Pre_parser.TILDE loc -> Parser.TILDE loc
+  | Pre_parser.LBRACE loc -> Parser.LBRACE loc
+  | Pre_parser.RBRACE loc -> Parser.RBRACE loc
+  | Pre_parser.LBRACK loc -> Parser.LBRACK loc
+  | Pre_parser.RBRACK loc -> Parser.RBRACK loc
+  | Pre_parser.LPAREN loc -> Parser.LPAREN loc
+  | Pre_parser.RPAREN loc -> Parser.RPAREN loc
+
+  (* Literals and constants *)
+  | Pre_parser.STRING_LIT (s, loc) -> Parser.STRING_LIT (s, loc)
+  | Pre_parser.BYTE_STRING (s, loc) -> Parser.BYTE_STRING (s, loc)
+  | Pre_parser.RAW_STRING_LIT (s, loc) -> Parser.RAW_STRING_LIT (s, loc)
+  | Pre_parser.RAW_BYTE_STRING (s, loc) -> Parser.RAW_BYTE_STRING (s, loc)
+  | Pre_parser.RAW_C_STRING (s, loc) -> Parser.RAW_C_STRING (s, loc)
+  | Pre_parser.C_STRING (s, loc) -> Parser.C_STRING (s, loc)
+  | Pre_parser.BYTE (b, loc) -> Parser.BYTE (b, loc)
+  | Pre_parser.CHAR_LIT (c, loc) -> Parser.CHAR_LIT (c, loc)
+  | Pre_parser.CONSTANT (Cabs.INT_LIT s, loc) -> Parser.CONSTANT (Cabs.INT_LIT s, loc)
+  | Pre_parser.CONSTANT (Cabs.FLOAT_LIT s, loc) -> Parser.CONSTANT (Cabs.FLOAT_LIT s, loc)
+
+  | Pre_parser.EOF -> Parser.EOF ()
+
 
 let string_of_token = function
   | Parser.RAW_IDENT  (x, loc) -> Printf.sprintf "RAW_IDENT (%s), loc: %s" x (string_of_loc loc)
@@ -157,3 +277,73 @@ let string_of_token = function
   | Parser.CONSTANT (Cabs.FLOAT_LIT str, loc) ->
       Printf.sprintf "FLOAT_LIT(%s), loc %s" str (string_of_loc loc)
   | Parser.EOF loc -> "EOF"
+
+let rec string_of_program items =
+  Stdlib.String.concat "\n" (Stdlib.List.map string_of_item items)
+
+and string_of_item = function
+  | Cabs.VISITEM (attrs, vis_item) ->
+      Stdlib.String.concat "\n" [
+        string_of_outer_attrs attrs;
+        string_of_vis_item vis_item
+      ]
+
+and string_of_vis_item = function
+  | Cabs.MODULE m -> string_of_module m
+
+and string_of_module = function
+  | MOD_BLOCK (unsafe, name) ->
+      Printf.sprintf "%smod %s;" (if unsafe then "unsafe " else "") (string_of_ident name)
+  | MOD_DEC (unsafe, name, attrs, items) ->
+      let prefix = if unsafe then "unsafe " else "" in
+      let header = Printf.sprintf "%smod %s {" prefix (string_of_ident name) in
+      let inner = [
+        string_of_inner_attrs attrs;
+        string_of_program items
+      ] |> Stdlib.String.concat "\n" in
+      header ^ "\n" ^ inner ^ "\n}"
+
+and string_of_outer_attrs attrs =
+  Stdlib.String.concat "\n" (
+    Stdlib.List.map (function
+      | OUTER_ATTRIBUTE attr -> "#[" ^ string_of_attr attr ^ "]"
+    ) attrs
+  )
+
+and string_of_inner_attrs attrs =
+  Stdlib.String.concat "\n" (
+    Stdlib.List.map (function
+      | INNER_ATTRIBUTE attr -> "#![" ^ string_of_attr attr ^ "]"
+    ) attrs
+  )
+
+and string_of_attr = function
+  | SAFE_ATTR (path, input_opt) ->
+      string_of_simple_path path ^ string_of_maybe_attr_input input_opt
+  | UNSAFE_ATTR (path, input_opt) ->
+      "unsafe " ^ string_of_simple_path path ^ string_of_maybe_attr_input input_opt
+
+and string_of_maybe_attr_input = function
+  | None -> ""
+  | Some input -> " = " ^ string_of_attr_input input
+
+and string_of_simple_path (SIMPLE_PATH segments) =
+  Stdlib.String.concat "::" (
+    Stdlib.List.map (function
+      | SIMPLE_PATH_SEGMENT_IDENT id -> string_of_ident id
+    ) segments
+  )
+
+and string_of_attr_input = function
+  | ATTR_INPUT_EXP e -> string_of_expression e
+
+and string_of_expression = function
+  | EXPRESSION_WITHOUT_BLOCK (attrs, expr) ->
+      string_of_outer_attrs attrs ^ string_of_expression_no_block expr
+
+and string_of_expression_no_block = function
+  | UNDERSCORE_EXPRESSION -> "_"
+
+and string_of_ident = function
+  | IDENT x -> x
+  | RAW_IDENT x -> x
