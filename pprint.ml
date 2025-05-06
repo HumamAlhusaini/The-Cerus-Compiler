@@ -26,8 +26,8 @@ let utf8_of_char_code_list (codes : int64 list) : string =
   Buffer.contents buf
 
 let string_of_token = function
-  | Parser.IDENT (Cabs.Raw_Ident x, loc) -> Printf.sprintf "RAW_IDENT (%s), loc: %s" x (string_of_loc loc)
-  | Parser.IDENT (Cabs.Ident x, loc) -> Printf.sprintf "IDENT (%s), loc: %s" x (string_of_loc loc)
+  | Parser.RAW_IDENT  (x, loc) -> Printf.sprintf "RAW_IDENT (%s), loc: %s" x (string_of_loc loc)
+  | Parser.IDENT (x, loc) -> Printf.sprintf "IDENT (%s), loc: %s" x (string_of_loc loc)
 
   | Parser.AS loc -> Printf.sprintf "AS, loc: %s" (string_of_loc loc)
   | Parser.BREAK loc -> Printf.sprintf "BREAK, loc: %s" (string_of_loc loc)
