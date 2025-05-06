@@ -40,7 +40,7 @@ Require Import Proj.Cabs.
 %type <list Cabs.item> items
 %type <Cabs.item> item
 %type <Cabs.visItem> vis_item
-%type <Cabs.module> unsafe_module safe_module
+%type <Cabs.module_> unsafe_module safe_module
 %type <(Cabs.identifier * Cabs.loc)> ident
 %type <list Cabs.outer_attribute> outer_attrs
 %type <Cabs.outer_attribute> outer_attr
