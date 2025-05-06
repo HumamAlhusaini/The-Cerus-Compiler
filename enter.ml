@@ -27,7 +27,7 @@ let print_ast_from_file filename =
   let supplier = Sedlexing.with_tokenizer token lexbuf in
   let parser = MenhirLib.Convert.Simplified.traditional2revised Pre_parser.program in
   let ast = parser supplier in
-  print_endline (string_of_program ast)
+  Pprint.print_program Format.std_formatter ast
 
 let () =
   if Array.length Sys.argv <> 2 then

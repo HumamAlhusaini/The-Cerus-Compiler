@@ -278,71 +278,68 @@ let string_of_token = function
       Printf.sprintf "FLOAT_LIT(%s), loc %s" str (string_of_loc loc)
   | Parser.EOF loc -> "EOF"
 
-let rec string_of_program items =
-  Stdlib.String.concat "\n" (Stdlib.List.map string_of_item items)
+open Format
 
-and string_of_item = function
+let rec print_program fmt items =
+  Stdlib.List.iter (print_item fmt) items
+
+and print_item fmt = function
   | Cabs.VISITEM (attrs, vis_item) ->
-      Stdlib.String.concat "\n" [
-        string_of_outer_attrs attrs;
-        string_of_vis_item vis_item
-      ]
+      print_outer_attrs fmt attrs;
+      print_vis_item fmt vis_item
 
-and string_of_vis_item = function
-  | Cabs.MODULE m -> string_of_module m
+and print_vis_item fmt = function
+  | Cabs.MODULE m -> print_module fmt m
 
-and string_of_module = function
+and print_module fmt = function
   | MOD_BLOCK (unsafe, name) ->
-      Printf.sprintf "%smod %s;" (if unsafe then "unsafe " else "") (string_of_ident name)
+      fprintf fmt "%smod %s;" (if unsafe then "unsafe " else "") (string_of_ident name)
   | MOD_DEC (unsafe, name, attrs, items) ->
-      let prefix = if unsafe then "unsafe " else "" in
-      let header = Printf.sprintf "%smod %s {" prefix (string_of_ident name) in
-      let inner = [
-        string_of_inner_attrs attrs;
-        string_of_program items
-      ] |> Stdlib.String.concat "\n" in
-      header ^ "\n" ^ inner ^ "\n}"
+      fprintf fmt "%smod %s {@." (if unsafe then "unsafe " else "") (string_of_ident name);
+      print_inner_attrs fmt attrs;
+      print_program fmt items;
+      fprintf fmt "@.}"
 
-and string_of_outer_attrs attrs =
-  Stdlib.String.concat "\n" (
-    Stdlib.List.map (function
-      | OUTER_ATTRIBUTE attr -> "#[" ^ string_of_attr attr ^ "]"
-    ) attrs
-  )
+and print_outer_attrs fmt = function
+  | [] -> ()
+  | attrs ->
+      Stdlib.List.iter (function
+        | OUTER_ATTRIBUTE attr -> fprintf fmt "#[%a]@." print_attr attr
+      ) attrs
 
-and string_of_inner_attrs attrs =
-  Stdlib.String.concat "\n" (
-    Stdlib.List.map (function
-      | INNER_ATTRIBUTE attr -> "#![" ^ string_of_attr attr ^ "]"
-    ) attrs
-  )
+and print_inner_attrs fmt = function
+  | [] -> ()
+  | attrs ->
+      Stdlib.List.iter (function
+        | INNER_ATTRIBUTE attr -> fprintf fmt "#![%a]@." print_attr attr
+      ) attrs
 
-and string_of_attr = function
+and print_attr fmt = function
   | SAFE_ATTR (path, input_opt) ->
-      string_of_simple_path path ^ string_of_maybe_attr_input input_opt
+      fprintf fmt "%a%a" print_simple_path path print_maybe_attr_input input_opt
   | UNSAFE_ATTR (path, input_opt) ->
-      "unsafe " ^ string_of_simple_path path ^ string_of_maybe_attr_input input_opt
+      fprintf fmt "unsafe %a%a" print_simple_path path print_maybe_attr_input input_opt
 
-and string_of_maybe_attr_input = function
-  | None -> ""
-  | Some input -> " = " ^ string_of_attr_input input
+and print_maybe_attr_input fmt = function
+  | None -> ()
+  | Some input -> fprintf fmt " = %a" print_attr_input input
 
-and string_of_simple_path (SIMPLE_PATH segments) =
-  Stdlib.String.concat "::" (
-    Stdlib.List.map (function
-      | SIMPLE_PATH_SEGMENT_IDENT id -> string_of_ident id
-    ) segments
-  )
+and print_simple_path fmt (SIMPLE_PATH segments) =
+  let print_segment fmt = function
+    | SIMPLE_PATH_SEGMENT_IDENT id -> fprintf fmt "%s" (string_of_ident id)
+  in
+  Format.pp_print_list ~pp_sep:(fun fmt () -> fprintf fmt "::") print_segment fmt segments
 
-and string_of_attr_input = function
-  | ATTR_INPUT_EXP e -> string_of_expression e
+and print_attr_input fmt = function
+  | ATTR_INPUT_EXP e -> print_expression fmt e
 
-and string_of_expression = function
+and print_expression fmt = function
   | EXPRESSION_WITHOUT_BLOCK (attrs, expr) ->
-      string_of_outer_attrs attrs ^ string_of_expression_no_block expr
+      print_outer_attrs fmt attrs;
+      print_expression_no_block fmt expr
 
-and string_of_expression_no_block = function
-  | UNDERSCORE_EXPRESSION -> "_"
+and print_expression_no_block fmt = function
+  | UNDERSCORE_EXPRESSION -> fprintf fmt "_"
 
 and string_of_ident = function
   | IDENT x -> x
