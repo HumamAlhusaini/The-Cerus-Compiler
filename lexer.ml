@@ -225,7 +225,7 @@ let rec token buf =
     | "]" -> RBRACK (lexing_position_start buf)
     | "(" -> LPAREN (lexing_position_start buf)
     | ")" -> RPAREN (lexing_position_start buf)
-    | "'" -> read_char (Buffer.create 17) buf
+  | "'" -> read_char (Buffer.create 17) buf
     | "\"" -> read_string (Buffer.create 17) buf 
     | "r#\""-> read_raw_string (Buffer.create 17) buf
     | "b'" -> read_byte (Buffer.create 17) buf
