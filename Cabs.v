@@ -2,10 +2,6 @@ From Stdlib Require Import String.
 From Stdlib Require Import Ascii.
 
 
-Inductive option (A : Type) : Type :=
-| Some : A -> option A
-| None : option A.
-
 Parameter loc : Type.
 
 Parameter str : Type.

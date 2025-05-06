@@ -51,9 +51,9 @@ Require Import Proj.Cabs.
 %type <list Cabs.simple_path_segment> simple_path_segments
 %type <Cabs.simple_path_segment> simple_path_segment
 %type <Cabs.attr_input> attr_input
+%type <option Cabs.attr_input> maybe_attr_input
 %type <Cabs.expression> expression
 %type <Cabs.type_expr_without_block> expression_no_block
-%type <Cabs.option Cabs.attr_input> maybe_attr_input
 
 %start<list Cabs.item> program
 %%
@@ -100,12 +100,12 @@ inner_attr:
   | a = attr             { Cabs.INNER_ATTRIBUTE a }
 
 attr:
-  | path = simple_path input = maybe_attr_input          { Cabs.SAFE_ATTR path input }
+  | path = simple_path input = maybe_attr_input { Cabs.SAFE_ATTR path input }
   | UNSAFE path = simple_path input = maybe_attr_input { Cabs.UNSAFE_ATTR path input }
 
 maybe_attr_input:
-  | i = attr_input { (Some i) }
-  |                { None } 
+  | something = attr_input { Some something }
+  |                    { None }
 
 simple_path:
   | segments = simple_path_segments         { Cabs.SIMPLE_PATH segments }
