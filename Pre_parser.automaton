@@ -1,0 +1,1248 @@
+State 0:
+## Known stack suffix:
+##
+## LR(1) items:
+program' -> . program [ # ]
+## Transitions:
+-- On POUND shift to state 1
+-- On program shift to state 33
+-- On outer_attrs shift to state 34
+-- On items shift to state 101
+-- On item shift to state 77
+## Reductions:
+-- On EOF
+--   reduce production items ->
+-- On USE UNSAFE MOD EXTERN
+--   reduce production outer_attrs ->
+
+State 1:
+## Known stack suffix:
+## POUND
+## LR(1) items:
+outer_attrs -> POUND . outer_attr outer_attrs [ USE UNSAFE UNDERSCORE MOD EXTERN ]
+## Transitions:
+-- On LBRACK shift to state 2
+-- On outer_attr shift to state 31
+## Reductions:
+
+State 2:
+## Known stack suffix:
+## LBRACK
+## LR(1) items:
+outer_attr -> LBRACK . attr RBRACK [ USE UNSAFE UNDERSCORE POUND MOD EXTERN ]
+## Transitions:
+-- On UNSAFE shift to state 3
+-- On SUPER shift to state 4
+-- On SELFVALUE shift to state 5
+-- On RAW_IDENT shift to state 6
+-- On PATHSEP shift to state 7
+-- On IDENT shift to state 8
+-- On DOLLAR_CRATE shift to state 9
+-- On CRATE shift to state 10
+-- On simple_path_segments shift to state 18
+-- On simple_path_segment shift to state 14
+-- On simple_path shift to state 27
+-- On ident shift to state 17
+-- On attr shift to state 29
+## Reductions:
+
+State 3:
+## Known stack suffix:
+## UNSAFE
+## LR(1) items:
+attr -> UNSAFE . simple_path maybe_attr_input [ RBRACK ]
+## Transitions:
+-- On SUPER shift to state 4
+-- On SELFVALUE shift to state 5
+-- On RAW_IDENT shift to state 6
+-- On PATHSEP shift to state 7
+-- On IDENT shift to state 8
+-- On DOLLAR_CRATE shift to state 9
+-- On CRATE shift to state 10
+-- On simple_path_segments shift to state 18
+-- On simple_path_segment shift to state 14
+-- On simple_path shift to state 19
+-- On ident shift to state 17
+## Reductions:
+
+State 4:
+## Known stack suffix:
+## SUPER
+## LR(1) items:
+simple_path_segment -> SUPER . [ SEMI RBRACK PATHSEP EQ COMMA AS ]
+## Transitions:
+## Reductions:
+-- On SEMI RBRACK PATHSEP EQ COMMA AS
+--   reduce production simple_path_segment -> SUPER
+
+State 5:
+## Known stack suffix:
+## SELFVALUE
+## LR(1) items:
+simple_path_segment -> SELFVALUE . [ SEMI RBRACK PATHSEP EQ COMMA AS ]
+## Transitions:
+## Reductions:
+-- On SEMI RBRACK PATHSEP EQ COMMA AS
+--   reduce production simple_path_segment -> SELFVALUE
+
+State 6:
+## Known stack suffix:
+## RAW_IDENT
+## LR(1) items:
+ident -> RAW_IDENT . [ SEMI RBRACK PATHSEP LBRACE EQ COMMA AS ]
+## Transitions:
+## Reductions:
+-- On SEMI RBRACK PATHSEP LBRACE EQ COMMA AS
+--   reduce production ident -> RAW_IDENT
+
+State 7:
+## Known stack suffix:
+## PATHSEP
+## LR(1) items:
+simple_path_segments -> PATHSEP . simple_path_segment [ SEMI RBRACK PATHSEP EQ COMMA AS ]
+simple_path_segments -> PATHSEP . simple_path_segment PATHSEP simple_path_segments [ SEMI RBRACK PATHSEP EQ COMMA AS ]
+## Transitions:
+-- On SUPER shift to state 4
+-- On SELFVALUE shift to state 5
+-- On RAW_IDENT shift to state 6
+-- On IDENT shift to state 8
+-- On DOLLAR_CRATE shift to state 9
+-- On CRATE shift to state 10
+-- On simple_path_segment shift to state 11
+-- On ident shift to state 17
+## Reductions:
+
+State 8:
+## Known stack suffix:
+## IDENT
+## LR(1) items:
+ident -> IDENT . [ SEMI RBRACK PATHSEP LBRACE EQ COMMA AS ]
+## Transitions:
+## Reductions:
+-- On SEMI RBRACK PATHSEP LBRACE EQ COMMA AS
+--   reduce production ident -> IDENT
+
+State 9:
+## Known stack suffix:
+## DOLLAR_CRATE
+## LR(1) items:
+simple_path_segment -> DOLLAR_CRATE . [ SEMI RBRACK PATHSEP EQ COMMA AS ]
+## Transitions:
+## Reductions:
+-- On SEMI RBRACK PATHSEP EQ COMMA AS
+--   reduce production simple_path_segment -> DOLLAR_CRATE
+
+State 10:
+## Known stack suffix:
+## CRATE
+## LR(1) items:
+simple_path_segment -> CRATE . [ SEMI RBRACK PATHSEP EQ COMMA AS ]
+## Transitions:
+## Reductions:
+-- On SEMI RBRACK PATHSEP EQ COMMA AS
+--   reduce production simple_path_segment -> CRATE
+
+State 11:
+## Known stack suffix:
+## PATHSEP simple_path_segment
+## LR(1) items:
+simple_path_segments -> PATHSEP simple_path_segment . [ SEMI RBRACK PATHSEP EQ COMMA AS ]
+simple_path_segments -> PATHSEP simple_path_segment . PATHSEP simple_path_segments [ SEMI RBRACK PATHSEP EQ COMMA AS ]
+## Transitions:
+-- On PATHSEP shift to state 12
+## Reductions:
+-- On SEMI RBRACK PATHSEP EQ COMMA AS
+--   reduce production simple_path_segments -> PATHSEP simple_path_segment
+** Conflict on PATHSEP
+
+State 12:
+## Known stack suffix:
+## PATHSEP simple_path_segment PATHSEP
+## LR(1) items:
+simple_path_segments -> PATHSEP simple_path_segment PATHSEP . simple_path_segments [ SEMI RBRACK PATHSEP EQ COMMA AS ]
+## Transitions:
+-- On SUPER shift to state 4
+-- On SELFVALUE shift to state 5
+-- On RAW_IDENT shift to state 6
+-- On PATHSEP shift to state 7
+-- On IDENT shift to state 8
+-- On DOLLAR_CRATE shift to state 9
+-- On CRATE shift to state 10
+-- On simple_path_segments shift to state 13
+-- On simple_path_segment shift to state 14
+-- On ident shift to state 17
+## Reductions:
+
+State 13:
+## Known stack suffix:
+## PATHSEP simple_path_segment PATHSEP simple_path_segments
+## LR(1) items:
+simple_path_segments -> PATHSEP simple_path_segment PATHSEP simple_path_segments . [ SEMI RBRACK PATHSEP EQ COMMA AS ]
+## Transitions:
+## Reductions:
+-- On SEMI RBRACK PATHSEP EQ COMMA AS
+--   reduce production simple_path_segments -> PATHSEP simple_path_segment PATHSEP simple_path_segments
+
+State 14:
+## Known stack suffix:
+## simple_path_segment
+## LR(1) items:
+simple_path_segments -> simple_path_segment . [ SEMI RBRACK PATHSEP EQ COMMA AS ]
+simple_path_segments -> simple_path_segment . PATHSEP simple_path_segments [ SEMI RBRACK PATHSEP EQ COMMA AS ]
+## Transitions:
+-- On PATHSEP shift to state 15
+## Reductions:
+-- On SEMI RBRACK PATHSEP EQ COMMA AS
+--   reduce production simple_path_segments -> simple_path_segment
+** Conflict on PATHSEP
+
+State 15:
+## Known stack suffix:
+## simple_path_segment PATHSEP
+## LR(1) items:
+simple_path_segments -> simple_path_segment PATHSEP . simple_path_segments [ SEMI RBRACK PATHSEP EQ COMMA AS ]
+## Transitions:
+-- On SUPER shift to state 4
+-- On SELFVALUE shift to state 5
+-- On RAW_IDENT shift to state 6
+-- On PATHSEP shift to state 7
+-- On IDENT shift to state 8
+-- On DOLLAR_CRATE shift to state 9
+-- On CRATE shift to state 10
+-- On simple_path_segments shift to state 16
+-- On simple_path_segment shift to state 14
+-- On ident shift to state 17
+## Reductions:
+
+State 16:
+## Known stack suffix:
+## simple_path_segment PATHSEP simple_path_segments
+## LR(1) items:
+simple_path_segments -> simple_path_segment PATHSEP simple_path_segments . [ SEMI RBRACK PATHSEP EQ COMMA AS ]
+## Transitions:
+## Reductions:
+-- On SEMI RBRACK PATHSEP EQ COMMA AS
+--   reduce production simple_path_segments -> simple_path_segment PATHSEP simple_path_segments
+
+State 17:
+## Known stack suffix:
+## ident
+## LR(1) items:
+simple_path_segment -> ident . [ SEMI RBRACK PATHSEP EQ COMMA AS ]
+## Transitions:
+## Reductions:
+-- On SEMI RBRACK PATHSEP EQ COMMA AS
+--   reduce production simple_path_segment -> ident
+
+State 18:
+## Known stack suffix:
+## simple_path_segments
+## LR(1) items:
+simple_path -> simple_path_segments . [ SEMI RBRACK PATHSEP EQ COMMA AS ]
+## Transitions:
+## Reductions:
+-- On SEMI RBRACK PATHSEP EQ COMMA AS
+--   reduce production simple_path -> simple_path_segments
+
+State 19:
+## Known stack suffix:
+## UNSAFE simple_path
+## LR(1) items:
+attr -> UNSAFE simple_path . maybe_attr_input [ RBRACK ]
+## Transitions:
+-- On EQ shift to state 20
+-- On maybe_attr_input shift to state 25
+-- On attr_input shift to state 26
+## Reductions:
+-- On RBRACK
+--   reduce production maybe_attr_input ->
+
+State 20:
+## Known stack suffix:
+## EQ
+## LR(1) items:
+attr_input -> EQ . expression [ RBRACK ]
+## Transitions:
+-- On POUND shift to state 1
+-- On outer_attrs shift to state 21
+-- On expression shift to state 24
+## Reductions:
+-- On UNDERSCORE
+--   reduce production outer_attrs ->
+
+State 21:
+## Known stack suffix:
+## outer_attrs
+## LR(1) items:
+expression -> outer_attrs . expression_no_block [ RBRACK ]
+## Transitions:
+-- On UNDERSCORE shift to state 22
+-- On expression_no_block shift to state 23
+## Reductions:
+
+State 22:
+## Known stack suffix:
+## UNDERSCORE
+## LR(1) items:
+expression_no_block -> UNDERSCORE . [ RBRACK ]
+## Transitions:
+## Reductions:
+-- On RBRACK
+--   reduce production expression_no_block -> UNDERSCORE
+
+State 23:
+## Known stack suffix:
+## outer_attrs expression_no_block
+## LR(1) items:
+expression -> outer_attrs expression_no_block . [ RBRACK ]
+## Transitions:
+## Reductions:
+-- On RBRACK
+--   reduce production expression -> outer_attrs expression_no_block
+
+State 24:
+## Known stack suffix:
+## EQ expression
+## LR(1) items:
+attr_input -> EQ expression . [ RBRACK ]
+## Transitions:
+## Reductions:
+-- On RBRACK
+--   reduce production attr_input -> EQ expression
+
+State 25:
+## Known stack suffix:
+## UNSAFE simple_path maybe_attr_input
+## LR(1) items:
+attr -> UNSAFE simple_path maybe_attr_input . [ RBRACK ]
+## Transitions:
+## Reductions:
+-- On RBRACK
+--   reduce production attr -> UNSAFE simple_path maybe_attr_input
+
+State 26:
+## Known stack suffix:
+## attr_input
+## LR(1) items:
+maybe_attr_input -> attr_input . [ RBRACK ]
+## Transitions:
+## Reductions:
+-- On RBRACK
+--   reduce production maybe_attr_input -> attr_input
+
+State 27:
+## Known stack suffix:
+## simple_path
+## LR(1) items:
+attr -> simple_path . maybe_attr_input [ RBRACK ]
+## Transitions:
+-- On EQ shift to state 20
+-- On maybe_attr_input shift to state 28
+-- On attr_input shift to state 26
+## Reductions:
+-- On RBRACK
+--   reduce production maybe_attr_input ->
+
+State 28:
+## Known stack suffix:
+## simple_path maybe_attr_input
+## LR(1) items:
+attr -> simple_path maybe_attr_input . [ RBRACK ]
+## Transitions:
+## Reductions:
+-- On RBRACK
+--   reduce production attr -> simple_path maybe_attr_input
+
+State 29:
+## Known stack suffix:
+## LBRACK attr
+## LR(1) items:
+outer_attr -> LBRACK attr . RBRACK [ USE UNSAFE UNDERSCORE POUND MOD EXTERN ]
+## Transitions:
+-- On RBRACK shift to state 30
+## Reductions:
+
+State 30:
+## Known stack suffix:
+## LBRACK attr RBRACK
+## LR(1) items:
+outer_attr -> LBRACK attr RBRACK . [ USE UNSAFE UNDERSCORE POUND MOD EXTERN ]
+## Transitions:
+## Reductions:
+-- On USE UNSAFE UNDERSCORE POUND MOD EXTERN
+--   reduce production outer_attr -> LBRACK attr RBRACK
+
+State 31:
+## Known stack suffix:
+## POUND outer_attr
+## LR(1) items:
+outer_attrs -> POUND outer_attr . outer_attrs [ USE UNSAFE UNDERSCORE MOD EXTERN ]
+## Transitions:
+-- On POUND shift to state 1
+-- On outer_attrs shift to state 32
+## Reductions:
+-- On USE UNSAFE UNDERSCORE MOD EXTERN
+--   reduce production outer_attrs ->
+
+State 32:
+## Known stack suffix:
+## POUND outer_attr outer_attrs
+## LR(1) items:
+outer_attrs -> POUND outer_attr outer_attrs . [ USE UNSAFE UNDERSCORE MOD EXTERN ]
+## Transitions:
+## Reductions:
+-- On USE UNSAFE UNDERSCORE MOD EXTERN
+--   reduce production outer_attrs -> POUND outer_attr outer_attrs
+
+State 33:
+## Known stack suffix:
+## program
+## LR(1) items:
+program' -> program . [ # ]
+## Transitions:
+## Reductions:
+-- On #
+--   accept program
+
+State 34:
+## Known stack suffix:
+## outer_attrs
+## LR(1) items:
+item -> outer_attrs . vis_item [ USE UNSAFE RBRACE POUND MOD EXTERN EOF ]
+## Transitions:
+-- On USE shift to state 35
+-- On UNSAFE shift to state 63
+-- On MOD shift to state 79
+-- On EXTERN shift to state 86
+-- On vis_item shift to state 96
+-- On use_declaration shift to state 97
+-- On unsafe_module shift to state 98
+-- On safe_module shift to state 99
+-- On extern_crate shift to state 100
+## Reductions:
+
+State 35:
+## Known stack suffix:
+## USE
+## LR(1) items:
+use_declaration -> USE . use_tree_short SEMI [ USE UNSAFE RBRACE POUND MOD EXTERN EOF ]
+## Transitions:
+-- On SUPER shift to state 4
+-- On STAR shift to state 36
+-- On SELFVALUE shift to state 5
+-- On RAW_IDENT shift to state 6
+-- On PATHSEP shift to state 37
+-- On LBRACE shift to state 40
+-- On IDENT shift to state 8
+-- On DOLLAR_CRATE shift to state 9
+-- On CRATE shift to state 10
+-- On use_tree_short shift to state 61
+-- On use_tree_rootless shift to state 46
+-- On use_tree_longer shift to state 47
+-- On use_tree_long shift to state 48
+-- On simple_path_segments shift to state 18
+-- On simple_path_segment shift to state 14
+-- On simple_path shift to state 49
+-- On ident shift to state 17
+## Reductions:
+
+State 36:
+## Known stack suffix:
+## STAR
+## LR(1) items:
+use_tree_short -> STAR . [ SEMI COMMA ]
+## Transitions:
+## Reductions:
+-- On SEMI COMMA
+--   reduce production use_tree_short -> STAR
+
+State 37:
+## Known stack suffix:
+## PATHSEP
+## LR(1) items:
+simple_path_segments -> PATHSEP . simple_path_segment [ SEMI PATHSEP COMMA AS ]
+simple_path_segments -> PATHSEP . simple_path_segment PATHSEP simple_path_segments [ SEMI PATHSEP COMMA AS ]
+use_tree_rootless -> PATHSEP . STAR [ SEMI COMMA ]
+use_tree_rootless -> PATHSEP . LBRACE use_trees RBRACE [ SEMI COMMA ]
+## Transitions:
+-- On SUPER shift to state 4
+-- On STAR shift to state 38
+-- On SELFVALUE shift to state 5
+-- On RAW_IDENT shift to state 6
+-- On LBRACE shift to state 39
+-- On IDENT shift to state 8
+-- On DOLLAR_CRATE shift to state 9
+-- On CRATE shift to state 10
+-- On simple_path_segment shift to state 11
+-- On ident shift to state 17
+## Reductions:
+
+State 38:
+## Known stack suffix:
+## PATHSEP STAR
+## LR(1) items:
+use_tree_rootless -> PATHSEP STAR . [ SEMI COMMA ]
+## Transitions:
+## Reductions:
+-- On SEMI COMMA
+--   reduce production use_tree_rootless -> PATHSEP STAR
+
+State 39:
+## Known stack suffix:
+## PATHSEP LBRACE
+## LR(1) items:
+use_tree_rootless -> PATHSEP LBRACE . use_trees RBRACE [ SEMI COMMA ]
+## Transitions:
+-- On SUPER shift to state 4
+-- On STAR shift to state 36
+-- On SELFVALUE shift to state 5
+-- On RAW_IDENT shift to state 6
+-- On PATHSEP shift to state 37
+-- On LBRACE shift to state 40
+-- On IDENT shift to state 8
+-- On DOLLAR_CRATE shift to state 9
+-- On CRATE shift to state 10
+-- On use_trees shift to state 59
+-- On use_tree_short shift to state 43
+-- On use_tree_rootless shift to state 46
+-- On use_tree_longer shift to state 47
+-- On use_tree_long shift to state 48
+-- On simple_path_segments shift to state 18
+-- On simple_path_segment shift to state 14
+-- On simple_path shift to state 49
+-- On ident shift to state 17
+## Reductions:
+-- On RBRACE
+--   reduce production use_trees ->
+
+State 40:
+## Known stack suffix:
+## LBRACE
+## LR(1) items:
+use_tree_short -> LBRACE . use_trees RBRACE [ SEMI COMMA ]
+## Transitions:
+-- On SUPER shift to state 4
+-- On STAR shift to state 36
+-- On SELFVALUE shift to state 5
+-- On RAW_IDENT shift to state 6
+-- On PATHSEP shift to state 37
+-- On LBRACE shift to state 40
+-- On IDENT shift to state 8
+-- On DOLLAR_CRATE shift to state 9
+-- On CRATE shift to state 10
+-- On use_trees shift to state 41
+-- On use_tree_short shift to state 43
+-- On use_tree_rootless shift to state 46
+-- On use_tree_longer shift to state 47
+-- On use_tree_long shift to state 48
+-- On simple_path_segments shift to state 18
+-- On simple_path_segment shift to state 14
+-- On simple_path shift to state 49
+-- On ident shift to state 17
+## Reductions:
+-- On RBRACE
+--   reduce production use_trees ->
+
+State 41:
+## Known stack suffix:
+## LBRACE use_trees
+## LR(1) items:
+use_tree_short -> LBRACE use_trees . RBRACE [ SEMI COMMA ]
+## Transitions:
+-- On RBRACE shift to state 42
+## Reductions:
+
+State 42:
+## Known stack suffix:
+## LBRACE use_trees RBRACE
+## LR(1) items:
+use_tree_short -> LBRACE use_trees RBRACE . [ SEMI COMMA ]
+## Transitions:
+## Reductions:
+-- On SEMI COMMA
+--   reduce production use_tree_short -> LBRACE use_trees RBRACE
+
+State 43:
+## Known stack suffix:
+## use_tree_short
+## LR(1) items:
+use_trees -> use_tree_short . COMMA use_trees [ RBRACE ]
+## Transitions:
+-- On COMMA shift to state 44
+## Reductions:
+
+State 44:
+## Known stack suffix:
+## use_tree_short COMMA
+## LR(1) items:
+use_trees -> use_tree_short COMMA . use_trees [ RBRACE ]
+## Transitions:
+-- On SUPER shift to state 4
+-- On STAR shift to state 36
+-- On SELFVALUE shift to state 5
+-- On RAW_IDENT shift to state 6
+-- On PATHSEP shift to state 37
+-- On LBRACE shift to state 40
+-- On IDENT shift to state 8
+-- On DOLLAR_CRATE shift to state 9
+-- On CRATE shift to state 10
+-- On use_trees shift to state 45
+-- On use_tree_short shift to state 43
+-- On use_tree_rootless shift to state 46
+-- On use_tree_longer shift to state 47
+-- On use_tree_long shift to state 48
+-- On simple_path_segments shift to state 18
+-- On simple_path_segment shift to state 14
+-- On simple_path shift to state 49
+-- On ident shift to state 17
+## Reductions:
+-- On RBRACE
+--   reduce production use_trees ->
+
+State 45:
+## Known stack suffix:
+## use_tree_short COMMA use_trees
+## LR(1) items:
+use_trees -> use_tree_short COMMA use_trees . [ RBRACE ]
+## Transitions:
+## Reductions:
+-- On RBRACE
+--   reduce production use_trees -> use_tree_short COMMA use_trees
+
+State 46:
+## Known stack suffix:
+## use_tree_rootless
+## LR(1) items:
+use_tree_long -> use_tree_rootless . [ SEMI COMMA ]
+## Transitions:
+## Reductions:
+-- On SEMI COMMA
+--   reduce production use_tree_long -> use_tree_rootless
+
+State 47:
+## Known stack suffix:
+## use_tree_longer
+## LR(1) items:
+use_tree_long -> use_tree_longer . [ SEMI COMMA ]
+## Transitions:
+## Reductions:
+-- On SEMI COMMA
+--   reduce production use_tree_long -> use_tree_longer
+
+State 48:
+## Known stack suffix:
+## use_tree_long
+## LR(1) items:
+use_tree_short -> use_tree_long . [ SEMI COMMA ]
+## Transitions:
+## Reductions:
+-- On SEMI COMMA
+--   reduce production use_tree_short -> use_tree_long
+
+State 49:
+## Known stack suffix:
+## simple_path
+## LR(1) items:
+use_tree_longer -> simple_path . PATHSEP LBRACE use_trees RBRACE [ SEMI COMMA ]
+use_tree_longer -> simple_path . PATHSEP STAR [ SEMI COMMA ]
+use_tree_longer -> simple_path . as_identifier [ SEMI COMMA ]
+## Transitions:
+-- On PATHSEP shift to state 50
+-- On AS shift to state 55
+-- On as_identifier shift to state 58
+## Reductions:
+-- On SEMI COMMA
+--   reduce production as_identifier ->
+
+State 50:
+## Known stack suffix:
+## simple_path PATHSEP
+## LR(1) items:
+use_tree_longer -> simple_path PATHSEP . LBRACE use_trees RBRACE [ SEMI COMMA ]
+use_tree_longer -> simple_path PATHSEP . STAR [ SEMI COMMA ]
+## Transitions:
+-- On STAR shift to state 51
+-- On LBRACE shift to state 52
+## Reductions:
+
+State 51:
+## Known stack suffix:
+## simple_path PATHSEP STAR
+## LR(1) items:
+use_tree_longer -> simple_path PATHSEP STAR . [ SEMI COMMA ]
+## Transitions:
+## Reductions:
+-- On SEMI COMMA
+--   reduce production use_tree_longer -> simple_path PATHSEP STAR
+
+State 52:
+## Known stack suffix:
+## simple_path PATHSEP LBRACE
+## LR(1) items:
+use_tree_longer -> simple_path PATHSEP LBRACE . use_trees RBRACE [ SEMI COMMA ]
+## Transitions:
+-- On SUPER shift to state 4
+-- On STAR shift to state 36
+-- On SELFVALUE shift to state 5
+-- On RAW_IDENT shift to state 6
+-- On PATHSEP shift to state 37
+-- On LBRACE shift to state 40
+-- On IDENT shift to state 8
+-- On DOLLAR_CRATE shift to state 9
+-- On CRATE shift to state 10
+-- On use_trees shift to state 53
+-- On use_tree_short shift to state 43
+-- On use_tree_rootless shift to state 46
+-- On use_tree_longer shift to state 47
+-- On use_tree_long shift to state 48
+-- On simple_path_segments shift to state 18
+-- On simple_path_segment shift to state 14
+-- On simple_path shift to state 49
+-- On ident shift to state 17
+## Reductions:
+-- On RBRACE
+--   reduce production use_trees ->
+
+State 53:
+## Known stack suffix:
+## simple_path PATHSEP LBRACE use_trees
+## LR(1) items:
+use_tree_longer -> simple_path PATHSEP LBRACE use_trees . RBRACE [ SEMI COMMA ]
+## Transitions:
+-- On RBRACE shift to state 54
+## Reductions:
+
+State 54:
+## Known stack suffix:
+## simple_path PATHSEP LBRACE use_trees RBRACE
+## LR(1) items:
+use_tree_longer -> simple_path PATHSEP LBRACE use_trees RBRACE . [ SEMI COMMA ]
+## Transitions:
+## Reductions:
+-- On SEMI COMMA
+--   reduce production use_tree_longer -> simple_path PATHSEP LBRACE use_trees RBRACE
+
+State 55:
+## Known stack suffix:
+## AS
+## LR(1) items:
+as_identifier -> AS . ident [ SEMI COMMA ]
+as_identifier -> AS . UNDERSCORE [ SEMI COMMA ]
+## Transitions:
+-- On UNDERSCORE shift to state 56
+-- On RAW_IDENT shift to state 6
+-- On IDENT shift to state 8
+-- On ident shift to state 57
+## Reductions:
+
+State 56:
+## Known stack suffix:
+## AS UNDERSCORE
+## LR(1) items:
+as_identifier -> AS UNDERSCORE . [ SEMI COMMA ]
+## Transitions:
+## Reductions:
+-- On SEMI COMMA
+--   reduce production as_identifier -> AS UNDERSCORE
+
+State 57:
+## Known stack suffix:
+## AS ident
+## LR(1) items:
+as_identifier -> AS ident . [ SEMI COMMA ]
+## Transitions:
+## Reductions:
+-- On SEMI COMMA
+--   reduce production as_identifier -> AS ident
+
+State 58:
+## Known stack suffix:
+## simple_path as_identifier
+## LR(1) items:
+use_tree_longer -> simple_path as_identifier . [ SEMI COMMA ]
+## Transitions:
+## Reductions:
+-- On SEMI COMMA
+--   reduce production use_tree_longer -> simple_path as_identifier
+
+State 59:
+## Known stack suffix:
+## PATHSEP LBRACE use_trees
+## LR(1) items:
+use_tree_rootless -> PATHSEP LBRACE use_trees . RBRACE [ SEMI COMMA ]
+## Transitions:
+-- On RBRACE shift to state 60
+## Reductions:
+
+State 60:
+## Known stack suffix:
+## PATHSEP LBRACE use_trees RBRACE
+## LR(1) items:
+use_tree_rootless -> PATHSEP LBRACE use_trees RBRACE . [ SEMI COMMA ]
+## Transitions:
+## Reductions:
+-- On SEMI COMMA
+--   reduce production use_tree_rootless -> PATHSEP LBRACE use_trees RBRACE
+
+State 61:
+## Known stack suffix:
+## USE use_tree_short
+## LR(1) items:
+use_declaration -> USE use_tree_short . SEMI [ USE UNSAFE RBRACE POUND MOD EXTERN EOF ]
+## Transitions:
+-- On SEMI shift to state 62
+## Reductions:
+
+State 62:
+## Known stack suffix:
+## USE use_tree_short SEMI
+## LR(1) items:
+use_declaration -> USE use_tree_short SEMI . [ USE UNSAFE RBRACE POUND MOD EXTERN EOF ]
+## Transitions:
+## Reductions:
+-- On USE UNSAFE RBRACE POUND MOD EXTERN EOF
+--   reduce production use_declaration -> USE use_tree_short SEMI
+
+State 63:
+## Known stack suffix:
+## UNSAFE
+## LR(1) items:
+unsafe_module -> UNSAFE . MOD ident SEMI [ USE UNSAFE RBRACE POUND MOD EXTERN EOF ]
+unsafe_module -> UNSAFE . MOD ident LBRACE inner_attrs items RBRACE [ USE UNSAFE RBRACE POUND MOD EXTERN EOF ]
+## Transitions:
+-- On MOD shift to state 64
+## Reductions:
+
+State 64:
+## Known stack suffix:
+## UNSAFE MOD
+## LR(1) items:
+unsafe_module -> UNSAFE MOD . ident SEMI [ USE UNSAFE RBRACE POUND MOD EXTERN EOF ]
+unsafe_module -> UNSAFE MOD . ident LBRACE inner_attrs items RBRACE [ USE UNSAFE RBRACE POUND MOD EXTERN EOF ]
+## Transitions:
+-- On RAW_IDENT shift to state 6
+-- On IDENT shift to state 8
+-- On ident shift to state 65
+## Reductions:
+
+State 65:
+## Known stack suffix:
+## UNSAFE MOD ident
+## LR(1) items:
+unsafe_module -> UNSAFE MOD ident . SEMI [ USE UNSAFE RBRACE POUND MOD EXTERN EOF ]
+unsafe_module -> UNSAFE MOD ident . LBRACE inner_attrs items RBRACE [ USE UNSAFE RBRACE POUND MOD EXTERN EOF ]
+## Transitions:
+-- On SEMI shift to state 66
+-- On LBRACE shift to state 67
+## Reductions:
+
+State 66:
+## Known stack suffix:
+## UNSAFE MOD ident SEMI
+## LR(1) items:
+unsafe_module -> UNSAFE MOD ident SEMI . [ USE UNSAFE RBRACE POUND MOD EXTERN EOF ]
+## Transitions:
+## Reductions:
+-- On USE UNSAFE RBRACE POUND MOD EXTERN EOF
+--   reduce production unsafe_module -> UNSAFE MOD ident SEMI
+
+State 67:
+## Known stack suffix:
+## UNSAFE MOD ident LBRACE
+## LR(1) items:
+unsafe_module -> UNSAFE MOD ident LBRACE . inner_attrs items RBRACE [ USE UNSAFE RBRACE POUND MOD EXTERN EOF ]
+## Transitions:
+-- On inner_attrs shift to state 68
+## Reductions:
+-- On USE UNSAFE RBRACE POUND MOD EXTERN
+--   reduce production inner_attrs ->
+
+State 68:
+## Known stack suffix:
+## UNSAFE MOD ident LBRACE inner_attrs
+## LR(1) items:
+inner_attrs -> inner_attrs . POUND inner_attr [ USE UNSAFE RBRACE POUND MOD EXTERN ]
+unsafe_module -> UNSAFE MOD ident LBRACE inner_attrs . items RBRACE [ USE UNSAFE RBRACE POUND MOD EXTERN EOF ]
+## Transitions:
+-- On POUND shift to state 69
+-- On outer_attrs shift to state 34
+-- On items shift to state 75
+-- On item shift to state 77
+## Reductions:
+-- On RBRACE
+--   reduce production items ->
+-- On USE UNSAFE MOD EXTERN
+--   reduce production outer_attrs ->
+
+State 69:
+## Known stack suffix:
+## inner_attrs POUND
+## LR(1) items:
+inner_attrs -> inner_attrs POUND . inner_attr [ USE UNSAFE RBRACE POUND MOD EXTERN ]
+outer_attrs -> POUND . outer_attr outer_attrs [ USE UNSAFE MOD EXTERN ]
+## Transitions:
+-- On NOT shift to state 70
+-- On LBRACK shift to state 2
+-- On outer_attr shift to state 31
+-- On inner_attr shift to state 74
+## Reductions:
+
+State 70:
+## Known stack suffix:
+## NOT
+## LR(1) items:
+inner_attr -> NOT . LBRACK attr RBRACK [ USE UNSAFE RBRACE POUND MOD EXTERN ]
+## Transitions:
+-- On LBRACK shift to state 71
+## Reductions:
+
+State 71:
+## Known stack suffix:
+## NOT LBRACK
+## LR(1) items:
+inner_attr -> NOT LBRACK . attr RBRACK [ USE UNSAFE RBRACE POUND MOD EXTERN ]
+## Transitions:
+-- On UNSAFE shift to state 3
+-- On SUPER shift to state 4
+-- On SELFVALUE shift to state 5
+-- On RAW_IDENT shift to state 6
+-- On PATHSEP shift to state 7
+-- On IDENT shift to state 8
+-- On DOLLAR_CRATE shift to state 9
+-- On CRATE shift to state 10
+-- On simple_path_segments shift to state 18
+-- On simple_path_segment shift to state 14
+-- On simple_path shift to state 27
+-- On ident shift to state 17
+-- On attr shift to state 72
+## Reductions:
+
+State 72:
+## Known stack suffix:
+## NOT LBRACK attr
+## LR(1) items:
+inner_attr -> NOT LBRACK attr . RBRACK [ USE UNSAFE RBRACE POUND MOD EXTERN ]
+## Transitions:
+-- On RBRACK shift to state 73
+## Reductions:
+
+State 73:
+## Known stack suffix:
+## NOT LBRACK attr RBRACK
+## LR(1) items:
+inner_attr -> NOT LBRACK attr RBRACK . [ USE UNSAFE RBRACE POUND MOD EXTERN ]
+## Transitions:
+## Reductions:
+-- On USE UNSAFE RBRACE POUND MOD EXTERN
+--   reduce production inner_attr -> NOT LBRACK attr RBRACK
+
+State 74:
+## Known stack suffix:
+## inner_attrs POUND inner_attr
+## LR(1) items:
+inner_attrs -> inner_attrs POUND inner_attr . [ USE UNSAFE RBRACE POUND MOD EXTERN ]
+## Transitions:
+## Reductions:
+-- On USE UNSAFE RBRACE POUND MOD EXTERN
+--   reduce production inner_attrs -> inner_attrs POUND inner_attr
+
+State 75:
+## Known stack suffix:
+## UNSAFE MOD ident LBRACE inner_attrs items
+## LR(1) items:
+unsafe_module -> UNSAFE MOD ident LBRACE inner_attrs items . RBRACE [ USE UNSAFE RBRACE POUND MOD EXTERN EOF ]
+## Transitions:
+-- On RBRACE shift to state 76
+## Reductions:
+
+State 76:
+## Known stack suffix:
+## UNSAFE MOD ident LBRACE inner_attrs items RBRACE
+## LR(1) items:
+unsafe_module -> UNSAFE MOD ident LBRACE inner_attrs items RBRACE . [ USE UNSAFE RBRACE POUND MOD EXTERN EOF ]
+## Transitions:
+## Reductions:
+-- On USE UNSAFE RBRACE POUND MOD EXTERN EOF
+--   reduce production unsafe_module -> UNSAFE MOD ident LBRACE inner_attrs items RBRACE
+
+State 77:
+## Known stack suffix:
+## item
+## LR(1) items:
+items -> item . items [ RBRACE EOF ]
+## Transitions:
+-- On POUND shift to state 1
+-- On outer_attrs shift to state 34
+-- On items shift to state 78
+-- On item shift to state 77
+## Reductions:
+-- On RBRACE EOF
+--   reduce production items ->
+-- On USE UNSAFE MOD EXTERN
+--   reduce production outer_attrs ->
+
+State 78:
+## Known stack suffix:
+## item items
+## LR(1) items:
+items -> item items . [ RBRACE EOF ]
+## Transitions:
+## Reductions:
+-- On RBRACE EOF
+--   reduce production items -> item items
+
+State 79:
+## Known stack suffix:
+## MOD
+## LR(1) items:
+safe_module -> MOD . ident SEMI [ USE UNSAFE RBRACE POUND MOD EXTERN EOF ]
+safe_module -> MOD . ident LBRACE inner_attrs items RBRACE [ USE UNSAFE RBRACE POUND MOD EXTERN EOF ]
+## Transitions:
+-- On RAW_IDENT shift to state 6
+-- On IDENT shift to state 8
+-- On ident shift to state 80
+## Reductions:
+
+State 80:
+## Known stack suffix:
+## MOD ident
+## LR(1) items:
+safe_module -> MOD ident . SEMI [ USE UNSAFE RBRACE POUND MOD EXTERN EOF ]
+safe_module -> MOD ident . LBRACE inner_attrs items RBRACE [ USE UNSAFE RBRACE POUND MOD EXTERN EOF ]
+## Transitions:
+-- On SEMI shift to state 81
+-- On LBRACE shift to state 82
+## Reductions:
+
+State 81:
+## Known stack suffix:
+## MOD ident SEMI
+## LR(1) items:
+safe_module -> MOD ident SEMI . [ USE UNSAFE RBRACE POUND MOD EXTERN EOF ]
+## Transitions:
+## Reductions:
+-- On USE UNSAFE RBRACE POUND MOD EXTERN EOF
+--   reduce production safe_module -> MOD ident SEMI
+
+State 82:
+## Known stack suffix:
+## MOD ident LBRACE
+## LR(1) items:
+safe_module -> MOD ident LBRACE . inner_attrs items RBRACE [ USE UNSAFE RBRACE POUND MOD EXTERN EOF ]
+## Transitions:
+-- On inner_attrs shift to state 83
+## Reductions:
+-- On USE UNSAFE RBRACE POUND MOD EXTERN
+--   reduce production inner_attrs ->
+
+State 83:
+## Known stack suffix:
+## MOD ident LBRACE inner_attrs
+## LR(1) items:
+inner_attrs -> inner_attrs . POUND inner_attr [ USE UNSAFE RBRACE POUND MOD EXTERN ]
+safe_module -> MOD ident LBRACE inner_attrs . items RBRACE [ USE UNSAFE RBRACE POUND MOD EXTERN EOF ]
+## Transitions:
+-- On POUND shift to state 69
+-- On outer_attrs shift to state 34
+-- On items shift to state 84
+-- On item shift to state 77
+## Reductions:
+-- On RBRACE
+--   reduce production items ->
+-- On USE UNSAFE MOD EXTERN
+--   reduce production outer_attrs ->
+
+State 84:
+## Known stack suffix:
+## MOD ident LBRACE inner_attrs items
+## LR(1) items:
+safe_module -> MOD ident LBRACE inner_attrs items . RBRACE [ USE UNSAFE RBRACE POUND MOD EXTERN EOF ]
+## Transitions:
+-- On RBRACE shift to state 85
+## Reductions:
+
+State 85:
+## Known stack suffix:
+## MOD ident LBRACE inner_attrs items RBRACE
+## LR(1) items:
+safe_module -> MOD ident LBRACE inner_attrs items RBRACE . [ USE UNSAFE RBRACE POUND MOD EXTERN EOF ]
+## Transitions:
+## Reductions:
+-- On USE UNSAFE RBRACE POUND MOD EXTERN EOF
+--   reduce production safe_module -> MOD ident LBRACE inner_attrs items RBRACE
+
+State 86:
+## Known stack suffix:
+## EXTERN
+## LR(1) items:
+extern_crate -> EXTERN . CRATE crate_ref as_clause SEMI [ USE UNSAFE RBRACE POUND MOD EXTERN EOF ]
+## Transitions:
+-- On CRATE shift to state 87
+## Reductions:
+
+State 87:
+## Known stack suffix:
+## EXTERN CRATE
+## LR(1) items:
+extern_crate -> EXTERN CRATE . crate_ref as_clause SEMI [ USE UNSAFE RBRACE POUND MOD EXTERN EOF ]
+## Transitions:
+-- On SELFVALUE shift to state 88
+-- On RAW_IDENT shift to state 6
+-- On IDENT shift to state 8
+-- On ident shift to state 89
+-- On crate_ref shift to state 90
+## Reductions:
+
+State 88:
+## Known stack suffix:
+## SELFVALUE
+## LR(1) items:
+crate_ref -> SELFVALUE . [ SEMI AS ]
+## Transitions:
+## Reductions:
+-- On SEMI AS
+--   reduce production crate_ref -> SELFVALUE
+
+State 89:
+## Known stack suffix:
+## ident
+## LR(1) items:
+crate_ref -> ident . [ SEMI AS ]
+## Transitions:
+## Reductions:
+-- On SEMI AS
+--   reduce production crate_ref -> ident
+
+State 90:
+## Known stack suffix:
+## EXTERN CRATE crate_ref
+## LR(1) items:
+extern_crate -> EXTERN CRATE crate_ref . as_clause SEMI [ USE UNSAFE RBRACE POUND MOD EXTERN EOF ]
+## Transitions:
+-- On AS shift to state 91
+-- On as_clause shift to state 94
+## Reductions:
+-- On SEMI
+--   reduce production as_clause ->
+
+State 91:
+## Known stack suffix:
+## AS
+## LR(1) items:
+as_clause -> AS . ident [ SEMI ]
+as_clause -> AS . UNDERSCORE [ SEMI ]
+## Transitions:
+-- On UNDERSCORE shift to state 92
+-- On RAW_IDENT shift to state 6
+-- On IDENT shift to state 8
+-- On ident shift to state 93
+## Reductions:
+
+State 92:
+## Known stack suffix:
+## AS UNDERSCORE
+## LR(1) items:
+as_clause -> AS UNDERSCORE . [ SEMI ]
+## Transitions:
+## Reductions:
+-- On SEMI
+--   reduce production as_clause -> AS UNDERSCORE
+
+State 93:
+## Known stack suffix:
+## AS ident
+## LR(1) items:
+as_clause -> AS ident . [ SEMI ]
+## Transitions:
+## Reductions:
+-- On SEMI
+--   reduce production as_clause -> AS ident
+
+State 94:
+## Known stack suffix:
+## EXTERN CRATE crate_ref as_clause
+## LR(1) items:
+extern_crate -> EXTERN CRATE crate_ref as_clause . SEMI [ USE UNSAFE RBRACE POUND MOD EXTERN EOF ]
+## Transitions:
+-- On SEMI shift to state 95
+## Reductions:
+
+State 95:
+## Known stack suffix:
+## EXTERN CRATE crate_ref as_clause SEMI
+## LR(1) items:
+extern_crate -> EXTERN CRATE crate_ref as_clause SEMI . [ USE UNSAFE RBRACE POUND MOD EXTERN EOF ]
+## Transitions:
+## Reductions:
+-- On USE UNSAFE RBRACE POUND MOD EXTERN EOF
+--   reduce production extern_crate -> EXTERN CRATE crate_ref as_clause SEMI
+
+State 96:
+## Known stack suffix:
+## outer_attrs vis_item
+## LR(1) items:
+item -> outer_attrs vis_item . [ USE UNSAFE RBRACE POUND MOD EXTERN EOF ]
+## Transitions:
+## Reductions:
+-- On USE UNSAFE RBRACE POUND MOD EXTERN EOF
+--   reduce production item -> outer_attrs vis_item
+
+State 97:
+## Known stack suffix:
+## use_declaration
+## LR(1) items:
+vis_item -> use_declaration . [ USE UNSAFE RBRACE POUND MOD EXTERN EOF ]
+## Transitions:
+## Reductions:
+-- On USE UNSAFE RBRACE POUND MOD EXTERN EOF
+--   reduce production vis_item -> use_declaration
+
+State 98:
+## Known stack suffix:
+## unsafe_module
+## LR(1) items:
+vis_item -> unsafe_module . [ USE UNSAFE RBRACE POUND MOD EXTERN EOF ]
+## Transitions:
+## Reductions:
+-- On USE UNSAFE RBRACE POUND MOD EXTERN EOF
+--   reduce production vis_item -> unsafe_module
+
+State 99:
+## Known stack suffix:
+## safe_module
+## LR(1) items:
+unsafe_module -> safe_module . [ USE UNSAFE RBRACE POUND MOD EXTERN EOF ]
+## Transitions:
+## Reductions:
+-- On USE UNSAFE RBRACE POUND MOD EXTERN EOF
+--   reduce production unsafe_module -> safe_module
+
+State 100:
+## Known stack suffix:
+## extern_crate
+## LR(1) items:
+vis_item -> extern_crate . [ USE UNSAFE RBRACE POUND MOD EXTERN EOF ]
+## Transitions:
+## Reductions:
+-- On USE UNSAFE RBRACE POUND MOD EXTERN EOF
+--   reduce production vis_item -> extern_crate
+
+State 101:
+## Known stack suffix:
+## items
+## LR(1) items:
+program -> items . EOF [ # ]
+## Transitions:
+-- On EOF shift to state 102
+## Reductions:
+
+State 102:
+## Known stack suffix:
+## items EOF
+## LR(1) items:
+program -> items EOF . [ # ]
+## Transitions:
+## Reductions:
+-- On #
+--   reduce production program -> items EOF
+

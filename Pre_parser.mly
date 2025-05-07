@@ -74,23 +74,26 @@ vis_item:
 use_declaration:
   | USE use_tree_short SEMI { Cabs.USE_DECL $2}
 
+use_tree_long:
+  | use_tree_rootless { $1 }
+  | use_tree_longer { $1 }
+
+use_tree_rootless:
+  | PATHSEP STAR { Cabs.USE_TREE None }
+  | PATHSEP LBRACE trees = use_trees RBRACE { Cabs.USE_TREE_LIST (None, trees) }
+
 use_tree_short:
   | STAR { Cabs.USE_TREE None }
-  | PATHSEP STAR { Cabs.USE_TREE None }
-  | use_tree_long { $1 }
-
-use_tree_long:
   | LBRACE trees = use_trees RBRACE { Cabs.USE_TREE_LIST (None, trees) }
-  | PATHSEP LBRACE trees = use_trees RBRACE { Cabs.USE_TREE_LIST (None, trees) }
-  | use_tree_longer { $1 }
+  | use_tree_long { $1 }
 
 use_tree_longer:
   | skib = simple_path PATHSEP LBRACE trees = use_trees RBRACE { Cabs.USE_TREE_LIST (None, trees) }
   | skib = simple_path PATHSEP STAR { Cabs.USE_TREE (Some skib) }
-  | what = simple_path as_id = as_identifier { Cabs.USE_TREE_ID (what, as_id) }
+  | what = simple_path as_id = as_identifier { }
 
 use_trees:
-  | use_tree_short use_trees { $1 :: $2 }
+  | use_tree_short COMMA use_trees { $1 :: $2 }
   | { [] }
 
  as_identifier:

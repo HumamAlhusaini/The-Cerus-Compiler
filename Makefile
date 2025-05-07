@@ -59,4 +59,6 @@ clean:
 	      *.byte *.o *.cm* *.d.byte *.d.native *.ml.d
 	find $(EXTRACTED_DIR) -type f ! -name "_tags" -exec rm -f {} +
 
+dump-conflicts:
+	$(MENHIR) --explain --dump $(PRE_PARSER_SOURCE)
 -include .depend
