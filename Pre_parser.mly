@@ -72,7 +72,7 @@ vis_item:
 
 (*use declaration*)
 use_declaration:
-  | USE use_tree_short SEMI { Cabs.USE_DECL $2}
+  | USE use_tree_long SEMI { Cabs.USE_DECL $2}
 
 use_tree_long:
   | use_tree_rootless { $1 }
@@ -104,13 +104,12 @@ use_trees:
 
 
 simple_path:
-  | segments = simple_path_segments         { Cabs.SIMPLE_PATH segments }
+  | segments = simple_path_segments       { Cabs.SIMPLE_PATH segments }
+  | PATHSEP segments = simple_path_segments { Cabs.SIMPLE_PATH segments }  // optional for ::foo::bar
 
 simple_path_segments:
-  | PATHSEP seg = simple_path_segment                     { [seg] }
-  | PATHSEP seg = simple_path_segment PATHSEP rest = simple_path_segments { seg :: rest }
-  | seg = simple_path_segment                     { [seg] }                      
   | seg = simple_path_segment PATHSEP rest = simple_path_segments { seg :: rest }
+  | seg = simple_path_segment                                     { [seg] }
 
 simple_path_segment:
   | id = ident   { Cabs.SIMPLE_PATH_SEGMENT_IDENT (fst id) }

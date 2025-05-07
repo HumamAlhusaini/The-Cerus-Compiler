@@ -1,5 +1,5 @@
 
-** Conflict (shift/reduce) in state 14.
+** Conflict (shift/reduce) in state 12.
 ** Token involved: PATHSEP
 ** This state is reached from program after reading:
 
@@ -13,56 +13,21 @@ items EOF
 item items 
 outer_attrs vis_item 
             use_declaration 
-            USE use_tree_short SEMI 
-                use_tree_long 
+            USE use_tree_long SEMI 
                 use_tree_longer 
                 (?)
 
-** In state 14, looking ahead at PATHSEP, reducing production
-** simple_path_segments -> simple_path_segment
-** is permitted because of the following sub-derivation:
-
-simple_path PATHSEP LBRACE use_trees RBRACE // lookahead token appears
-simple_path_segments // lookahead token is inherited
-simple_path_segment . 
-
-** In state 14, looking ahead at PATHSEP, shifting is permitted
+** In state 12, looking ahead at PATHSEP, shifting is permitted
 ** because of the following sub-derivation:
 
 simple_path PATHSEP LBRACE use_trees RBRACE 
 simple_path_segments 
 simple_path_segment . PATHSEP simple_path_segments 
 
-** Conflict (shift/reduce) in state 11.
-** Token involved: PATHSEP
-** This state is reached from program after reading:
-
-outer_attrs USE PATHSEP simple_path_segment
-
-** The derivations that appear below have the following common factor:
-** (The question mark symbol (?) represents the spot where the derivations begin to differ.)
-
-program 
-items EOF 
-item items 
-outer_attrs vis_item 
-            use_declaration 
-            USE use_tree_short SEMI 
-                use_tree_long 
-                use_tree_longer 
-                (?)
-
-** In state 11, looking ahead at PATHSEP, reducing production
-** simple_path_segments -> PATHSEP simple_path_segment
+** In state 12, looking ahead at PATHSEP, reducing production
+** simple_path_segments -> simple_path_segment
 ** is permitted because of the following sub-derivation:
 
 simple_path PATHSEP LBRACE use_trees RBRACE // lookahead token appears
 simple_path_segments // lookahead token is inherited
-PATHSEP simple_path_segment . 
-
-** In state 11, looking ahead at PATHSEP, shifting is permitted
-** because of the following sub-derivation:
-
-simple_path PATHSEP LBRACE use_trees RBRACE 
-simple_path_segments 
-PATHSEP simple_path_segment . PATHSEP simple_path_segments 
+simple_path_segment . 
