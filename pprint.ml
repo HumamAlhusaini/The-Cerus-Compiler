@@ -291,6 +291,30 @@ and print_item fmt = function
 and print_vis_item fmt = function
   | Cabs.MODULE m -> print_module fmt m
   | Cabs.EXTERN_CRATE ext -> print_extern_crate fmt ext
+  | Cabs.USE_DECLARATION tree -> print_use_decl fmt tree
+
+(* Use declaration *)
+and print_use_decl fmt = function
+  | Cabs.USE_DECL tree -> fprintf fmt "use %a;\n" print_use_tree tree
+
+and print_use_tree fmt = function
+  | Cabs.USE_TREE None -> fprintf fmt "*"
+  | Cabs.USE_TREE (Some path) -> fprintf fmt "%a::*" print_simple_path path
+  | Cabs.USE_TREE_LIST (None, trees) ->
+      fprintf fmt "{%a}" print_use_trees trees
+  | Cabs.USE_TREE_LIST (Some path, trees) ->
+      fprintf fmt "%a::{%a}" print_simple_path path print_use_trees trees
+  | Cabs.USE_TREE_ID (path, as_ident) ->
+      fprintf fmt "%a%a" print_simple_path path print_as_ident_opt as_ident
+
+and print_use_trees fmt trees =
+  Format.pp_print_list ~pp_sep:(fun fmt () -> fprintf fmt ", ") print_use_tree fmt trees
+
+and print_as_ident_opt fmt = function
+  | Some (Cabs.ID_OPT id) -> fprintf fmt " as %s" (string_of_ident id)
+  | Some Cabs.UNDERSCORE_OPT -> fprintf fmt " as _"
+  | None -> ()
+(*Use decl*)
 
 and print_extern_crate fmt = function
   | Cabs.EXT_CRATE_CLAUSE (ref, clause) ->
@@ -343,6 +367,9 @@ and print_maybe_attr_input fmt = function
 and print_simple_path fmt (SIMPLE_PATH segments) =
   let print_segment fmt = function
     | SIMPLE_PATH_SEGMENT_IDENT id -> fprintf fmt "%s" (string_of_ident id)
+    | SIMPLE_PATH_SEGMENT_SUPER -> fprintf fmt "super"
+    | SIMPLE_PATH_SEGMENT_SELF -> fprintf fmt "self"
+    | SIMPLE_PATH_SEGMENT_CRATE -> fprintf fmt "crate"
   in
   Format.pp_print_list ~pp_sep:(fun fmt () -> fprintf fmt "::") print_segment fmt segments
 

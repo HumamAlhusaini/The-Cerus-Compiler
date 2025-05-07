@@ -838,7 +838,7 @@ with use_declaration :=
 with use_tree :=
   | USE_TREE : option simple_path -> use_tree
   | USE_TREE_LIST : option simple_path -> list use_tree -> use_tree
-  | USE_TREE_ID : simple_path -> option identifier -> use_tree
+  | USE_TREE_ID : simple_path -> option id_or_underscore -> use_tree
 
 (* Use Declaration*)
 (*Identifier*)

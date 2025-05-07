@@ -21,7 +21,7 @@
 %token <Cabs.loc> AT UNDERSCORE DOT DOTDOT DOTDOTDOT DOTDOTEQ (* @ _ . .. ... ..= *)
 %token <Cabs.loc> COMMA SEMI COLON RESERVED_RAW_IDENTIFIER    (* , ; : *)
 %token <Cabs.loc> PATHSEP RARROW FATARROW LARROW              (* :: -> => <- *)
-%token <Cabs.loc> POUND DOLLAR QUESTION TILDE                (* # $ ? ~ *)
+%token <Cabs.loc> POUND DOLLAR QUESTION TILDE  DOLLAR_CRATE              (* # $ ? ~ *)
 %token <Cabs.loc> LBRACE RBRACE LBRACK RBRACK LPAREN RPAREN
 
 %token <string * Cabs.loc> IDENT RAW_IDENT
@@ -43,7 +43,7 @@
 %type <Cabs.outer_attribute> outer_attr
 %type <Cabs.inner_attribute list> inner_attrs
 %type <Cabs.inner_attribute> inner_attr
-%type <Cabs.attr> attr
+%type <Cabs.attr> attr 
 %type <Cabs.simple_path> simple_path
 %type <Cabs.simple_path_segment list> simple_path_segments
 %type <Cabs.simple_path_segment> simple_path_segment
@@ -68,7 +68,53 @@ item:
 vis_item:
   | m = unsafe_module { Cabs.MODULE m }
   | e = extern_crate { Cabs.EXTERN_CRATE e }
+  | decl = use_declaration { Cabs.USE_DECLARATION decl}
 
+(*use declaration*)
+use_declaration:
+  | USE use_tree_short SEMI { Cabs.USE_DECL $2}
+
+use_tree_short:
+  | STAR { Cabs.USE_TREE None }
+  | PATHSEP STAR { Cabs.USE_TREE None }
+  | use_tree_long { $1 }
+
+use_tree_long:
+  | LBRACE trees = use_trees RBRACE { Cabs.USE_TREE_LIST (None, trees) }
+  | PATHSEP LBRACE trees = use_trees RBRACE { Cabs.USE_TREE_LIST (None, trees) }
+  | use_tree_longer { $1 }
+
+use_tree_longer:
+  | skib = simple_path PATHSEP LBRACE trees = use_trees RBRACE { Cabs.USE_TREE_LIST (None, trees) }
+  | skib = simple_path PATHSEP STAR { Cabs.USE_TREE (Some skib) }
+  | what = simple_path as_id = as_identifier { Cabs.USE_TREE_ID (what, as_id) }
+
+use_trees:
+  | use_tree_short use_trees { $1 :: $2 }
+  | { [] }
+
+ as_identifier:
+  | AS id = ident { Some (Cabs.ID_OPT (fst id)) }
+  | AS UNDERSCORE { Some (Cabs.UNDERSCORE_OPT)}
+  | { None }
+(*use declaration*)
+
+
+simple_path:
+  | segments = simple_path_segments         { Cabs.SIMPLE_PATH segments }
+
+simple_path_segments:
+  | PATHSEP seg = simple_path_segment                     { [seg] }
+  | PATHSEP seg = simple_path_segment PATHSEP rest = simple_path_segments { seg :: rest }
+  | seg = simple_path_segment                     { [seg] }                      
+  | seg = simple_path_segment PATHSEP rest = simple_path_segments { seg :: rest }
+
+simple_path_segment:
+  | id = ident   { Cabs.SIMPLE_PATH_SEGMENT_IDENT (fst id) }
+  | SUPER { SIMPLE_PATH_SEGMENT_SUPER  }
+  | SELFVALUE { SIMPLE_PATH_SEGMENT_SELF  }
+  | CRATE { SIMPLE_PATH_SEGMENT_CRATE  }
+  | DOLLAR_CRATE { SIMPLE_PATH_SEGMENT_SCRATE }
 extern_crate:
   | EXTERN CRATE ref = crate_ref clause = as_clause SEMI { Cabs.EXT_CRATE_CLAUSE (ref, clause) }
 
@@ -120,15 +166,6 @@ maybe_attr_input:
   | a = attr_input { Some a }
   | /* empty */ { None }
 
-simple_path:
-  | segments = simple_path_segments { SIMPLE_PATH segments }
-
-simple_path_segments:
-  | seg = simple_path_segment { [seg] }
-  | seg = simple_path_segment rest = simple_path_segments { seg :: rest }
-
-simple_path_segment:
-  | id = ident { SIMPLE_PATH_SEGMENT_IDENT (fst id) }
 
 attr_input:
   | EQ e = expression { ATTR_INPUT_EXP e }
