@@ -1,8 +1,8 @@
-
 use *;
-use [shat, butt];
+use b;
+use std::b;
+use {what, skibidi};
 
-use std::gimmy::what::skibidi;
 extern crate self;
 
 extern crate skibidi as _;

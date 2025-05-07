@@ -77,6 +77,7 @@ use_declaration:
 use_tree_long:
   | use_tree_rootless { $1 }
   | use_tree_longer { $1 }
+  | use_tree_short { $1 }
 
 use_tree_rootless:
   | PATHSEP STAR { Cabs.USE_TREE None }
@@ -85,15 +86,14 @@ use_tree_rootless:
 use_tree_short:
   | STAR { Cabs.USE_TREE None }
   | LBRACE trees = use_trees RBRACE { Cabs.USE_TREE_LIST (None, trees) }
-  | use_tree_long { $1 }
 
 use_tree_longer:
   | skib = simple_path PATHSEP LBRACE trees = use_trees RBRACE { Cabs.USE_TREE_LIST (None, trees) }
   | skib = simple_path PATHSEP STAR { Cabs.USE_TREE (Some skib) }
-  | what = simple_path as_id = as_identifier { }
+  | what = simple_path as_id = as_identifier { Cabs.USE_TREE_ID (what, as_id)}
 
 use_trees:
-  | use_tree_short COMMA use_trees { $1 :: $2 }
+  | use_tree_long COMMA use_trees { $1 :: $3 }
   | { [] }
 
  as_identifier:
