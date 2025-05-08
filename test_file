@@ -1,7 +1,6 @@
 use *;
-use b;
-use std::b;
-use {what, skibidi};
+use b::*;
+use std::x;
 
 extern crate self;
 

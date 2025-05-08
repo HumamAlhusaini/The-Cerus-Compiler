@@ -161,9 +161,8 @@ simple_path_segments -> simple_path_segment . [ SEMI RBRACK PATHSEP EQ COMMA AS 
 ## Transitions:
 -- On PATHSEP shift to state 13
 ## Reductions:
--- On SEMI RBRACK PATHSEP EQ COMMA AS
+-- On SEMI RBRACK EQ COMMA AS
 --   reduce production simple_path_segments -> simple_path_segment
-** Conflict on PATHSEP
 
 State 13:
 ## Known stack suffix:
@@ -396,14 +395,17 @@ State 33:
 use_declaration -> USE . use_tree_long SEMI [ USE UNSAFE RBRACE POUND MOD EXTERN EOF ]
 ## Transitions:
 -- On SUPER shift to state 4
+-- On STAR shift to state 34
 -- On SELFVALUE shift to state 5
 -- On RAW_IDENT shift to state 6
--- On PATHSEP shift to state 34
+-- On PATHSEP shift to state 35
+-- On LBRACE shift to state 38
 -- On IDENT shift to state 8
 -- On DOLLAR_CRATE shift to state 9
 -- On CRATE shift to state 10
--- On use_tree_rootless shift to state 44
--- On use_tree_longer shift to state 45
+-- On use_tree_short shift to state 41
+-- On use_tree_rootless shift to state 42
+-- On use_tree_longer shift to state 43
 -- On use_tree_long shift to state 59
 -- On simple_path_segments shift to state 16
 -- On simple_path_segment shift to state 12
@@ -413,6 +415,16 @@ use_declaration -> USE . use_tree_long SEMI [ USE UNSAFE RBRACE POUND MOD EXTERN
 
 State 34:
 ## Known stack suffix:
+## STAR
+## LR(1) items:
+use_tree_short -> STAR . [ SEMI COMMA ]
+## Transitions:
+## Reductions:
+-- On SEMI COMMA
+--   reduce production use_tree_short -> STAR
+
+State 35:
+## Known stack suffix:
 ## PATHSEP
 ## LR(1) items:
 simple_path -> PATHSEP . simple_path_segments [ SEMI PATHSEP COMMA AS ]
@@ -420,10 +432,10 @@ use_tree_rootless -> PATHSEP . STAR [ SEMI COMMA ]
 use_tree_rootless -> PATHSEP . LBRACE use_trees RBRACE [ SEMI COMMA ]
 ## Transitions:
 -- On SUPER shift to state 4
--- On STAR shift to state 35
+-- On STAR shift to state 36
 -- On SELFVALUE shift to state 5
 -- On RAW_IDENT shift to state 6
--- On LBRACE shift to state 36
+-- On LBRACE shift to state 37
 -- On IDENT shift to state 8
 -- On DOLLAR_CRATE shift to state 9
 -- On CRATE shift to state 10
@@ -432,7 +444,7 @@ use_tree_rootless -> PATHSEP . LBRACE use_trees RBRACE [ SEMI COMMA ]
 -- On ident shift to state 15
 ## Reductions:
 
-State 35:
+State 36:
 ## Known stack suffix:
 ## PATHSEP STAR
 ## LR(1) items:
@@ -442,26 +454,26 @@ use_tree_rootless -> PATHSEP STAR . [ SEMI COMMA ]
 -- On SEMI COMMA
 --   reduce production use_tree_rootless -> PATHSEP STAR
 
-State 36:
+State 37:
 ## Known stack suffix:
 ## PATHSEP LBRACE
 ## LR(1) items:
 use_tree_rootless -> PATHSEP LBRACE . use_trees RBRACE [ SEMI COMMA ]
 ## Transitions:
 -- On SUPER shift to state 4
--- On STAR shift to state 37
+-- On STAR shift to state 34
 -- On SELFVALUE shift to state 5
 -- On RAW_IDENT shift to state 6
--- On PATHSEP shift to state 34
+-- On PATHSEP shift to state 35
 -- On LBRACE shift to state 38
 -- On IDENT shift to state 8
 -- On DOLLAR_CRATE shift to state 9
 -- On CRATE shift to state 10
 -- On use_trees shift to state 57
 -- On use_tree_short shift to state 41
--- On use_tree_rootless shift to state 44
--- On use_tree_longer shift to state 45
--- On use_tree_long shift to state 46
+-- On use_tree_rootless shift to state 42
+-- On use_tree_longer shift to state 43
+-- On use_tree_long shift to state 44
 -- On simple_path_segments shift to state 16
 -- On simple_path_segment shift to state 12
 -- On simple_path shift to state 47
@@ -470,36 +482,26 @@ use_tree_rootless -> PATHSEP LBRACE . use_trees RBRACE [ SEMI COMMA ]
 -- On RBRACE
 --   reduce production use_trees ->
 
-State 37:
-## Known stack suffix:
-## STAR
-## LR(1) items:
-use_tree_short -> STAR . [ COMMA ]
-## Transitions:
-## Reductions:
--- On COMMA
---   reduce production use_tree_short -> STAR
-
 State 38:
 ## Known stack suffix:
 ## LBRACE
 ## LR(1) items:
-use_tree_short -> LBRACE . use_trees RBRACE [ COMMA ]
+use_tree_short -> LBRACE . use_trees RBRACE [ SEMI COMMA ]
 ## Transitions:
 -- On SUPER shift to state 4
--- On STAR shift to state 37
+-- On STAR shift to state 34
 -- On SELFVALUE shift to state 5
 -- On RAW_IDENT shift to state 6
--- On PATHSEP shift to state 34
+-- On PATHSEP shift to state 35
 -- On LBRACE shift to state 38
 -- On IDENT shift to state 8
 -- On DOLLAR_CRATE shift to state 9
 -- On CRATE shift to state 10
 -- On use_trees shift to state 39
 -- On use_tree_short shift to state 41
--- On use_tree_rootless shift to state 44
--- On use_tree_longer shift to state 45
--- On use_tree_long shift to state 46
+-- On use_tree_rootless shift to state 42
+-- On use_tree_longer shift to state 43
+-- On use_tree_long shift to state 44
 -- On simple_path_segments shift to state 16
 -- On simple_path_segment shift to state 12
 -- On simple_path shift to state 47
@@ -512,7 +514,7 @@ State 39:
 ## Known stack suffix:
 ## LBRACE use_trees
 ## LR(1) items:
-use_tree_short -> LBRACE use_trees . RBRACE [ COMMA ]
+use_tree_short -> LBRACE use_trees . RBRACE [ SEMI COMMA ]
 ## Transitions:
 -- On RBRACE shift to state 40
 ## Reductions:
@@ -521,60 +523,23 @@ State 40:
 ## Known stack suffix:
 ## LBRACE use_trees RBRACE
 ## LR(1) items:
-use_tree_short -> LBRACE use_trees RBRACE . [ COMMA ]
+use_tree_short -> LBRACE use_trees RBRACE . [ SEMI COMMA ]
 ## Transitions:
 ## Reductions:
--- On COMMA
+-- On SEMI COMMA
 --   reduce production use_tree_short -> LBRACE use_trees RBRACE
 
 State 41:
 ## Known stack suffix:
 ## use_tree_short
 ## LR(1) items:
-use_trees -> use_tree_short . COMMA use_trees [ RBRACE ]
+use_tree_long -> use_tree_short . [ SEMI COMMA ]
 ## Transitions:
--- On COMMA shift to state 42
 ## Reductions:
+-- On SEMI COMMA
+--   reduce production use_tree_long -> use_tree_short
 
 State 42:
-## Known stack suffix:
-## use_tree_short COMMA
-## LR(1) items:
-use_trees -> use_tree_short COMMA . use_trees [ RBRACE ]
-## Transitions:
--- On SUPER shift to state 4
--- On STAR shift to state 37
--- On SELFVALUE shift to state 5
--- On RAW_IDENT shift to state 6
--- On PATHSEP shift to state 34
--- On LBRACE shift to state 38
--- On IDENT shift to state 8
--- On DOLLAR_CRATE shift to state 9
--- On CRATE shift to state 10
--- On use_trees shift to state 43
--- On use_tree_short shift to state 41
--- On use_tree_rootless shift to state 44
--- On use_tree_longer shift to state 45
--- On use_tree_long shift to state 46
--- On simple_path_segments shift to state 16
--- On simple_path_segment shift to state 12
--- On simple_path shift to state 47
--- On ident shift to state 15
-## Reductions:
--- On RBRACE
---   reduce production use_trees ->
-
-State 43:
-## Known stack suffix:
-## use_tree_short COMMA use_trees
-## LR(1) items:
-use_trees -> use_tree_short COMMA use_trees . [ RBRACE ]
-## Transitions:
-## Reductions:
--- On RBRACE
---   reduce production use_trees -> use_tree_short COMMA use_trees
-
-State 44:
 ## Known stack suffix:
 ## use_tree_rootless
 ## LR(1) items:
@@ -584,7 +549,7 @@ use_tree_long -> use_tree_rootless . [ SEMI COMMA ]
 -- On SEMI COMMA
 --   reduce production use_tree_long -> use_tree_rootless
 
-State 45:
+State 43:
 ## Known stack suffix:
 ## use_tree_longer
 ## LR(1) items:
@@ -594,15 +559,52 @@ use_tree_long -> use_tree_longer . [ SEMI COMMA ]
 -- On SEMI COMMA
 --   reduce production use_tree_long -> use_tree_longer
 
-State 46:
+State 44:
 ## Known stack suffix:
 ## use_tree_long
 ## LR(1) items:
-use_tree_short -> use_tree_long . [ COMMA ]
+use_trees -> use_tree_long . COMMA use_trees [ RBRACE ]
+## Transitions:
+-- On COMMA shift to state 45
+## Reductions:
+
+State 45:
+## Known stack suffix:
+## use_tree_long COMMA
+## LR(1) items:
+use_trees -> use_tree_long COMMA . use_trees [ RBRACE ]
+## Transitions:
+-- On SUPER shift to state 4
+-- On STAR shift to state 34
+-- On SELFVALUE shift to state 5
+-- On RAW_IDENT shift to state 6
+-- On PATHSEP shift to state 35
+-- On LBRACE shift to state 38
+-- On IDENT shift to state 8
+-- On DOLLAR_CRATE shift to state 9
+-- On CRATE shift to state 10
+-- On use_trees shift to state 46
+-- On use_tree_short shift to state 41
+-- On use_tree_rootless shift to state 42
+-- On use_tree_longer shift to state 43
+-- On use_tree_long shift to state 44
+-- On simple_path_segments shift to state 16
+-- On simple_path_segment shift to state 12
+-- On simple_path shift to state 47
+-- On ident shift to state 15
+## Reductions:
+-- On RBRACE
+--   reduce production use_trees ->
+
+State 46:
+## Known stack suffix:
+## use_tree_long COMMA use_trees
+## LR(1) items:
+use_trees -> use_tree_long COMMA use_trees . [ RBRACE ]
 ## Transitions:
 ## Reductions:
--- On COMMA
---   reduce production use_tree_short -> use_tree_long
+-- On RBRACE
+--   reduce production use_trees -> use_tree_long COMMA use_trees
 
 State 47:
 ## Known stack suffix:
@@ -647,19 +649,19 @@ State 50:
 use_tree_longer -> simple_path PATHSEP LBRACE . use_trees RBRACE [ SEMI COMMA ]
 ## Transitions:
 -- On SUPER shift to state 4
--- On STAR shift to state 37
+-- On STAR shift to state 34
 -- On SELFVALUE shift to state 5
 -- On RAW_IDENT shift to state 6
--- On PATHSEP shift to state 34
+-- On PATHSEP shift to state 35
 -- On LBRACE shift to state 38
 -- On IDENT shift to state 8
 -- On DOLLAR_CRATE shift to state 9
 -- On CRATE shift to state 10
 -- On use_trees shift to state 51
 -- On use_tree_short shift to state 41
--- On use_tree_rootless shift to state 44
--- On use_tree_longer shift to state 45
--- On use_tree_long shift to state 46
+-- On use_tree_rootless shift to state 42
+-- On use_tree_longer shift to state 43
+-- On use_tree_long shift to state 44
 -- On simple_path_segments shift to state 16
 -- On simple_path_segment shift to state 12
 -- On simple_path shift to state 47

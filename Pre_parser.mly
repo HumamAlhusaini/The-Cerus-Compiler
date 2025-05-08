@@ -52,6 +52,10 @@
 %type <Cabs.expression> expression
 %type <Cabs.type_expr_without_block> expression_no_block
 
+%nonassoc LOWER
+%nonassoc HIGHER
+%right PATHSEP
+
 %start<Cabs.item list> program
 %%
 
@@ -104,12 +108,12 @@ use_trees:
 
 
 simple_path:
-  | segments = simple_path_segments       { Cabs.SIMPLE_PATH segments }
-  | PATHSEP segments = simple_path_segments { Cabs.SIMPLE_PATH segments }  // optional for ::foo::bar
+  | segments = simple_path_segments       { Cabs.SIMPLE_PATH segments }  
+  | PATHSEP segments = simple_path_segments { Cabs.SIMPLE_PATH segments }  
 
 simple_path_segments:
-  | seg = simple_path_segment PATHSEP rest = simple_path_segments { seg :: rest }
-  | seg = simple_path_segment                                     { [seg] }
+  | seg = simple_path_segment PATHSEP rest = simple_path_segments  %prec HIGHER { seg :: rest }
+  | seg = simple_path_segment                                     %prec LOWER { [seg] }
 
 simple_path_segment:
   | id = ident   { Cabs.SIMPLE_PATH_SEGMENT_IDENT (fst id) }
