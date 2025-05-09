@@ -761,7 +761,7 @@ with function_qualifiers :=
   | FUNCTION_QUALIFIERS :
       bool ->           (* is_const *)
       bool ->           (* is_async *)
-      option item_safety ->
+      item_safety ->
       option abi ->
       function_qualifiers
 
@@ -770,11 +770,10 @@ with item_safety :=
   | UNSAFE
 
 with abi :=
-  | ABI_STRING : string -> abi
+  | ABI_STRING : list char_code -> abi
 
 with function_parameters :=
   | FN_PARAMS_SELF : self_param -> function_parameters
-  | FN_PARAMS_SELF_COMMA : self_param -> function_parameters
   | FN_PARAMS_FULL :
       option self_param ->
       list function_param ->
@@ -785,7 +784,9 @@ with self_param :=
   | SELF_TYPED : list outer_attribute -> typed_self -> self_param
 
 with shorthand_self :=
-  | SELF_SHORTHAND : option reference_modifier -> bool -> shorthand_self
+  | SELF_SHORTHAND : bool -> shorthand_self
+  | SELF_SHORTHAND_REF : bool -> shorthand_self
+  | SELF_SHORTHAND_REF_LIFE : lifetime -> bool -> shorthand_self
 
 with reference_modifier :=
   | REF_LF : option lifetime -> reference_modifier  (* & or &'a *)

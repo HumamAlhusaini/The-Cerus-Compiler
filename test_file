@@ -1,5 +1,5 @@
 use ::x::s::*;
-use {skibidi,::x::s::*,*, x, skibidi};
+use {skibidi,::x::s::*,*, x, skibidi,};
 use *;
 use h::h;
 
@@ -7,7 +7,7 @@ extern crate self;
 
 extern crate skibidi as _;
 mod something {
-#[ruh]
+#[ruh::h]
     mod somethi;
   }
 
