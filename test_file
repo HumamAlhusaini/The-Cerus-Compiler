@@ -1,12 +1,12 @@
+use ::x::s::*;
+use {skibidi,::x::s::*,*, x, skibidi};
 use *;
-use std::x;
+use h::h;
 
 extern crate self;
 
 extern crate skibidi as _;
 mod something {
-#![skibidi]
-#![skibidi]
     mod somethi;
   }
 

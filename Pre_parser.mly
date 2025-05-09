@@ -45,7 +45,6 @@
 %type <Cabs.inner_attribute> inner_attr
 %type <Cabs.attr> attr 
 %type <Cabs.simple_path> simple_path
-%type <Cabs.simple_path_segment list> simple_path_segments
 %type <Cabs.simple_path_segment> simple_path_segment
 %type <Cabs.attr_input> attr_input
 %type <Cabs.attr_input option> maybe_attr_input
@@ -76,28 +75,20 @@ vis_item:
 
 (*use declaration*)
 use_declaration:
-  | USE use_tree_long SEMI { Cabs.USE_DECL $2}
+  | USE use_tree SEMI { Cabs.USE_DECL $2}
 
-use_tree_long:
-  | use_tree_rootless { $1 }
-  | use_tree_longer { $1 }
-  | use_tree_short { $1 }
-
-use_tree_rootless:
-  | PATHSEP STAR { Cabs.USE_TREE None }
-  | PATHSEP LBRACE trees = use_trees RBRACE { Cabs.USE_TREE_LIST (None, trees) }
-
-use_tree_short:
-  | STAR { Cabs.USE_TREE None }
-  | LBRACE trees = use_trees RBRACE { Cabs.USE_TREE_LIST (None, trees) }
-
-use_tree_longer:
-  | skib = simple_path PATHSEP LBRACE trees = use_trees RBRACE { Cabs.USE_TREE_LIST (None, trees) }
-  | skib = simple_path PATHSEP STAR { Cabs.USE_TREE (Some skib) }
+use_tree:
+  | skib = simple_path_special STAR { Cabs.USE_TREE skib }
+  | skib = simple_path_special;
+  LBRACE;
+  trees = separated_nonempty_list(COMMA, use_tree);
+  trailing_comma = option(COMMA);
+  RBRACE
+    { Cabs.USE_TREE_LIST (skib, trees) }
   | what = simple_path as_id = as_identifier { Cabs.USE_TREE_ID (what, as_id)}
 
 use_trees:
-  | use_tree_long COMMA use_trees { $1 :: $3 }
+  | use_tree COMMA use_trees { $1 :: $3 }
   | { [] }
 
  as_identifier:
@@ -106,14 +97,14 @@ use_trees:
   | { None }
 (*use declaration*)
 
+simple_path_special:
+  | segments = nonempty_list(terminated(simple_path_segment, PATHSEP)) { Some(Cabs.SIMPLE_PATH segments) }
+  | PATHSEP; segments = nonempty_list(terminated(simple_path_segment, PATHSEP)) { Some (Cabs.SIMPLE_PATH segments) }
+  | { None }
 
 simple_path:
-  | segments = simple_path_segments       { Cabs.SIMPLE_PATH segments }  
-  | PATHSEP segments = simple_path_segments { Cabs.SIMPLE_PATH segments }  
-
-simple_path_segments:
-  | seg = simple_path_segment PATHSEP rest = simple_path_segments  %prec HIGHER { seg :: rest }
-  | seg = simple_path_segment                                     %prec LOWER { [seg] }
+  | segments = separated_nonempty_list(PATHSEP, simple_path_segment) { Cabs.SIMPLE_PATH segments }
+  | PATHSEP; segments = separated_nonempty_list(PATHSEP, simple_path_segment) { Cabs.SIMPLE_PATH segments }
 
 simple_path_segment:
   | id = ident   { Cabs.SIMPLE_PATH_SEGMENT_IDENT (fst id) }
@@ -121,6 +112,7 @@ simple_path_segment:
   | SELFVALUE { SIMPLE_PATH_SEGMENT_SELF  }
   | CRATE { SIMPLE_PATH_SEGMENT_CRATE  }
   | DOLLAR_CRATE { SIMPLE_PATH_SEGMENT_SCRATE }
+
 extern_crate:
   | EXTERN CRATE ref = crate_ref clause = as_clause SEMI { Cabs.EXT_CRATE_CLAUSE (ref, clause) }
 
