@@ -74,7 +74,7 @@ vis_item:
   | decl = use_declaration { Cabs.USE_DECLARATION decl}
 
 (*Functions*)
-(*
+
 func:
   | function_qualifiers FN ident option(generic_params) LPAREN option(function_params) RPAREN 
 option(function_return_type) option(where_clause) function_body { FUNCTION_DEF ($1, $3, $5, $7, $8, $9) }
@@ -110,25 +110,25 @@ shorthand_self:
   | is_mut SELFVALUE { SELF_SHORTHAND $1 }
 
 typed_self:
-  | is_mut SELFVALUE COLON typ {}
+  | is_mut SELFVALUE COLON typ { TYPED_SELF ($1, $4)}
 
 function_param:
-  | outer_attrs DOTDOTDOT { }
-  | outer_attrs function_param_pattern {}
-  | outer_attrs typ { }
+  | outer_attrs DOTDOTDOT { FN_PARAM_DOTS $1 }
+  | outer_attrs function_param_pattern { FN_PARAM_PATTERN ($1, $2) }
+  | outer_attrs typ { FN_PARAM_TYPE ($1, $2) }
 
 function_param_pattern:
-  | pattern_no_top_alt COLON typ {}
-  | pattern_no_top_alt COLON DOTDOTDOT {}
+  | pattern_no_top_alt COLON typ { FN_PARAM_PAT ($1, $2) }
+  | pattern_no_top_alt COLON DOTDOTDOT { FN_PARAM_DOTDOTDOT $1 }
 
+function_return_type:
+  | LARROW typ { FN_RETURN_TYPE $2 }
+ (* Functions*)
+(*Patterns*)
 pattern_no_top_alt:
   | 
 
-function_return_type:
-  | LARROW typ { $2 }
-  *)
-(* Functions*)
-
+(*Patterns*)
 (*Helpers*)
 is_const:
   | CONST { true }

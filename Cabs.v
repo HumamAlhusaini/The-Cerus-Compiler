@@ -802,6 +802,7 @@ with function_param :=
 
 with function_param_pattern :=
   | FN_PARAM_PAT : pattern_no_top_alt -> function_param_pattern_rhs -> function_param_pattern
+  | FN_PARAM_DOTDOTDOT : pattern_no_top_alt -> function_param_pattern
 
 with function_param_pattern_rhs :=
   | FNPAT_TYPE : type_ -> function_param_pattern_rhs
