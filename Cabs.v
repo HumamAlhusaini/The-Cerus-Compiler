@@ -866,14 +866,14 @@ with attr_input :=
 
 (* Pattern *)
 with pattern :=
-  | PATTERN : pattern_no_top_alt -> list pattern_no_top_alt -> pattern
+  | PATTERN : list pattern_no_top_alt -> pattern
 
 with pattern_no_top_alt :=
   | PATTERN_NO_RANGE : pattern_without_range -> pattern_no_top_alt
   | PATTERN_RANGE : range_pattern -> pattern_no_top_alt
 
 with pattern_without_range :=
-  | LITERAL_PATTERN : literal_expression -> pattern_without_range
+  | LITERAL_PATTERN : literal_pattern -> pattern_without_range
   | IDENTIFIER_PATTERN : bool -> bool -> identifier -> option pattern_no_top_alt -> pattern_without_range
   | WILDCARD_PATTERN : pattern_without_range
   | REST_PATTERN : rest_pattern -> pattern_without_range
@@ -886,6 +886,20 @@ with pattern_without_range :=
   | SLICE_PATTERN : option slice_pattern_items -> pattern_without_range
   | PATH_PATTERN : path_expression -> pattern_without_range
   | PATTERN_MACRO_INVOCATION : macro_invocation -> pattern_without_range
+
+with literal_pattern :=
+  | CHAR_PATTERN : char_code -> literal_pattern
+  | STRING_PATTERN : list char_code -> literal_pattern
+  | RAW_STRING_PATTERN : list char_code -> literal_pattern
+  | BYTE_PATTERN : char_code -> literal_pattern
+  | BYTE_STRING_PATTERN : list char_code -> literal_pattern
+  | RAW_BYTE_STRING_PATTERN : list char_code -> literal_pattern
+  | C_STRING_PATTERN : list char_code -> literal_pattern
+  | RAW_C_STRING_PATTERN : list char_code  -> literal_pattern
+  | INTEGER_PATTERN : bool -> str -> literal_pattern
+  | FLOAT_PATTERN : bool -> str -> literal_pattern
+  | TRUE_PAT
+  | FALSE_PAT
 
 with slice_pattern_items :=
   | SLICE_PATTERN_ITEMS : pattern -> list pattern -> slice_pattern_items
