@@ -1,4 +1,6 @@
 
+exception Lexing_error of string
+
 let underscore =  [%sedlex.regexp? '_']
 
 let identifier_or_keyword =
@@ -243,7 +245,11 @@ let rec token buf =
           let x = uchar_array_to_string uArr in
     CONSTANT (Cabs.FLOAT_LIT x, lexing_position_start buf)
     | eof -> EOF 
-    | _ -> failwith "Internal failure: Reached impossible place"
+    | _ ->
+      let chr = Sedlexing.Utf8.lexeme buf in
+        let x = (lexing_position_start buf).pos_lnum in
+          let y = (lexing_position_start buf).pos_cnum - (lexing_position_start buf).pos_bol  in
+            raise (Lexing_error (Printf.sprintf "Unexpected character: %S at line %d and %d" chr x y))
 
 and read_raw_c_string buffer buf =
   match%sedlex buf with

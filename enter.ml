@@ -23,11 +23,16 @@ let print_tokens_from_file filename =
 
 let print_ast_from_file filename =
   let chan = open_in filename in
-  let lexbuf = Sedlexing.Utf8.from_channel chan in
-  let supplier = Sedlexing.with_tokenizer token lexbuf in
-  let parser = MenhirLib.Convert.Simplified.traditional2revised Pre_parser.program in
-  let ast = parser supplier in
-  Pprint.print_program Format.std_formatter ast
+    let lexbuf = Sedlexing.Utf8.from_channel chan in
+      let supplier = Sedlexing.with_tokenizer token lexbuf in
+        let parser = MenhirLib.Convert.Simplified.traditional2revised Pre_parser.program in
+          try 
+            let ast = parser supplier in
+              Pprint.print_program Format.std_formatter ast
+            with
+|             Lexing_error msg ->
+                    print_endline msg
+|             _ -> print_endline "Unknown error"
 
 let () =
   if Array.length Sys.argv <> 2 then
