@@ -73,6 +73,40 @@ vis_item:
   | e = extern_crate { Cabs.EXTERN_CRATE e }
   | decl = use_declaration { Cabs.USE_DECLARATION decl}
 
+(*generic params*)
+generic_params:
+  | LT GT { GENERIC_PARAMS_EMPTY }
+  | LT separated_nonempty_list(COMMA, generic_param) GT { GENERIC_PARAMS $2 }
+
+generic_param:
+  | outer_attrs lifetime_param {GP_LIFETIME ($1, $2)}
+  | outer_attrs type_param {GP_TYPE ($1, $2)}
+  | outer_attrs const_param {GP_CONST ($1, $2)}
+
+lifetime_param:
+  | lifetime option(col_life_bounds) {LIFETIME_PARAM($1,$2)}
+
+col_life_bounds:
+  | COLON lifetime_bounds { $2 }
+
+type_param:
+  | ident option(col_param_bounds) option(eq_typ) {TYPE_PARAM ($1, $2, $3) }
+
+eq_typ:
+  | EQ typ {$2}
+
+col_param_bounds:
+  | COLON option(type_param_bounds) { $2 }
+
+const_param:
+  | CONST ident COLON typ option(const_param_body) { CONST_PARAM ($2, $3, $4)}
+
+const_param_body:
+  | EQ block_expression { $2 }
+  | ident { $1 }
+  | literal_expression { $1 }
+
+(*generic params*)
 (*Functions*)
 
 func:
@@ -125,10 +159,124 @@ function_return_type:
   | LARROW typ { FN_RETURN_TYPE $2 }
  (* Functions*)
 (*Patterns*)
+pattern:
+  | OR separated_nonempty_list(OR, pattern_no_top_alt) { PATTERN $2 }
+
 pattern_no_top_alt:
-  | 
+  | no_range_pattern { PATTERN_NO_RANGE $1 } 
+  | range_pattern { PATTERN_RANGE $1 }
+
+no_range_pattern:
+  | literal_pattern { LITERAL_PATTERN $1 }
+  | identifier_pattern { $1 }
+  | UNDERSCORE { WILDCARD_PATTERN }
+  | DOTDOT { REST_PATTERN }
+  | AND is_mut pattern_without_range { SINGLE_REFERENCE_PATTERN $1 }
+  | ANDAND is_mut pattern_without_range { DOUBLE_REFERENCE_PATTERN $1 }
+  | struct_pattern { $1 }
+  | tuple_struct_pattern { $1 }
+  | tuple_pattern { TUPLE_PATTERN $1 }
+  | LPAREN pattern RPAREN { GROUPED_PATTERN $2 }
+  | slice_pattern { SLICE_PATTERN $1 }
+  | path_expression { PATH_PATTERN $1 }
+
+literal_pattern:
+  | FALSE { Cabs.FALSE_PAT }
+  | TRUE { Cabs.TRUE_PAT }
+  | CHAR_LIT { CHAR_LITERAL $1 }
+  | BYTE_STRING { Cabs.BYTE_STRING $1 }
+  | STRING_LIT { Cabs.STRING_LITERAL $1 }
+  | RAW_BYTE_STRING { Cabs.RAW_BYTE_STRING_LITERAL $1 }
+  | RAW_STRING_LIT { Cabs.RAW_STRING_LITERAL $1 }
+  | C_STRING { Cabs.C_STRING_LITERAL $1 }
+  | RAW_C_STRING { Cabs.C_STRING_LITERAL $1 }
+  | neg INT_LIT { Cabs.INTEGER_LITERAL ($1, $2) }
+  | neg FLOAT_LIT { Cabs.FLOAT_LITERAL ($1, $2) }
+
+neg:
+  | MINUS { true }
+  | { false }
+
+identifier_pattern:
+  | is_ref is_mut ident option(pat_at)
+{ IDENTIFIER_PATTERN ($1, $2, $3) }
+
+pat_at:
+  | AT pattern_no_top_alt { $2 }
+
+struct_pattern:
+  | path_in_expression LBRACK option(struct_pattern_elements) RBRACK { STRUCT_PATTERN ($1, $3)}
+
+struct_pattern_elements:
+  | struct_pattern_fields option(comma_or_etcetera) 
+{ STRUCT_PATTERN_ELEMENTS_FIELDS ($1, $2)}
+  | struct_pattern_etcetara { STRUCT_PATTERN_ELEMENTS_ETCETERA $1 }
+
+comma_or_etcetera:
+  | COMMA struct_pattern_etcetara { Some $2 }
+  | COMMA { None }
+
+struct_pattern_fields:
+  | separated_nonempty_list(COMMA, struct_pattern_field) { STRUCT_PATTERN_FIELDS $1 }
+
+struct_pattern_field:
+  | outer_attrs struct_pattern_field_body { STRUCT_PATTERN_FIELD ($1, $2)}
+
+struct_pattern_field_body:
+  | INT_LIT COLON pattern { TUPLE_PAT ($1, $3) }
+  | ident COLON pattern {ID_PAT ($1, $3) }
+  | is_ref is_mut ident { Cabs.ID ($1, $2, $3)}
+
+struct_pattern_etcetara:
+  | outer_attrs DOTDOT { STRUCT_PATTERN_ETCETERA $1 }
+
+tuple_struct_pattern:
+  | path_in_expression LPAREN option(tuple_struct_items) RPAREN 
+  { TUPLE_STRUCT_PATTERN ($1, $3)}
+
+tuple_struct_items:
+  | tuple_struct_item_list option(COMMA) { Stdlib.List.rev $1 }
+
+tuple_struct_item_list:
+  | pattern { [$1] }
+  | pattern COMMA pattern { $3 :: $1 }
+
+tuple_pattern:
+  | LPAREN option(tuple_pattern_items) RPAREN { $2 }
+
+tuple_pattern_items:
+  | pattern COMMA { PATTERN_ITEM $1 }
+  | rest_pattern { REST_ITEM $1 }
+  | separated_nonempty_list(COMMA, pattern) { PATTERN_ITEMS $1 }
+
+slice_pattern:
+  | LBRACK option(slice_pattern_items) RBRACK { SLICE_PATTERN $2 }
+
+slice_pattern_items:
+  | separated_nonempty_list(COMMA, pattern) { }
 
 (*Patterns*)
+typ:
+  | type_no_bounds { RAW_POINTER_TYPE $1 }
+
+type_no_bounds:
+  | type_path { TYPE_PATH $1 }
+
+type_path:
+  | option(PATHSEP) separated_nonempty_list(PATHSEP,type_path_segment) 
+{ TYP_PATH $2 }
+
+type_path_segment:
+  | path_ident_segment { TYPE_PATH_SEGMENT ($1, None) }
+
+path_ident_segment:
+  | id = ident {PATH_IDENT_SEGMENT_IDENT id  }
+  | SUPER { PATH_IDENT_SEGMENT_SUPER }
+  | SELFVALUE { PATH_IDENT_SEGMENT_SELF }
+  | SELFTYPE { PATH_IDENT_SEGMENT_self }
+  | CRATE { PATH_IDENT_SEGMENT_CRATE }
+  | DOLLAR_CRATE {PATH_IDENT_SEGMENT_SCRATE }
+
 (*Helpers*)
 is_const:
   | CONST { true }
@@ -145,6 +293,10 @@ is_unsafe:
 
 is_mut:
   | MUT { true }
+  | { false }
+
+is_ref:
+  | REF { true }
   | { false }
 
 (*Helpers*)
@@ -164,7 +316,7 @@ use_tree:
 
 
 use_trees:
-  | use_tree_list option(COMMA) { $1 }
+  | use_tree_list option(COMMA) { Stdlib.List.rev $1 }
 
 use_tree_list:
   | use_tree { [$1] }
@@ -184,8 +336,7 @@ simple_path_special:
   | { None }
 
 simple_path:
-  | segments = separated_nonempty_list(PATHSEP, simple_path_segment) { Cabs.SIMPLE_PATH segments }
-  | PATHSEP; segments = separated_nonempty_list(PATHSEP, simple_path_segment) { Cabs.SIMPLE_PATH segments }
+  | option(PATHSEP) segments = separated_nonempty_list(PATHSEP, simple_path_segment) { Cabs.SIMPLE_PATH segments }
 
 simple_path_segment:
   | id = ident   { Cabs.SIMPLE_PATH_SEGMENT_IDENT (fst id) }
@@ -193,6 +344,44 @@ simple_path_segment:
   | SELFVALUE { SIMPLE_PATH_SEGMENT_SELF  }
   | CRATE { SIMPLE_PATH_SEGMENT_CRATE  }
   | DOLLAR_CRATE { SIMPLE_PATH_SEGMENT_SCRATE }
+
+path_in_expression:
+  | option(PATHSEP) segments = separated_nonempty_list(PATHSEP, path_expr_segment) 
+  { Cabs.PATH_IN_EXPRESSION segments }
+
+path_expr_segment:
+  | path_ident_segment option(path_genarg) { PATH_EXPR_SEGMENT $1 $2}
+
+path_genarg:
+  | PATHSEP generic_args { $2 }
+
+generic_args:
+  | LT GT { EMPTY_GENERIC_ARGS }
+  | LT generic_arg_list option(COMMA) GT { Stdlib.List.rev $2 }
+
+generic_arg_list:
+  | generic_arg { [$1] }
+  | generic_args COMMA generic_arg { $3 :: $1 }
+
+generic_arg:
+  | lifetime              { GENERIC_ARG_LIFETIME $1 }
+  | typ                   {  GENERIC_ARG_TYPE $1 }
+  | generic_args_const     { GENERIC_ARG_CONST $1 }
+  | generic_args_binding   { GENERIC_ARGS_BINDING $1 }
+  | generic_args_bounds    { GENERIC_ARGS_BOUNDS $1 }
+
+generic_args_const:
+  | block_expression             { GENERIC_ARGS_CONST_BLOCK $1 }
+  | literal_expression           { GENERIC_ARGS_CONST_LIT $1 }
+  | MINUS literal_expression     { NEG_GENERIC_ARGS_CONST_LIT $1 }
+  | simple_path_segment          { GENERIC_ARGS_CONST_SIMPLE_PATH_SEG $1 }
+
+generic_args_bounds:
+  | ident option(generic_args) EQ type_param_bounds { GENERIC_ARGS_BOUNDS_ ($1, $2, $4) }
+
+generic_args_binding:
+  | ident option(generic_args) EQ typ { GENERIC_ARGS_BINDING_ ($1, $2, $4) }
+
 (*Paths*)
 
 (*Extern crate*)

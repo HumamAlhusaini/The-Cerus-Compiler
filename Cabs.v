@@ -910,7 +910,7 @@ with rest_pattern :=
 with tuple_pattern_items :=
   | PATTERN_ITEM : pattern -> tuple_pattern_items
   | REST_ITEM : rest_pattern -> tuple_pattern_items
-  | PATTERN_ITEMS : pattern -> list pattern -> tuple_pattern_items
+  | PATTERN_ITEMS : list pattern -> tuple_pattern_items
 
 with struct_pattern_elements :=
   | STRUCT_PATTERN_ELEMENTS_FIELDS : struct_pattern_fields -> option struct_pattern_etcetara -> struct_pattern_elements
@@ -923,8 +923,8 @@ with struct_pattern_field :=
   | STRUCT_PATTERN_FIELD : list outer_attribute -> tuple_or_idPat_or_id -> struct_pattern_field
 
 with tuple_or_idPat_or_id :=
-  | TUPLE_PAT : str -> identifier -> tuple_or_idPat_or_id
-  | ID_PAT : identifier -> tuple_or_idPat_or_id
+  | TUPLE_PAT : str -> pattern -> tuple_or_idPat_or_id
+  | ID_PAT : identifier -> pattern -> tuple_or_idPat_or_id
   | ID : bool -> bool -> tuple_or_idPat_or_id
 
 with struct_pattern_etcetara :=
