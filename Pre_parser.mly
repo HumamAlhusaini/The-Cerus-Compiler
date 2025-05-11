@@ -10,7 +10,7 @@
 %token <Cabs.loc> SELFVALUE SELFTYPE STATIC STRUCT SUPER
 %token <Cabs.loc> TRAIT TRUE TYPE UNSAFE USE
 %token <Cabs.loc> WHERE WHILE ASYNC AWAIT DYN 
-%token <Cabs.loc> MACRO_RULES UNION STATICLIFETIME SAFE RAW
+%token <Cabs.loc> MACRO_RULES UNION STATIC_LIFETIME ELIDED_LIFETIME SAFE RAW
 
 %token <Cabs.loc> PLUS MINUS STAR SLASH PERCENT    (* + - * / % *)
 %token <Cabs.loc> CARET NOT AND OR ANDAND OROR      (* ^ ! & | && || *)
@@ -107,6 +107,60 @@ const_param_body:
   | literal_expression { $1 }
 
 (*generic params*)
+(*Trait and lifetime bounds*)
+type_param_bounds:
+  | type_param_bound_list option(PLUS) { TYPE_PARAM_BOUNDS (Stdlib.List.rev $1) }
+
+type_param_bound_list:
+  | type_param_bound { [$1] }
+  | type_param_bound_list PLUS type_param_bound { $3 :: $1 }
+
+type_param_bound:
+  | lifetime { TYPE_PARAM_BOUND_LIFETIME $1 }
+  | trait_bound { TYPE_PARAM_BOUND_TRAIT_BOUND $1 }
+  | use_bound { TYPE_PARAM_BOUND_USE_BOUND $1 }
+
+trait_bound:
+  | option (question_or_for) type_path { TRAIT_BOUND ($1, $2)}
+  | LPAREN option (question_or_for) type_path RPAREN 
+  { ENCASED_TRAIT_BOUND ($2, $3) }
+
+lifetime_bounds:
+  | lifetime_list option(PLUS) { LIFETIME_BOUNDS $1 }
+
+lifetime_list:
+  | lifetime { [$1] }
+  | lifetime_list PLUS lifetime { $3 :: $1 }
+
+lifetime:
+  | lifetime_or_label { LIFETIME $1 }
+  | STATIC_LIFETIME { LIFETIME_STATIC }
+  | ELIDED_LIFETIME { LIFETIME_UNDERSCORE }
+
+question_or_for:
+  | QUESTION      { QUESTION }
+  | for_lifetimes { FOR_LF $1 }
+
+for_lifetimes:
+  | FOR generic_params { FOR_LIFETIMES $2 }
+
+use_bound:
+  | USE use_bound_generic_args
+
+use_bound_generic_args
+  | LT GT { USE_BOUND_GENERIC_ARGS_EMPTY }
+  | LT use_bound_generic_arg_list option(COMMA) GT { USE_BOUND_GENERIC_ARGS $2 }  
+
+use_bound_generic_arg_list:
+  | use_bound_generic_arg { [$1] }
+  | use_bound_generic_arg COMMA use_bound_generic_arg { $3 :: $1 }
+
+use_bound_generic_arg:
+  | lifetime          { USE_BOUND_GENERIC_ARG_LIFETIME $1}
+  | ident             { USE_BOUND_GENERIC_ARG_IDENT $1 } 
+  | SELFTYPE        { USE_BOUND_GENERIC_ARG_SELF }
+
+(*Trait and lifetime bounds*)
 (*Functions*)
 
 func:

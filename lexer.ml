@@ -133,7 +133,6 @@ let keyword_token = function
   | "dyn", loc             -> DYN loc
   | "macro_rules", loc     -> MACRO_RULES loc
   | "union", loc           -> UNION loc
-  | "static_lifetime", loc -> STATICLIFETIME loc
   | "safe", loc            -> SAFE loc
   | "raw", loc             -> RAW loc
   | _                      -> failwith "Unrecognized keyword"
@@ -212,7 +211,7 @@ let rec token buf =
     | "<" -> LT (lexing_position_start buf)
     | ">" -> GT (lexing_position_start buf)
     | "@" -> AT (lexing_position_start buf)
-   | "_" -> UNDERSCORE (lexing_position_start buf)
+    | "_" -> UNDERSCORE (lexing_position_start buf)
     | "." -> DOT (lexing_position_start buf)
     | "," -> COMMA (lexing_position_start buf)
     | ";" -> SEMI (lexing_position_start buf)
@@ -227,7 +226,8 @@ let rec token buf =
     | "]" -> RBRACK (lexing_position_start buf)
     | "(" -> LPAREN (lexing_position_start buf)
     | ")" -> RPAREN (lexing_position_start buf)
-  | "'" -> read_char (Buffer.create 17) buf
+    | "'static" -> STATIC_LIFETIME (lexing_position_start buf)
+    | "'" -> read_char (Buffer.create 17) buf
     | "\"" -> read_string (Buffer.create 17) buf 
     | "r#\""-> read_raw_string (Buffer.create 17) buf
     | "b'" -> read_byte (Buffer.create 17) buf

@@ -457,7 +457,6 @@ with type_path_fn_inputs :=
 (*Trait and Lifetime Bounds*)
 with type_param_bounds :=
   | TYPE_PARAM_BOUNDS : list type_param_bound -> type_param_bounds
-  | TYPE_PARAM_BOUNDS_PLUS : list type_param_bound -> type_param_bounds
 
 with type_param_bound :=
   | TYPE_PARAM_BOUND_LIFETIME : lifetime -> type_param_bound
@@ -469,7 +468,7 @@ with trait_bound :=
   | TRAIT_BOUND : option question_or_for -> type_path -> trait_bound
 
 with lifetime_bounds := 
-  | LIFETIME_BOUNDS : list lifetime -> option lifetime -> lifetime_bounds
+  | LIFETIME_BOUNDS : list lifetime -> lifetime_bounds
 
 with lifetime :=
   | LIFETIME : str -> lifetime
