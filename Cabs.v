@@ -83,7 +83,8 @@ with struct_expr_field_or_struct_base :=
   | STRUCT_BASE_OPT : struct_base -> struct_expr_field_or_struct_base
 
 with struct_expr_fields :=
-  | STRUCT_EXPR_FIELDS : struct_expr_field -> list struct_expr_field -> option struct_base -> struct_expr_fields
+  | STRUCT_EXPR_FIELDS_BASE : list struct_expr_field -> struct_base -> struct_expr_fields
+  | STRUCT_EXPR_FIELDS : list struct_expr_field -> struct_expr_fields
 
 with struct_expr_field :=
   | STRUCT_EXPR_FIELD : list outer_attribute -> struct_expr_field
@@ -255,10 +256,14 @@ with statement :=
   | STATEMENT_MACRO_INVOCATION_SEMI : macro_invocation_semi -> statement
 
 with let_statement :=
-  | LET_STATEMENT : list outer_attribute -> pattern_no_top_alt -> option type_ -> option eq_expr -> let_statement
+  | LET_STATEMENT : list outer_attribute -> pattern_no_top_alt
+      -> option type_ -> option eq_expr -> let_statement
 
 with eq_expr :=
-  | EQ_EXPRESSION_: expression -> option block_expression -> eq_expr
+  | EQ_EXPRESSION_: expression -> option else_block_expr -> eq_expr
+
+with else_block_expr :=
+  | ELSE_BLOCK_EXPR: block_expression -> else_block_expr
 
 with expr_statement :=
   | EXPR_STATEMENT_NO_BLOCK : type_expr_without_block -> expr_statement
@@ -341,7 +346,7 @@ with macro_transcriber :=
   | MACRO_TRANSCRIBE : delim_token_tree -> macro_transcriber
       (*Macros by Example*)
       (*Operator expression*)
-with operator_expression :=
+with operator_expression := 
   | BORROW_EXPRESSION : borrow_kind -> expression -> operator_expression
   | DEREFERENCE_EXPRESSION : expression -> operator_expression
   | ERROR_PROPAGATION_EXPRESSION:  expression -> operator_expression

@@ -4,9 +4,9 @@
 
 %token <Cabs.loc> AS BREAK CONST CONTINUE CRATE
 %token <Cabs.loc> ELSE ENUM EXTERN FALSE FN
-%token <Cabs.loc> FOR IF IMPL IN LET
-%token <Cabs.loc> LOOP MATCH MOD MOVE MUT
-%token <Cabs.loc> PUB REF RETURN 
+%token <Cabs.loc> FOR IF IMPL IN LET RAW_MUT RAW_CONST
+%token <Cabs.loc> LOOP MATCH MOD MOVE MUT AMPMUT
+%token <Cabs.loc> PUB REF RETURN XOR XOREQ
 %token <Cabs.loc> SELFVALUE SELFTYPE STATIC STRUCT SUPER
 %token <Cabs.loc> TRAIT TRUE TYPE UNSAFE USE
 %token <Cabs.loc> WHERE WHILE ASYNC AWAIT DYN 
@@ -24,10 +24,10 @@
 %token <Cabs.loc> POUND DOLLAR QUESTION TILDE  DOLLAR_CRATE              (* # $ ? ~ *)
 %token <Cabs.loc> LBRACE RBRACE LBRACK RBRACK LPAREN RPAREN
 
-%token <string * Cabs.loc> IDENT RAW_IDENT
+%token <string * Cabs.loc> IDENT RAW_IDENT INT_LIT FLOAT_LIT
 %token <(int64 list * Cabs.loc)> STRING_LIT RAW_STRING_LIT BYTE_STRING RAW_BYTE_STRING RAW_C_STRING C_STRING
 %token <(int64 * Cabs.loc)> CHAR_LIT BYTE
-%token <(Cabs.constant * Cabs.loc)> CONSTANT
+%token <string * Cabs.loc> LIFETIME_OR_LABEL
 
 %token EOF
 
@@ -49,7 +49,6 @@
 %type <Cabs.attr_input> attr_input
 %type <Cabs.attr_input option> maybe_attr_input
 %type <Cabs.expression> expression
-%type <Cabs.type_expr_without_block> expression_no_block
 
 %nonassoc LOWER
 %nonassoc HIGHER
@@ -73,6 +72,348 @@ vis_item:
   | e = extern_crate { Cabs.EXTERN_CRATE e }
   | decl = use_declaration { Cabs.USE_DECLARATION decl}
 
+(*statement*)
+statement:
+  | item              { STATEMENT_ITEM $1 }
+  | let_statement   { STATEMENT_LET $1 }
+  | expression_statement  {STATEMENT_EXPRESSION_ $1 }
+
+let_statement:
+  | outer_attrs LET pattern_no_top_alt COLON typ option(let_expr) SEMI 
+  { LET_STATEMENT ($1, $3, Some typ,) }
+
+let_expr:
+  | EQ expression option(else_expr) { EQ_EXPRESSION_ ($2, $3)}
+
+else_expr:
+  | ELSE block_expression { ELSE_BLOCK_EXPR $2 }
+
+expression_statement:
+  | exprs_without_block SEMI { EXPR_STATEMENT_NO_BLOCK $1}
+  | exprs_with_block option(SEMI) { EXPR_STATEMENT_BLOCK $1 }
+
+(*statement*)
+(*Expression*)
+expression:
+  | outer_attrs exprs_without_block {EXPRESSION_WITHOUT_BLOCK ($1, $2) }
+  | outer_attrs exprs_with_block {EXPRESSION_WITH_BLOCK ($1, $2) }
+
+exprs_without_block:
+  | literal_expression { LITERAL_EXPRESSION $1 }
+  | path_expression { PATH_EXPRESSION $1 }
+  | operator_expression { OPERATOR_EXPRESSION $1 }
+  | grouped_expression { GROUPED_EXPRESSION $1 }
+  | array_expression { ARRAY_EXPRESSION $1 }
+  | await_expression { AWAIT_EXPRESSION $1 }
+  | index_expression { INDEX_EXPRESSION $1 }
+  | tuple_expression { TUPLE_EXPRESSION $1 }
+  | tuple_indexing_expression { TUPLE_INDEXING_EXPRESSION $1 }
+  | struct_expression { STRUCT_EXPRESSION $1 }
+  | call_expression { CALL_EXPRESSION $1 }
+  | method_call_expression { METHOD_CALL_EXPRESSION $1 }
+  | field_expression { FIELD_EXPRESSION $1 }
+  | closure_expression { CLOSURE_EXPRESSION $1 }
+  | async_block_expression { ASYNC_BLOCK_EXPRESSION $1 }
+  | continue_expression { CONTINUE_EXPRESSION $1 }
+  | break_expression { BREAK_EXPRESSION $1 }
+  | range_expression { RANGE_EXPRESSION $1 }
+  | return_expression { RETURN_EXPRESSION $1 }
+  | UNDERSCORE { UNDERSCORE_EXPRESSION }
+
+exprs_with_block:
+  | block_expression { BLOCK_EXPRESSION $1 }
+  | const_block_expression { CONST_BLOCK_EXPRESSION $1 }
+  | unsafe_block_expression { UNSAFE_BLOCK_EXPRESSION $1 }
+  | loop_expression { LOOP_EXPRESSION $1 }
+  | if_expression { IF_EXPRESSION $1 }
+  | if_let_expression { IF_LET_EXPRESSION $1 }
+  | match_expression { MATCH_EXPRESSION $1 }
+(*Return expression*)
+return_expression:
+  | RETURN option(expression) { RETURN_EXPRESSION $2 }
+(*Return expression*)
+(*Async expression*)
+async_block_expression:
+  | ASYNC block_expression { ASYNC_BLOCK_EXPR_STILL $2 }
+  | ASYNC MOVE block_expression { ASYNC_BLOCK_EXPR_MOVE $3 }
+(*Async expression*)
+(*Await expression*)
+await_expression:
+    | expression DOT AWAIT { AWAIT_EXPRESSION_ $1 }
+(*Await expression*)
+(*Literal expression*)
+literal_expression:
+  | CHAR_LIT         { CHAR_LITERAL $1 }
+  | STRING_LIT       { STRING_LITERAL $1 }
+  | RAW_STRING_LIT   { RAW_STRING_LITERAL $1 }
+  | BYTE         { BYTE_LITERAL $1 }
+  | BYTE_STRING  { BYTE_STRING_LITERAL $1 }
+  | RAW_BYTE_STRING { RAW_BYTE_STRING_LITERAL $1 }
+  | C_STRING    { C_STRING_LITERAL $1 }
+  | RAW_C_STRING { RAW_C_STRING_LITERAL $1 }
+  | INT_LIT      { INTEGER_LITERAL $1 }
+  | FLOAT_LIT        { FLOAT_LITERAL $1 }
+  | TRUE                 { TRUE }
+  | FALSE                { FALSE }
+(*Literal expression*)
+
+(*Path expression*)
+path_expression:
+  | path_in_expression                       { PATH_EXPRESSION_ $1 }
+  | qualified_path_in_expression             { QUALIFIED_PATH_IN_EXPRESSION $1 }
+(*Path expression*)
+
+(*Grouped expression*)
+grouped_expression:
+  | LPAREN expression RPAREN                 { GROUPED_EXPRESSION_ $2 }
+(*Grouped expression*)
+
+(*Tuple Expression*)
+tuple_expression:
+  | LPAREN option(tuple_elements) RPAREN  { TUPLE_EXPRESSION_ $2 }
+
+tuple_elements:
+  | separated_nonempty_list(COMMA, expression) { $1 }
+
+tuple_indexing_expression:
+  | expression DOT INT_LIT     { TUPLE_INDEXING_EXPRESSION_ ($1, $3) }
+
+(*Tuple Expression*)
+(*Array expression*)
+array_expression:
+  | LBRACK array_elements RBRACK             { ARRAY_EXPRESSION_ $2 }
+
+array_elements:
+  | expression_list option(COMMA)                          { ARRAY_ElEMENT $1 }
+  | expression SEMI expression               { SEMI_ARRAY_ELEMENT $1 $3 }
+
+expression_list:
+  | expression { [$1] }
+  | expression_list COMMA expression { $3 :: $1 }
+
+(*Array expression*)
+(*Index expression*)
+index_expression:
+  | expression LBRACK expression RBRACK      { INDEX_EXPRESSION_ $1 $3 }
+(*Struct Expression*)
+struct_expression:
+  | path_in_expression LBRACE struct_expr_field_or_struct_base_opt RBRACE
+      { STRUCT_EXPRESSION_STRUCT ($1, $3) }
+  | path_in_expression LPAREN option(expr_list) RPAREN
+      { STRUCT_EXPRESSION_TUPLE ($1, $3) }
+  | path_in_expression                       { STRUCT_EXPRESSION_UNIT $1 }
+
+struct_expr_field_or_struct_base_opt:
+  | struct_expr_fields                       { Some (STRUCT_EXPR_FIELD_OPT $1) }
+  | DOTDOT expression                        { Some (STRUCT_BASE_OPT (STRUCT_BASE $2)) }
+  |                                          { None }
+
+struct_expr_fields:
+  | struct_expr_field_list COMMA struct_base 
+  { STRUCT_EXPR_FIELDS_BASE ((Stdlib.List.rev $1 ), $3)}
+  | struct_expr_field_list option(COMMA) {STRUCT_EXPR_FIELDS (Stdlib.List.rev $1 ) }
+
+struct_expr_field_list:
+  | struct_expr_field { [$1] }
+  | struct_expr_field_list COMMA struct_expr_field { $3 :: $1 } 
+
+base_comma_none:
+  | COMMA struct_base
+  | COMMA {}
+  | {}
+struct_expr_field:
+  | outer_attrs ident COLON expression {
+      STRUCT_EXPR_FIELD $1
+    }
+
+struct_base:
+  | DOTDOT expression                  { STRUCT_BASE $2 }
+
+expr_list:
+  | separated_nonempty_list(COMMA, expression)   { EXPR_LIST $1 }
+
+(*Struct Expression*)
+(*Call Expression*)
+
+call_expression:
+  | expression LPAREN call_params_opt RPAREN { CALL_EXPRESSION_ $1 $3 }
+
+call_params_opt:
+  | call_params                              { $1 }
+  |                                          { CALL_PARAMS dummy_expr [] } (* or handle empty specially *)
+
+call_params:
+  |  expression_list { CALL_PARAMS $1 }
+
+method_call_expression:
+  | expression DOT ident LPAREN call_params_opt RPAREN 
+  { METHOD_CALL_EXPRESSION_ ($1, (IDENTIFIER_SEGMENT $3), (Some $5)) }
+
+(*Call Expression*)
+(*Field Expression*)
+field_expression:
+  | expression DOT ident                { FIELD_EXPRESSION_ $1 $3 }
+(*Field Expression*)
+(*Closure Expression*)
+closure_expression:
+  | OR closure_params_opt OR expression {
+      CLOSURE_EXPRESSION_ false false $2 (EXPR_OPT $4)
+    }
+
+closure_params_opt:
+  | closure_params                           { Some $1 }
+  |                                          { None }
+
+closure_params:
+  | closure_param COMMA closure_param_list   { CLOSURE_PARAMS $1 $3 }
+
+closure_param_list:
+  | closure_param                            { [$1] }
+  | closure_param COMMA closure_param_list   { $1 :: $3 }
+
+closure_param:
+  | outer_attr pattern COLON typ {
+      CLOSURE_PARAM $1 $2 (Some $4)
+    }
+(*Closure Expression*)
+(*Block expression*)
+
+const_block_expression:
+  | CONST block_expression { CONST_BLOCK_EXPRESSION_ $2 }
+
+unsafe_block_expression:
+  | UNSAFE block_expression { UNSAFE_BLOCK_EXPRESSION_ $2 }
+
+block_expression:
+  | LBRACE inner_attrs option(statements) RBRACE {BLOCK_EXPRESSION_ ($2, $3) }
+  
+statements:
+  | list(statement) { STATEMENTS $1 }
+  | list(statement) exprs_without_block { STATEMENTS ($1, $2) }
+  | exprs_without_block {STATEMENTS $1}
+
+(*Block expression*)
+(*Loop expression*)
+
+loop_expression:
+  | LOOP block_expression         { LOOP_EXPRESSION_ (None, (INFINITE_LOOP_EXPRESSION $2) }
+
+break_expression:
+  | BREAK                                    { BREAK_EXPRESSION_ None None }
+  | BREAK ident                         { BREAK_EXPRESSION_ (Some $2) None }
+  | BREAK expression                         { BREAK_EXPRESSION_ None (Some $2) }
+
+continue_expression:
+  | CONTINUE                                 { CONTINUE_EXPRESSION_ None }
+  | CONTINUE ident                      { CONTINUE_EXPRESSION_ (Some $2) }
+
+(*Loop expression*)
+(*Range Expression*)
+
+range_expression:
+  | expression DOTDOT expression             { RANGE_EXPRESSION_ ($1, $3) }
+  | expression DOTDOT                        { RANGE_FROM_EXPRESSION_ $1 }
+  | DOTDOT expression                        { RANGE_TO_EXPRESSION_ $2 }
+  | DOTDOT                                   { RANGE_FULL_EXPRESSION_ dummy_range }
+  | expression DOTDOTEQ expression          { RANGE_INCLUSIVE_EXPRESSION_ ($1, $3) }
+  | DOTDOTEQ expression                     { RANGE_TO_INCLUSIVE_EXPRESSION_ $2 }
+(*Range Expression*)
+(*If_let Expression*)
+if_expression:
+  | IF expression block_expression else_opt {
+      IfExpr $2 $3 $4
+    }
+
+else_opt:
+  | ELSE block_expression                    { Some (BLOCK $2) }
+  | ELSE if_expression                       { Some (IF $2) }
+  | ELSE if_let_expression                   { Some (IF_LET $2) }
+  |                                          { None }
+
+if_let_expression:
+  | IF LET pattern EQ expression block_expression else_opt {
+      IF_LET_EXPRESSION_ $3 (SCRUTINEE $5) $6 $7
+    }
+(*If_let Expression*)
+(*Match Expression*)
+match_expression:
+  | MATCH scrutinee LBRACE inner_attrs option(match_arms) RBRACE 
+  { MATCH_EXPRESSION_ ($2, $4, $5)}
+  
+scrutinee:
+  | expression { SCRUTINEE $1 }
+
+match_arms:
+    | first_arms match_arm FATARROW expression option(COMMA) 
+  { MATCH_ARMS ($1, $2, $4) }
+
+first_arms:
+  | match_arm FATARROW block_or_not { ORGANIZE ($1, $3)}
+
+block_or_not:
+  | exprs_without_block COMMA { $1 }
+  | exprs_with_block option(COMMA) { $1 }
+
+match_arm:
+  | outer_attrs pattern option(match_arm_guard) { MATCH_ARM ($1, $2, $3) }
+
+match_arm_guard:
+    | IF expression { MATCH_ARM_GUARD ($1) }
+
+(*Match Expression*)
+(*Operator expression*)
+operator_expression:
+  | AND expression                          { BORROW_EXPRESSION (BK_Shared, $2) }
+  | AMPMUT expression                       { BORROW_EXPRESSION (BK_Mut, $2) }
+  | RAW_CONST expression                    { BORROW_EXPRESSION (BK_RawConst, $2) }
+  | RAW_MUT expression                      { BORROW_EXPRESSION (BK_RawMut, $2) }
+
+  | STAR expression                         { DEREFERENCE_EXPRESSION ($2) }
+
+  | expression QUESTION                     { ERROR_PROPAGATION_EXPRESSION ($1) }
+
+  | MINUS expression                        { NEGATION_EXPRESSION (NEG_EXPRESSION_ ($2)) }
+  | NOT expression                          { NEGATION_EXPRESSION (NOT_EXPRESSION_ ($2)) }
+
+  | expression PLUS expression              { ARITHMETIC_OR_LOGICAL_EXPRESSION ($1, AOP_ADD, $3) }
+  | expression MINUS expression             { ARITHMETIC_OR_LOGICAL_EXPRESSION ($1, AOP_SUB, $3) }
+  | expression STAR expression              { ARITHMETIC_OR_LOGICAL_EXPRESSION ($1, AOP_MUL, $3) }
+  | expression SLASH expression             { ARITHMETIC_OR_LOGICAL_EXPRESSION ($1, AOP_DIV, $3) }
+  | expression PERCENT expression           { ARITHMETIC_OR_LOGICAL_EXPRESSION ($1, AOP_REM, $3) }
+
+  | expression AND expression               { ARITHMETIC_OR_LOGICAL_EXPRESSION ($1, AOP_AND, $3) }
+  | expression OR expression                { ARITHMETIC_OR_LOGICAL_EXPRESSION ($1, AOP_OR, $3) }
+  | expression XOR expression               { ARITHMETIC_OR_LOGICAL_EXPRESSION ($1, AOP_XOR, $3) }
+  | expression SHL expression               { ARITHMETIC_OR_LOGICAL_EXPRESSION ($1, AOP_SHL, $3) }
+  | expression SHR expression               { ARITHMETIC_OR_LOGICAL_EXPRESSION ($1, AOP_SHR, $3) }
+
+  | expression EQEQ expression              { COMPARISON_EXPRESSION ($1, CMPOP_EQ, $3) }
+  | expression NE expression                { COMPARISON_EXPRESSION ($1, CMPOP_NE, $3) }
+  | expression LT expression                { COMPARISON_EXPRESSION ($1, CMPOP_LT, $3) }
+  | expression GT expression                { COMPARISON_EXPRESSION ($1, CMPOP_GT, $3) }
+  | expression LE expression                { COMPARISON_EXPRESSION ($1, CMPOP_LE, $3) }
+  | expression GE expression                { COMPARISON_EXPRESSION ($1, CMPOP_GE, $3) }
+
+  | expression ANDAND expression            { LAZY_BOOLEAN_EXPRESSION ($1, LBOP_AND, $3) }
+  | expression OROR expression              { LAZY_BOOLEAN_EXPRESSION ($1, LBOP_OR, $3) }
+
+  | expression AS type_no_bounds            { TYPE_CAST_EXPRESSION ($1, $3) }
+
+  | expression EQ expression                { ASSIGNMENT_EXPRESSION ($1, $3) }
+
+  | expression PLUSEQ expression            { COMPOUND_ASSIGNMENT_EXPRESSION ($1, CAOP_ADDASSIGN, $3) }
+  | expression MINUSEQ expression           { COMPOUND_ASSIGNMENT_EXPRESSION ($1, CAOP_SUBASSIGN, $3) }
+  | expression STAREQ expression            { COMPOUND_ASSIGNMENT_EXPRESSION ($1, CAOP_MULASSIGN, $3) }
+  | expression SLASHEQ expression           { COMPOUND_ASSIGNMENT_EXPRESSION ($1, CAOP_DIVASSIGN, $3) }
+
+  | expression ANDEQ expression             { COMPOUND_ASSIGNMENT_EXPRESSION ($1, CAOP_ANDASSIGN, $3) }
+  | expression OREQ expression              { COMPOUND_ASSIGNMENT_EXPRESSION ($1, CAOP_ORASSIGN, $3) }
+  | expression XOREQ expression             { COMPOUND_ASSIGNMENT_EXPRESSION ($1, CAOP_XORASSIGN, $3) }
+  | expression SHLEQ expression             { COMPOUND_ASSIGNMENT_EXPRESSION ($1, CAOP_SHLASSIGN, $3) }
+  | expression SHREQ expression             { COMPOUND_ASSIGNMENT_EXPRESSION ($1, CAOP_SHRASSIGN, $3) }
+
+(*Operator expression*)
+(*Expression*)
 (*generic params*)
 generic_params:
   | LT GT { GENERIC_PARAMS_EMPTY }
@@ -106,6 +447,20 @@ const_param_body:
   | ident { $1 }
   | literal_expression { $1 }
 
+where_clause:
+  | WHERE separated_nonempty_list(COMMA, where_clause_item) { WHERE_CLAUSE $2 }
+
+where_clause_item:
+  | lifetime_where_clause_item { $1 }
+  | type_bound_where_clause_item { $1 }
+
+lifetime_where_clause_item:
+  | lifetime COLON lifetime_bounds {WC_LIFETIME ($1, $3) }
+
+type_bound_where_clause_item:
+  | option(for_lifetimes) typ COLON option(type_param_bounds) 
+  { WC_TYPE ($1, $2, $4) }
+
 (*generic params*)
 (*Trait and lifetime bounds*)
 type_param_bounds:
@@ -133,7 +488,7 @@ lifetime_list:
   | lifetime_list PLUS lifetime { $3 :: $1 }
 
 lifetime:
-  | lifetime_or_label { LIFETIME $1 }
+  | LIFETIME_OR_LABEL { LIFETIME $1 }
   | STATIC_LIFETIME { LIFETIME_STATIC }
   | ELIDED_LIFETIME { LIFETIME_UNDERSCORE }
 
@@ -145,9 +500,9 @@ for_lifetimes:
   | FOR generic_params { FOR_LIFETIMES $2 }
 
 use_bound:
-  | USE use_bound_generic_args
+  | USE use_bound_generic_args { USE_BOUND $2 }
 
-use_bound_generic_args
+use_bound_generic_args:
   | LT GT { USE_BOUND_GENERIC_ARGS_EMPTY }
   | LT use_bound_generic_arg_list option(COMMA) GT { USE_BOUND_GENERIC_ARGS $2 }  
 
@@ -185,7 +540,7 @@ abi:
 
 function_params:
   | self_param option(COMMA) { FN_PARAMS_SELF $1 }
-  | option(self_param) option(COMMA) separated_nonempty_list(terminated(function_param,COMMA)) option(COMMA) 
+  | option(self_param) option(COMMA) nonempty_list(terminated(function_param,COMMA)) option(COMMA) 
       { FN_PARAMS_FULL ($1, $2) }
 
 self_param:
@@ -210,7 +565,7 @@ function_param_pattern:
   | pattern_no_top_alt COLON DOTDOTDOT { FN_PARAM_DOTDOTDOT $1 }
 
 function_return_type:
-  | LARROW typ { FN_RETURN_TYPE $2 }
+  | RARROW typ { FN_RETURN_TYPE $2 }
  (* Functions*)
 (*Patterns*)
 pattern:
@@ -225,14 +580,51 @@ no_range_pattern:
   | identifier_pattern { $1 }
   | UNDERSCORE { WILDCARD_PATTERN }
   | DOTDOT { REST_PATTERN }
-  | AND is_mut pattern_without_range { SINGLE_REFERENCE_PATTERN $1 }
-  | ANDAND is_mut pattern_without_range { DOUBLE_REFERENCE_PATTERN $1 }
+  | AND is_mut no_range_pattern { SINGLE_REFERENCE_PATTERN $1 }
+  | ANDAND is_mut no_range_pattern { DOUBLE_REFERENCE_PATTERN $1 }
   | struct_pattern { $1 }
   | tuple_struct_pattern { $1 }
   | tuple_pattern { TUPLE_PATTERN $1 }
   | LPAREN pattern RPAREN { GROUPED_PATTERN $2 }
   | slice_pattern { SLICE_PATTERN $1 }
   | path_expression { PATH_PATTERN $1 }
+
+(*Range pattern*)
+range_pattern:
+    range_inclusive_pattern       { $1 }
+  | range_from_pattern            { $1 }
+  | range_to_inclusive_pattern    { $1 }
+  | obsolete_range_pattern        { $1 }
+
+range_exclusive_pattern:
+    range_pattern_bound DOTDOT range_pattern_bound
+      { RangeExclusivePattern ($1, $3) }
+
+range_inclusive_pattern:
+    range_pattern_bound DOTDOTEQ range_pattern_bound
+      { RangeInclusivePattern ($1, $3) }
+
+range_from_pattern:
+    range_pattern_bound DOTDOT
+      { RangeFromPattern ($1) }
+
+range_to_inclusive_pattern:
+    DOTDOTEQ range_pattern_bound
+      { RangeToInclusivePattern ($2) }
+
+obsolete_range_pattern:
+    range_pattern_bound DOTDOTDOT range_pattern_bound
+      { ObsoleteRangePattern ($1, $3) }
+
+range_pattern_bound:
+    CHAR_LIT                  { CharLiteral($1) }
+  | BYTE                  { ByteLiteral($1) }
+  | MINUS INT_LIT         { NegIntLiteral($2) }
+  | INT_LIT               { IntLiteral($1) }
+  | MINUS FLOAT_LIT           { NegFloatLiteral($2) }
+  | FLOAT_LIT                 { FloatLiteral($1) }
+  | path_expression               { PathPatternBound($1) }
+(*Range pattern*)
 
 literal_pattern:
   | FALSE { Cabs.FALSE_PAT }
@@ -300,7 +692,7 @@ tuple_pattern:
 
 tuple_pattern_items:
   | pattern COMMA { PATTERN_ITEM $1 }
-  | rest_pattern { REST_ITEM $1 }
+  | DOTDOT { REST_ITEM $1 }
   | separated_nonempty_list(COMMA, pattern) { PATTERN_ITEMS $1 }
 
 slice_pattern:
@@ -404,7 +796,7 @@ path_in_expression:
   { Cabs.PATH_IN_EXPRESSION segments }
 
 path_expr_segment:
-  | path_ident_segment option(path_genarg) { PATH_EXPR_SEGMENT $1 $2}
+  | path_ident_segment option(path_genarg) { PATH_EXPR_SEGMENT ($1, $2) }
 
 path_genarg:
   | PATHSEP generic_args { $2 }
@@ -436,6 +828,19 @@ generic_args_bounds:
 generic_args_binding:
   | ident option(generic_args) EQ typ { GENERIC_ARGS_BINDING_ ($1, $2, $4) }
 
+qualified_path_in_expression:
+  | qualified_path_type separated_nonempty_list(PATHSEP, path_expr_segment) 
+  { QUALIFIED_PATH_IN_EXPRESSION_ ($1, $2) }
+
+qualified_path_type:
+  | LT typ option(as_typath) GT { QUALIFIED_PATH_TYPE ($2, $3)}
+
+as_typath:
+  | AS type_path { $2 }
+
+qualified_path_in_type:
+  | qualified_path_type separated_nonempty_list(PATHSEP, type_path_segment) 
+  { QUALIFIED_PATH_IN_TYPE ($1, $2) }
 (*Paths*)
 
 (*Extern crate*)
@@ -499,8 +904,3 @@ attr_input:
   | EQ e = expression { ATTR_INPUT_EXP e }
 (* ATTRIBUTE *)
 
-expression:
-  | attrs = outer_attrs expr = expression_no_block { EXPRESSION_WITHOUT_BLOCK (attrs, expr) }
-
-expression_no_block:
-  | UNDERSCORE { UNDERSCORE_EXPRESSION }

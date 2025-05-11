@@ -113,6 +113,9 @@ let keyword_token = function
   | "mod", loc             -> MOD loc
   | "move", loc            -> MOVE loc
   | "mut", loc             -> MUT loc
+  | "*mut", loc            -> RAW_MUT loc
+  | "&mut", loc            -> AMPMUT loc
+  | "*const", loc          -> RAW_CONST loc
   | "pub", loc             -> PUB loc
   | "ref", loc             -> REF loc
   | "return", loc          -> RETURN loc
@@ -226,6 +229,8 @@ let rec token buf =
     | "]" -> RBRACK (lexing_position_start buf)
     | "(" -> LPAREN (lexing_position_start buf)
     | ")" -> RPAREN (lexing_position_start buf)
+    | '^' -> XOR (lexing_position_start buf)
+    | "^=" -> XOREQ (lexing_position_start buf)
     | "'static" -> STATIC_LIFETIME (lexing_position_start buf)
     | "'" -> read_char (Buffer.create 17) buf
     | "\"" -> read_string (Buffer.create 17) buf 
@@ -239,11 +244,11 @@ let rec token buf =
     | integer_literal -> 
         let uArr = Sedlexing.lexeme buf in
           let x = uchar_array_to_string uArr in
-    CONSTANT (Cabs.INT_LIT x, lexing_position_start buf)
+    INT_LIT (x, lexing_position_start buf)
     | float_literal ->
         let uArr = Sedlexing.lexeme buf in
           let x = uchar_array_to_string uArr in
-    CONSTANT (Cabs.FLOAT_LIT x, lexing_position_start buf)
+    FLOAT_LIT (x, lexing_position_start buf)
     | eof -> EOF 
     | _ ->
       let chr = Sedlexing.Utf8.lexeme buf in
