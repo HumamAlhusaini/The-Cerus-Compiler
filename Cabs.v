@@ -67,7 +67,7 @@ with tuple_expression :=
   | TUPLE_EXPRESSION_ : option tuple_elements -> tuple_expression
 
 with tuple_elements :=
-  | TUPLE_ELEMENTS : list expression -> option expression -> tuple_elements
+  | TUPLE_ELEMENTS : list expression  -> tuple_elements
 
 with tuple_indexing_expression :=
   | TUPLE_INDEXING_EXPRESSION_ : expression -> str (*tuple index is equivalent to string, for now...*) -> tuple_indexing_expression
@@ -101,7 +101,7 @@ with struct_base :=
   | STRUCT_BASE : expression -> struct_base
 
 with expr_list :=
-  | EXPR_LIST : expression -> list expression -> expr_list
+  | EXPR_LIST : list expression -> expr_list
 
       (*  Struct Expressions *)
       (*  Call Expressions *)
@@ -109,7 +109,7 @@ with call_expression :=
   | CALL_EXPRESSION_ : expression -> call_params -> call_expression
 
 with call_params :=
-  | CALL_PARAMS : expression -> list expression -> call_params
+  | CALL_PARAMS : list expression -> call_params
       (*  Call Expressions *)
       (*  Method Expressions *)
 with method_call_expression :=
@@ -128,7 +128,7 @@ with expr_or_type_no_bounds :=
   | TYPE_BLOCK_OPT : type_no_bounds -> block_expression -> expr_or_type_no_bounds
 
 with closure_params :=
-  | CLOSURE_PARAMS : closure_param -> list closure_param -> closure_params
+  | CLOSURE_PARAMS : list closure_param -> closure_params
 
 with closure_param :=
   | CLOSURE_PARAM : list outer_attribute -> pattern_no_top_alt -> option type_ -> closure_param
@@ -420,8 +420,7 @@ with qualified_path_in_type :=
   | QUALIFIED_PATH_IN_TYPE : qualified_path_type -> list type_path_segment  -> qualified_path_in_type
 
 with generic_args :=
-  | EMPTY_GENERIC_ARGS 
-  | GENERIC_ARGS : list generic_arg -> generic_arg -> generic_args
+  | GENERIC_ARGS : list generic_arg -> generic_args
 
 with generic_arg :=
   | GENERIC_ARG_LIFETIME : lifetime -> generic_arg
@@ -485,7 +484,7 @@ with use_bound :=
 
 with use_bound_generic_args :=
   | USE_BOUND_GENERIC_ARGS_EMPTY
-  | USE_BOUND_GENERIC_ARGS : list use_bound_generic_arg -> use_bound_generic_arg -> use_bound_generic_args
+  | USE_BOUND_GENERIC_ARGS : list use_bound_generic_arg  -> use_bound_generic_args
 
 with use_bound_generic_arg :=
   | USE_BOUND_GENERIC_ARG_LIFETIME : lifetime -> use_bound_generic_arg
@@ -606,11 +605,8 @@ with union :=
 (*Union*)
 (*Constant Item*)
 with constant_item :=
-  | CONSTANT_ITEM_ : ident_or_whitespace -> type_ -> option expression -> constant_item
+  | CONSTANT_ITEM_ : id_or_underscore -> type_ -> option expression -> constant_item
 
-with ident_or_whitespace :=
-  | IDENT_OPT : identifier -> ident_or_whitespace
-  | UNDERSCORE_OP
 (*Constant Item*)
 (*Type Alias*)
 with type_alias :=
@@ -697,7 +693,7 @@ with lifetime_param :=
 with type_param :=
   | TYPE_PARAM :
       identifier ->
-      option type_param_bounds ->
+      type_param_bounds ->
       option type_ ->              (* default value, if any *)
       type_param
 
@@ -705,14 +701,13 @@ with const_param :=
   | CONST_PARAM :
       identifier ->
       type_ ->
-      option const_default ->
+      option const_param_body ->
       const_param
 
-with const_default :=
-  | CONST_DEFAULT_BLOCK : block_expression -> const_default
-  | CONST_DEFAULT_IDENT : identifier -> const_default
-  | CONST_DEFAULT_LIT   : literal_expression -> const_default
-  | CONST_DEFAULT_NEG_LIT : literal_expression -> const_default  (* for -N literals *)
+with const_param_body :=
+  | CONST_PARAM_BLOCK : block_expression -> const_param_body
+  | CONST_PARAM_IDENT : identifier -> const_param_body
+  | CONST_PARAM_LIT   : literal_expression -> const_param_body
 
 with where_clause :=
   | WHERE_CLAUSE : list where_clause_item -> where_clause
@@ -763,6 +758,11 @@ with function :=
 
 with function_qualifiers :=
   | FUNCTION_QUALIFIERS :
+      bool ->           (* is_const *)
+      bool ->           (* is_async *)
+      item_safety ->
+      function_qualifiers
+  | FUNCTION_QUALIFIERS_EXTERN :
       bool ->           (* is_const *)
       bool ->           (* is_async *)
       item_safety ->
@@ -846,6 +846,10 @@ with use_tree :=
   | USE_TREE_LIST : option simple_path -> list use_tree -> use_tree
   | USE_TREE_ID : simple_path -> option id_or_underscore -> use_tree
 
+with id_or_underscore :=
+  | ID_OPT : identifier -> id_or_underscore
+  | UNDERSCORE_OPT
+
 (* Use Declaration*)
 (*Identifier*)
 with identifier :=
@@ -881,13 +885,13 @@ with pattern_without_range :=
   | IDENTIFIER_PATTERN : bool -> bool -> identifier -> option pattern_no_top_alt -> pattern_without_range
   | WILDCARD_PATTERN : pattern_without_range
   | REST_PATTERN : rest_pattern -> pattern_without_range
-  | DOUBLE_REFERENCE_PATTERN : bool -> pattern -> pattern_without_range
-  | SINGLE_REFERENCE_PATTERN : bool -> pattern -> pattern_without_range
+  | DOUBLE_REFERENCE_PATTERN : bool -> pattern_without_range -> pattern_without_range
+  | SINGLE_REFERENCE_PATTERN : bool -> pattern_without_range -> pattern_without_range
   | STRUCT_PATTERN : path_in_expression -> option struct_pattern_elements -> pattern_without_range
-  | TUPLE_STRUCT_PATTERN : path_in_expression -> option (pattern * list pattern) -> pattern_without_range
+  | TUPLE_STRUCT_PATTERN : path_in_expression -> tuple_struct_items -> pattern_without_range
   | TUPLE_PATTERN : option tuple_pattern_items -> pattern_without_range
   | GROUPED_PATTERN : pattern -> pattern_without_range
-  | SLICE_PATTERN : option slice_pattern_items -> pattern_without_range
+  | SLICE_PATTERN : slice_pattern_items -> pattern_without_range
   | PATH_PATTERN : path_expression -> pattern_without_range
   | PATTERN_MACRO_INVOCATION : macro_invocation -> pattern_without_range
 
@@ -906,7 +910,7 @@ with literal_pattern :=
   | FALSE_PAT
 
 with slice_pattern_items :=
-  | SLICE_PATTERN_ITEMS : pattern -> list pattern -> slice_pattern_items
+  | SLICE_PATTERN_ITEMS : list pattern -> slice_pattern_items
 
 with rest_pattern :=
   | REST_PAT
@@ -917,11 +921,12 @@ with tuple_pattern_items :=
   | PATTERN_ITEMS : list pattern -> tuple_pattern_items
 
 with struct_pattern_elements :=
-  | STRUCT_PATTERN_ELEMENTS_FIELDS : struct_pattern_fields -> option struct_pattern_etcetara -> struct_pattern_elements
+  | STRUCT_PATTERN_ELEMENTS_FIELDS_ETC : struct_pattern_fields -> struct_pattern_etcetara -> struct_pattern_elements
+  | STRUCT_PATTERN_ELEMENTS_FIELDS : struct_pattern_fields -> struct_pattern_elements 
   | STRUCT_PATTERN_ELEMENTS_ETCETERA : struct_pattern_etcetara -> struct_pattern_elements
 
 with struct_pattern_fields :=
-  | STRUCT_PATTERN_FIELDS : struct_pattern_field -> list struct_pattern_field -> struct_pattern_fields
+  | STRUCT_PATTERN_FIELDS : list struct_pattern_field -> struct_pattern_fields
 
 with struct_pattern_field :=
   | STRUCT_PATTERN_FIELD : list outer_attribute -> tuple_or_idPat_or_id -> struct_pattern_field
@@ -929,17 +934,17 @@ with struct_pattern_field :=
 with tuple_or_idPat_or_id :=
   | TUPLE_PAT : str -> pattern -> tuple_or_idPat_or_id
   | ID_PAT : identifier -> pattern -> tuple_or_idPat_or_id
-  | ID : bool -> bool -> tuple_or_idPat_or_id
+  | ID : bool -> bool -> identifier -> tuple_or_idPat_or_id
 
 with struct_pattern_etcetara :=
   | STRUCT_PATTERN_ETCETERA : list outer_attribute -> struct_pattern_etcetara
 
 with tuple_struct_items :=
-  | TUPLE_STRUCT_ITEMS : pattern -> list pattern -> tuple_struct_items
+  | TUPLE_STRUCT_ITEMS : list pattern -> tuple_struct_items
 
 with range_pattern_bound :=
-  | RANGE_PATTERN_BOUND_CHAR : str -> range_pattern_bound
-  | RANGE_PATTERN_BOUND_BYTE : str -> range_pattern_bound
+  | RANGE_PATTERN_BOUND_CHAR : char_code -> range_pattern_bound
+  | RANGE_PATTERN_BOUND_BYTE : char_code -> range_pattern_bound
   | RANGE_PATTERN_BOUND_NEG_INTEGER : str -> range_pattern_bound
   | RANGE_PATTERN_BOUND_INTEGER : str -> range_pattern_bound
   | RANGE_PATTERN_BOUND_NEG_FLOAT : str -> range_pattern_bound
@@ -947,7 +952,7 @@ with range_pattern_bound :=
   | RANGE_PATTERN_BOUND_PATH : path_expression -> range_pattern_bound
 
 with range_exclusive_pattern :=
-  | RangeExclusivePattern : range_pattern_bound -> range_pattern_bound -> range_exclusive_pattern
+  | RANGE_EXCLUSIVE_PATTERN : range_pattern_bound -> range_pattern_bound -> range_exclusive_pattern
 
 with range_pattern :=
   | RANGE_INCLUSIVE_PATTERN : range_pattern_bound -> range_pattern_bound -> range_pattern
@@ -997,10 +1002,8 @@ with bare_function_type :=
       option bare_function_return_type -> bare_function_type
 
 with function_type_qualifiers :=
-  | FUNC_QUAL_NONE : function_type_qualifiers
-  | FUNC_QUAL_UNSAFE : function_type_qualifiers
-  | FUNC_QUAL_EXTERN : option abi -> function_type_qualifiers
-  | FUNC_QUAL_UNSAFE_EXTERN : option abi -> function_type_qualifiers
+  | FUNC_TYPE_QUALIFIERS : bool -> function_type_qualifiers
+  | FUNC_TYPE_QUALIFIERS_EXTERN : bool -> option abi -> function_type_qualifiers
 
 with bare_function_return_type :=
   | BARE_RETURN_TYPE : type_no_bounds -> bare_function_return_type
@@ -1013,11 +1016,10 @@ with maybe_named_function_parameters :=
   | MAYBE_NAMED_FN_PARAMS : list maybe_named_param -> maybe_named_function_parameters
 
 with maybe_named_param :=
-  | MAYBE_NAMED_PARAM : list outer_attribute -> option id_or_underscore -> type_ -> maybe_named_param
+  | MAYBE_NAMED_PARAM_ID : list outer_attribute -> identifier -> type_ -> maybe_named_param
+  | MAYBE_NAMED_PARAM_UNDERSCORE : list outer_attribute -> type_ -> maybe_named_param
+  | MAYBE_NAMED_PARAM : list outer_attribute -> type_ -> maybe_named_param
 
-with id_or_underscore :=
-  | ID_OPT : identifier -> id_or_underscore
-  | UNDERSCORE_OPT
 
 with maybe_named_function_parameters_variadic :=
   | FN_PARAMS_VAR : list maybe_named_param ->  list outer_attribute  -> maybe_named_function_parameters_variadic
@@ -1029,12 +1031,13 @@ with impl_trait_type :=
 
 (*Trait Object*)
 with trait_object_type :=
-  | TRAIT_OBJECT_TYPE : bool (*dyn*) -> type_param_bounds -> trait_object_type
+  | TRAIT_OBJECT_TYPE_PARAM : bool (*dyn*) -> type_param_bounds -> trait_object_type
+  | TRAIT_OBJECT_TYPE_TRAIT : bool -> trait_bound -> trait_object_type
+
 (*Trait Object*)
 (*Tuple Types*)
 with tuple_type :=
-  | TUPLE_TYPE_EMPTY
-  | TUPLE_TYPE_FULL : list type_ -> tuple_type
+  | TUPLE_TYPE_ : list type_ -> tuple_type
 (*Tuple Types*)
 
 (*Visibility*)

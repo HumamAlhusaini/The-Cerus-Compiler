@@ -57,6 +57,14 @@
 %start<Cabs.item list> program
 %%
 
+nonempty_separated_or_terminated_list(sep, elem):
+  | nonempty_list(terminated(elem, sep)) { $1 }
+  | separated_nonempty_list(sep, elem) { $1 }
+
+separated_or_terminated_list(sep, elem):
+  | list(terminated(elem, sep)) { $1 }
+  | separated_list(sep, elem) { $1 }
+
 program:
   | e = items EOF { e }
 
@@ -80,7 +88,7 @@ statement:
 
 let_statement:
   | outer_attrs LET pattern_no_top_alt COLON typ option(let_expr) SEMI 
-  { LET_STATEMENT ($1, $3, Some typ,) }
+  { LET_STATEMENT ($1, $3, Some $5 , $6) }
 
 let_expr:
   | EQ expression option(else_expr) { EQ_EXPRESSION_ ($2, $3)}
@@ -130,7 +138,7 @@ exprs_with_block:
   | match_expression { MATCH_EXPRESSION $1 }
 (*Return expression*)
 return_expression:
-  | RETURN option(expression) { RETURN_EXPRESSION $2 }
+  | RETURN option(expression) { RETURN_EXPRESSION_ $2 }
 (*Return expression*)
 (*Async expression*)
 async_block_expression:
@@ -143,16 +151,16 @@ await_expression:
 (*Await expression*)
 (*Literal expression*)
 literal_expression:
-  | CHAR_LIT         { CHAR_LITERAL $1 }
-  | STRING_LIT       { STRING_LITERAL $1 }
-  | RAW_STRING_LIT   { RAW_STRING_LITERAL $1 }
-  | BYTE         { BYTE_LITERAL $1 }
-  | BYTE_STRING  { BYTE_STRING_LITERAL $1 }
-  | RAW_BYTE_STRING { RAW_BYTE_STRING_LITERAL $1 }
-  | C_STRING    { C_STRING_LITERAL $1 }
-  | RAW_C_STRING { RAW_C_STRING_LITERAL $1 }
-  | INT_LIT      { INTEGER_LITERAL $1 }
-  | FLOAT_LIT        { FLOAT_LITERAL $1 }
+  | CHAR_LIT         { CHAR_LITERAL (fst $1) }
+  | STRING_LIT       { STRING_LITERAL (fst $1) }
+  | RAW_STRING_LIT   { RAW_STRING_LITERAL (fst $1) }
+  | BYTE         { BYTE_LITERAL (fst $1) }
+  | BYTE_STRING  { BYTE_STRING_LITERAL (fst $1) }
+  | RAW_BYTE_STRING { RAW_BYTE_STRING_LITERAL (fst $1) }
+  | C_STRING    { C_STRING_LITERAL (fst $1) }
+  | RAW_C_STRING { RAW_C_STRING_LITERAL (fst $1) }
+  | INT_LIT      { INTEGER_LITERAL (fst $1) }
+  | FLOAT_LIT        { FLOAT_LITERAL (fst $1) }
   | TRUE                 { TRUE }
   | FALSE                { FALSE }
 (*Literal expression*)
@@ -173,10 +181,10 @@ tuple_expression:
   | LPAREN option(tuple_elements) RPAREN  { TUPLE_EXPRESSION_ $2 }
 
 tuple_elements:
-  | separated_nonempty_list(COMMA, expression) { $1 }
+  | separated_nonempty_list(COMMA, expression) { TUPLE_ELEMENTS $1 }
 
 tuple_indexing_expression:
-  | expression DOT INT_LIT     { TUPLE_INDEXING_EXPRESSION_ ($1, $3) }
+  | expression DOT INT_LIT     { TUPLE_INDEXING_EXPRESSION_ ($1, (fst $3)) }
 
 (*Tuple Expression*)
 (*Array expression*)
@@ -184,17 +192,13 @@ array_expression:
   | LBRACK array_elements RBRACK             { ARRAY_EXPRESSION_ $2 }
 
 array_elements:
-  | expression_list option(COMMA)                          { ARRAY_ElEMENT $1 }
-  | expression SEMI expression               { SEMI_ARRAY_ELEMENT $1 $3 }
-
-expression_list:
-  | expression { [$1] }
-  | expression_list COMMA expression { $3 :: $1 }
+  | nonempty_separated_or_terminated_list(COMMA, expression)  { ARRAY_ElEMENT $1 }
+  | expression SEMI expression               { SEMI_ARRAY_ELEMENT ($1, $3) }
 
 (*Array expression*)
 (*Index expression*)
 index_expression:
-  | expression LBRACK expression RBRACK      { INDEX_EXPRESSION_ $1 $3 }
+  | expression LBRACK expression RBRACK      { INDEX_EXPRESSION_ ($1, $3) }
 (*Struct Expression*)
 struct_expression:
   | path_in_expression LBRACE struct_expr_field_or_struct_base_opt RBRACE
@@ -209,22 +213,11 @@ struct_expr_field_or_struct_base_opt:
   |                                          { None }
 
 struct_expr_fields:
-  | struct_expr_field_list COMMA struct_base 
-  { STRUCT_EXPR_FIELDS_BASE ((Stdlib.List.rev $1 ), $3)}
-  | struct_expr_field_list option(COMMA) {STRUCT_EXPR_FIELDS (Stdlib.List.rev $1 ) }
+  | separated_list(COMMA, struct_expr_field) COMMA struct_base { STRUCT_EXPR_FIELDS_BASE ($1, $3)}
+  | separated_or_terminated_list(COMMA, struct_expr_field) {STRUCT_EXPR_FIELDS $1 }
 
-struct_expr_field_list:
-  | struct_expr_field { [$1] }
-  | struct_expr_field_list COMMA struct_expr_field { $3 :: $1 } 
-
-base_comma_none:
-  | COMMA struct_base
-  | COMMA {}
-  | {}
 struct_expr_field:
-  | outer_attrs ident COLON expression {
-      STRUCT_EXPR_FIELD $1
-    }
+  | outer_attrs ident COLON expression { STRUCT_EXPR_FIELD $1 }
 
 struct_base:
   | DOTDOT expression                  { STRUCT_BASE $2 }
@@ -236,45 +229,42 @@ expr_list:
 (*Call Expression*)
 
 call_expression:
-  | expression LPAREN call_params_opt RPAREN { CALL_EXPRESSION_ $1 $3 }
-
-call_params_opt:
-  | call_params                              { $1 }
-  |                                          { CALL_PARAMS dummy_expr [] } (* or handle empty specially *)
+  | expression LPAREN option(call_params) RPAREN { CALL_EXPRESSION_ ($1, $3) }
 
 call_params:
-  |  expression_list { CALL_PARAMS $1 }
+  | separated_list(COMMA, expression)                              { $1 }
 
 method_call_expression:
-  | expression DOT ident LPAREN call_params_opt RPAREN 
-  { METHOD_CALL_EXPRESSION_ ($1, (IDENTIFIER_SEGMENT $3), (Some $5)) }
+  | expression DOT path_expr_segment LPAREN call_params RPAREN 
+  { METHOD_CALL_EXPRESSION_ ($1,  $3, $5) }
 
 (*Call Expression*)
 (*Field Expression*)
 field_expression:
-  | expression DOT ident                { FIELD_EXPRESSION_ $1 $3 }
+  | expression DOT ident                { FIELD_EXPRESSION_ ($1, fst $3) }
 (*Field Expression*)
 (*Closure Expression*)
 closure_expression:
-  | OR closure_params_opt OR expression {
-      CLOSURE_EXPRESSION_ false false $2 (EXPR_OPT $4)
-    }
+  | is_async is_move OR option(closure_params) OR expr_or_typ_block 
+  { CLOSURE_EXPRESSION_ ($1, $2, $4, $6) }
 
-closure_params_opt:
-  | closure_params                           { Some $1 }
-  |                                          { None }
+expr_or_typ_block:
+  | expression { EXPR_OPT $1 }
+  | RARROW type_no_bounds block_expression { TYPE_BLOCK_OPT ($2, $3) }
+
+is_move:
+  | MOVE { true }
+  | { false }
 
 closure_params:
-  | closure_param COMMA closure_param_list   { CLOSURE_PARAMS $1 $3 }
-
-closure_param_list:
-  | closure_param                            { [$1] }
-  | closure_param COMMA closure_param_list   { $1 :: $3 }
+  | nonempty_separated_or_terminated_list(COMMA, closure_param) { CLOSURE_PARAMS $1 }
 
 closure_param:
-  | outer_attr pattern COLON typ {
-      CLOSURE_PARAM $1 $2 (Some $4)
-    }
+  | outer_attrs pattern_no_top_alt option(typ_opt) { CLOSURE_PARAM ($1, $2, $3)}
+
+typ_opt:
+  | COLON typ { $2 }
+
 (*Closure Expression*)
 (*Block expression*)
 
@@ -289,23 +279,44 @@ block_expression:
   
 statements:
   | list(statement) { STATEMENTS $1 }
-  | list(statement) exprs_without_block { STATEMENTS ($1, $2) }
-  | exprs_without_block {STATEMENTS $1}
+  | list(statement) exprs_without_block { STATEMENTS_EXPR_WITHOUT_BLOCK ($1, $2) }
+  | exprs_without_block {S_EXPR_WITHOUT_BLOCK $1}
 
 (*Block expression*)
 (*Loop expression*)
-
 loop_expression:
-  | LOOP block_expression         { LOOP_EXPRESSION_ (None, (INFINITE_LOOP_EXPRESSION $2) }
+  | option(loop_label) loop_switch { LOOP_EXPRESSION_ ($1, $2) }
+
+loop_label:
+  | LIFETIME_OR_LABEL COLON { LOOP_LABEL (fst $1) }
+
+loop_switch:
+  | infinite_loop_expression { $1 }
+  | predicate_loop_expression  { $1 }
+  | predicate_pattern_loop_expression  { $1 }
+  | iterator_loop_expression  { $1 }
+  | label_block_expression  { $1 }
+
+infinite_loop_expression:
+  | LOOP block_expression { INFINITE_LOOP_EXPRESSION $2 }
+
+predicate_loop_expression:
+  | WHILE expression block_expression { PREDICATE_LOOP_EXPRESSION ($2, $3) }
+
+predicate_pattern_loop_expression:
+  | WHILE LET pattern EQ scrutinee block_expression { PREDICATE_PATTERN_LOOP_EXPRESSION ($3, $5, $6)}
+
+iterator_loop_expression:
+  | FOR pattern IN expression block_expression { ITERATOR_LOOP_EXPRESSION ($2, $4, $5) }
+
+label_block_expression:
+  | block_expression { LABEL_BLOCK_EXPRESSION $1 }
 
 break_expression:
-  | BREAK                                    { BREAK_EXPRESSION_ None None }
-  | BREAK ident                         { BREAK_EXPRESSION_ (Some $2) None }
-  | BREAK expression                         { BREAK_EXPRESSION_ None (Some $2) }
+  | BREAK option(LIFETIME_OR_LABEL) option(expression) { BREAK_EXPRESSION_ ($2, $3) }
 
 continue_expression:
-  | CONTINUE                                 { CONTINUE_EXPRESSION_ None }
-  | CONTINUE ident                      { CONTINUE_EXPRESSION_ (Some $2) }
+  | CONTINUE option(LIFETIME_OR_LABEL) { CONTINUE_EXPRESSION_ (Option.map fst $2) }
 
 (*Loop expression*)
 (*Range Expression*)
@@ -314,15 +325,13 @@ range_expression:
   | expression DOTDOT expression             { RANGE_EXPRESSION_ ($1, $3) }
   | expression DOTDOT                        { RANGE_FROM_EXPRESSION_ $1 }
   | DOTDOT expression                        { RANGE_TO_EXPRESSION_ $2 }
-  | DOTDOT                                   { RANGE_FULL_EXPRESSION_ dummy_range }
+  | DOTDOT                                   { RANGE_FULL_EXPRESSION_  }
   | expression DOTDOTEQ expression          { RANGE_INCLUSIVE_EXPRESSION_ ($1, $3) }
   | DOTDOTEQ expression                     { RANGE_TO_INCLUSIVE_EXPRESSION_ $2 }
 (*Range Expression*)
 (*If_let Expression*)
 if_expression:
-  | IF expression block_expression else_opt {
-      IfExpr $2 $3 $4
-    }
+  | IF expression block_expression else_opt { IfExpr ($2, $3, $4) }
 
 else_opt:
   | ELSE block_expression                    { Some (BLOCK $2) }
@@ -332,7 +341,7 @@ else_opt:
 
 if_let_expression:
   | IF LET pattern EQ expression block_expression else_opt {
-      IF_LET_EXPRESSION_ $3 (SCRUTINEE $5) $6 $7
+      IF_LET_EXPRESSION_ ($3, (SCRUTINEE $5), $6, $7)
     }
 (*If_let Expression*)
 (*Match Expression*)
@@ -344,21 +353,21 @@ scrutinee:
   | expression { SCRUTINEE $1 }
 
 match_arms:
-    | first_arms match_arm FATARROW expression option(COMMA) 
+    | list(first_arms) match_arm FATARROW expression option(COMMA) 
   { MATCH_ARMS ($1, $2, $4) }
 
 first_arms:
   | match_arm FATARROW block_or_not { ORGANIZE ($1, $3)}
 
 block_or_not:
-  | exprs_without_block COMMA { $1 }
-  | exprs_with_block option(COMMA) { $1 }
+  | exprs_without_block COMMA { NO_BLOCK $1 }
+  | exprs_with_block option(COMMA) { YES_BLOCK $1 }
 
 match_arm:
   | outer_attrs pattern option(match_arm_guard) { MATCH_ARM ($1, $2, $3) }
 
 match_arm_guard:
-    | IF expression { MATCH_ARM_GUARD ($1) }
+    | IF expression { MATCH_ARM_GUARD ($2) }
 
 (*Match Expression*)
 (*Operator expression*)
@@ -425,13 +434,13 @@ generic_param:
   | outer_attrs const_param {GP_CONST ($1, $2)}
 
 lifetime_param:
-  | lifetime option(col_life_bounds) {LIFETIME_PARAM($1,$2)}
+  | lifetime option(col_life_bounds) {LIFETIME_PARAM(fst $1, $2)}
 
 col_life_bounds:
   | COLON lifetime_bounds { $2 }
 
 type_param:
-  | ident option(col_param_bounds) option(eq_typ) {TYPE_PARAM ($1, $2, $3) }
+  | ident option(col_param_bounds) option(eq_typ) {TYPE_PARAM (fst $1, $2, $3) }
 
 eq_typ:
   | EQ typ {$2}
@@ -440,12 +449,12 @@ col_param_bounds:
   | COLON option(type_param_bounds) { $2 }
 
 const_param:
-  | CONST ident COLON typ option(const_param_body) { CONST_PARAM ($2, $3, $4)}
+  | CONST ident COLON typ option(const_param_body) { CONST_PARAM (fst $2, $4, $5)}
 
 const_param_body:
-  | EQ block_expression { $2 }
-  | ident { $1 }
-  | literal_expression { $1 }
+  | EQ block_expression { CONST_PARAM_BLOCK $2 }
+  | ident { CONST_PARAM_IDENT (fst $1) }
+  | literal_expression { CONST_PARAM_LIT $1 }
 
 where_clause:
   | WHERE separated_nonempty_list(COMMA, where_clause_item) { WHERE_CLAUSE $2 }
@@ -464,14 +473,10 @@ type_bound_where_clause_item:
 (*generic params*)
 (*Trait and lifetime bounds*)
 type_param_bounds:
-  | type_param_bound_list option(PLUS) { TYPE_PARAM_BOUNDS (Stdlib.List.rev $1) }
-
-type_param_bound_list:
-  | type_param_bound { [$1] }
-  | type_param_bound_list PLUS type_param_bound { $3 :: $1 }
+  | nonempty_separated_or_terminated_list(PLUS, type_param_bound) { TYPE_PARAM_BOUNDS $1 }
 
 type_param_bound:
-  | lifetime { TYPE_PARAM_BOUND_LIFETIME $1 }
+  | lifetime { TYPE_PARAM_BOUND_LIFETIME (fst $1) }
   | trait_bound { TYPE_PARAM_BOUND_TRAIT_BOUND $1 }
   | use_bound { TYPE_PARAM_BOUND_USE_BOUND $1 }
 
@@ -481,16 +486,13 @@ trait_bound:
   { ENCASED_TRAIT_BOUND ($2, $3) }
 
 lifetime_bounds:
-  | lifetime_list option(PLUS) { LIFETIME_BOUNDS $1 }
-
-lifetime_list:
-  | lifetime { [$1] }
-  | lifetime_list PLUS lifetime { $3 :: $1 }
+  | separated_or_terminated_list(PLUS, lifetime) 
+      { LIFETIME_BOUNDS (Stdlib.List.map fst $1) }
 
 lifetime:
-  | LIFETIME_OR_LABEL { LIFETIME $1 }
-  | STATIC_LIFETIME { LIFETIME_STATIC }
-  | ELIDED_LIFETIME { LIFETIME_UNDERSCORE }
+  | LIFETIME_OR_LABEL       { (LIFETIME (fst $1), $startpos) }
+  | STATIC_LIFETIME        { (LIFETIME_STATIC, $startpos) }
+  | ELIDED_LIFETIME        { (LIFETIME_UNDERSCORE, $startpos) }
 
 question_or_for:
   | QUESTION      { QUESTION }
@@ -504,15 +506,12 @@ use_bound:
 
 use_bound_generic_args:
   | LT GT { USE_BOUND_GENERIC_ARGS_EMPTY }
-  | LT use_bound_generic_arg_list option(COMMA) GT { USE_BOUND_GENERIC_ARGS $2 }  
-
-use_bound_generic_arg_list:
-  | use_bound_generic_arg { [$1] }
-  | use_bound_generic_arg COMMA use_bound_generic_arg { $3 :: $1 }
+  | LT nonempty_separated_or_terminated_list(COMMA, use_bound_generic_arg) GT
+      { USE_BOUND_GENERIC_ARGS $2 }  
 
 use_bound_generic_arg:
-  | lifetime          { USE_BOUND_GENERIC_ARG_LIFETIME $1}
-  | ident             { USE_BOUND_GENERIC_ARG_IDENT $1 } 
+  | lifetime          { USE_BOUND_GENERIC_ARG_LIFETIME (fst $1) }
+  | ident             { USE_BOUND_GENERIC_ARG_IDENT (fst $1) } 
   | SELFTYPE        { USE_BOUND_GENERIC_ARG_SELF }
 
 (*Trait and lifetime bounds*)
@@ -527,12 +526,10 @@ function_body:
   | SEMI { FN_BODY_SEMI }
 
 function_qualifiers: 
-  | const = is_const async = is_async unsafe = is_unsafe opt = option(ex_op) 
-    { FUNCTION_QUALIFIERS (const, async, unsafe, opt)}
-
-ex_op:
-  | EXTERN a = abi { a }
-  | EXTERN { }
+  | const = is_const async = is_async unsafe = is_unsafe 
+    { FUNCTION_QUALIFIERS (const, async, unsafe)}    
+  | const = is_const async = is_async unsafe = is_unsafe EXTERN opt = option(abi) 
+    { FUNCTION_QUALIFIERS_EXTERN (const, async, unsafe, opt)}
 
 abi:
   | RAW_STRING_LIT { ABI_STRING $1 }
@@ -580,13 +577,13 @@ no_range_pattern:
   | identifier_pattern { $1 }
   | UNDERSCORE { WILDCARD_PATTERN }
   | DOTDOT { REST_PATTERN }
-  | AND is_mut no_range_pattern { SINGLE_REFERENCE_PATTERN $1 }
-  | ANDAND is_mut no_range_pattern { DOUBLE_REFERENCE_PATTERN $1 }
+  | AND is_mut no_range_pattern { SINGLE_REFERENCE_PATTERN ($2, $3) }
+  | ANDAND is_mut no_range_pattern { DOUBLE_REFERENCE_PATTERN ($2, $3) }
   | struct_pattern { $1 }
   | tuple_struct_pattern { $1 }
   | tuple_pattern { TUPLE_PATTERN $1 }
   | LPAREN pattern RPAREN { GROUPED_PATTERN $2 }
-  | slice_pattern { SLICE_PATTERN $1 }
+  | LBRACK slice_pattern_items RBRACK  { SLICE_PATTERN $2 }
   | path_expression { PATH_PATTERN $1 }
 
 (*Range pattern*)
@@ -598,46 +595,46 @@ range_pattern:
 
 range_exclusive_pattern:
     range_pattern_bound DOTDOT range_pattern_bound
-      { RangeExclusivePattern ($1, $3) }
+      { RANGE_EXCLUSIVE_PATTERN ($1, $3) }
 
 range_inclusive_pattern:
     range_pattern_bound DOTDOTEQ range_pattern_bound
-      { RangeInclusivePattern ($1, $3) }
+      { RANGE_INCLUSIVE_PATTERN ($1, $3) }
 
 range_from_pattern:
     range_pattern_bound DOTDOT
-      { RangeFromPattern ($1) }
+      { RANGE_FROM_PATTERN $1 }
 
 range_to_inclusive_pattern:
     DOTDOTEQ range_pattern_bound
-      { RangeToInclusivePattern ($2) }
+      { RANGE_TO_INCLUSIVE_PATTERN ($2) }
 
 obsolete_range_pattern:
     range_pattern_bound DOTDOTDOT range_pattern_bound
-      { ObsoleteRangePattern ($1, $3) }
+      { RANGE_OBSOLETE_PATTERN ($1, $3) }
 
 range_pattern_bound:
-    CHAR_LIT                  { CharLiteral($1) }
-  | BYTE                  { ByteLiteral($1) }
-  | MINUS INT_LIT         { NegIntLiteral($2) }
-  | INT_LIT               { IntLiteral($1) }
-  | MINUS FLOAT_LIT           { NegFloatLiteral($2) }
-  | FLOAT_LIT                 { FloatLiteral($1) }
-  | path_expression               { PathPatternBound($1) }
+  | CHAR_LIT              { RANGE_PATTERN_BOUND_CHAR (fst $1) }
+  | BYTE                  { RANGE_PATTERN_BOUND_BYTE (fst $1) }
+  | MINUS INT_LIT         { RANGE_PATTERN_BOUND_NEG_INTEGER (fst $2) }
+  | INT_LIT               { RANGE_PATTERN_BOUND_INTEGER (fst $1) }
+  | MINUS FLOAT_LIT       { RANGE_PATTERN_BOUND_NEG_FLOAT (fst $2) }
+  | FLOAT_LIT             { RANGE_PATTERN_BOUND_FLOAT (fst $1) }
+  | path_expression       { RANGE_PATTERN_BOUND_PATH $1 }
 (*Range pattern*)
 
 literal_pattern:
   | FALSE { Cabs.FALSE_PAT }
   | TRUE { Cabs.TRUE_PAT }
-  | CHAR_LIT { CHAR_LITERAL $1 }
-  | BYTE_STRING { Cabs.BYTE_STRING $1 }
-  | STRING_LIT { Cabs.STRING_LITERAL $1 }
-  | RAW_BYTE_STRING { Cabs.RAW_BYTE_STRING_LITERAL $1 }
-  | RAW_STRING_LIT { Cabs.RAW_STRING_LITERAL $1 }
-  | C_STRING { Cabs.C_STRING_LITERAL $1 }
-  | RAW_C_STRING { Cabs.C_STRING_LITERAL $1 }
-  | neg INT_LIT { Cabs.INTEGER_LITERAL ($1, $2) }
-  | neg FLOAT_LIT { Cabs.FLOAT_LITERAL ($1, $2) }
+  | CHAR_LIT { CHAR_PATTERN (fst $1) }
+  | BYTE_STRING { Cabs.BYTE_STRING_PATTERN (fst $1) }
+  | STRING_LIT { Cabs.STRING_PATTERN (fst $1) }
+  | RAW_BYTE_STRING { Cabs.RAW_BYTE_STRING_PATTERN (fst $1) }
+  | RAW_STRING_LIT { Cabs.RAW_STRING_PATTERN (fst $1) }
+  | C_STRING { Cabs.C_STRING_PATTERN (fst $1) }
+  | RAW_C_STRING { Cabs.C_STRING_PATTERN (fst $1) }
+  | neg INT_LIT { Cabs.INTEGER_PATTERN ($1, fst $2) }
+  | neg FLOAT_LIT { Cabs.FLOAT_PATTERN ($1, fst $2) }
 
 neg:
   | MINUS { true }
@@ -645,7 +642,7 @@ neg:
 
 identifier_pattern:
   | is_ref is_mut ident option(pat_at)
-{ IDENTIFIER_PATTERN ($1, $2, $3) }
+{ IDENTIFIER_PATTERN ($1, $2, fst $3, $4) }
 
 pat_at:
   | AT pattern_no_top_alt { $2 }
@@ -654,13 +651,10 @@ struct_pattern:
   | path_in_expression LBRACK option(struct_pattern_elements) RBRACK { STRUCT_PATTERN ($1, $3)}
 
 struct_pattern_elements:
-  | struct_pattern_fields option(comma_or_etcetera) 
-{ STRUCT_PATTERN_ELEMENTS_FIELDS ($1, $2)}
+  | struct_pattern_fields COMMA struct_pattern_etcetara
+{ STRUCT_PATTERN_ELEMENTS_FIELDS_ETC ($1, $3)}
   | struct_pattern_etcetara { STRUCT_PATTERN_ELEMENTS_ETCETERA $1 }
-
-comma_or_etcetera:
-  | COMMA struct_pattern_etcetara { Some $2 }
-  | COMMA { None }
+  | struct_pattern_fields option(COMMA) { STRUCT_PATTERN_ELEMENTS_FIELDS $1 }
 
 struct_pattern_fields:
   | separated_nonempty_list(COMMA, struct_pattern_field) { STRUCT_PATTERN_FIELDS $1 }
@@ -669,60 +663,111 @@ struct_pattern_field:
   | outer_attrs struct_pattern_field_body { STRUCT_PATTERN_FIELD ($1, $2)}
 
 struct_pattern_field_body:
-  | INT_LIT COLON pattern { TUPLE_PAT ($1, $3) }
-  | ident COLON pattern {ID_PAT ($1, $3) }
-  | is_ref is_mut ident { Cabs.ID ($1, $2, $3)}
+  | INT_LIT COLON pattern { TUPLE_PAT (fst $1, $3) }
+  | ident COLON pattern {ID_PAT (fst $1, $3) }
+  | is_ref is_mut ident { Cabs.ID ($1, $2, fst $3)}
 
 struct_pattern_etcetara:
   | outer_attrs DOTDOT { STRUCT_PATTERN_ETCETERA $1 }
 
 tuple_struct_pattern:
-  | path_in_expression LPAREN option(tuple_struct_items) RPAREN 
+  | path_in_expression LPAREN tuple_struct_items RPAREN 
   { TUPLE_STRUCT_PATTERN ($1, $3)}
 
 tuple_struct_items:
-  | tuple_struct_item_list option(COMMA) { Stdlib.List.rev $1 }
-
-tuple_struct_item_list:
-  | pattern { [$1] }
-  | pattern COMMA pattern { $3 :: $1 }
+  | separated_or_terminated_list(COMMA, pattern) { TUPLE_STRUCT_ITEMS $1 }
 
 tuple_pattern:
   | LPAREN option(tuple_pattern_items) RPAREN { $2 }
 
 tuple_pattern_items:
   | pattern COMMA { PATTERN_ITEM $1 }
-  | DOTDOT { REST_ITEM $1 }
+  | DOTDOT { REST_ITEM }
   | separated_nonempty_list(COMMA, pattern) { PATTERN_ITEMS $1 }
 
-slice_pattern:
-  | LBRACK option(slice_pattern_items) RBRACK { SLICE_PATTERN $2 }
-
 slice_pattern_items:
-  | separated_nonempty_list(COMMA, pattern) { }
+  | separated_list(COMMA, pattern) { SLICE_PATTERN_ITEMS $1 }
 
 (*Patterns*)
+(*Type*)
+
 typ:
-  | type_no_bounds { RAW_POINTER_TYPE $1 }
+    type_no_bounds                        { TYPE_NO_BOUNDS $1 }
+  | impl_trait_type                       { IMPL_TYPE $1 }
+  | trait_object_type                     { TRAIT_TYPE $1 }
 
 type_no_bounds:
-  | type_path { TYPE_PATH $1 }
+    LPAREN typ RPAREN                 { PARENTHESIZED_TYPE $2 }
+  | impl_trait_type_one_bound               { IMPL_ONE_BOUND $1 }
+  | is_dyn trait_bound                  { TRAIT_ONE_BOUND ($1, $2) }
+  | type_path                            { TYPE_PATH $1 }
+  | tuple_type                           { TUPLE_TYPE $1 }
+  | NOT                                   { NEVER_TYPE }
+  | raw_pointer_type                      { RAW_POINTER_TYPE $1 }
+  | reference_type                       { REFERENCE_TYPE $1 }
+  | LBRACK typ SEMI expression RBRACK   { ARRAY_TYPE ($2, $4) }
+  | LBRACK typ RBRACK                  { SLICE_TYPE $2 }
+  | UNDERSCORE                          { INFERRED_TYPE }
+  | qualified_path_in_type                { QUALIFIED_PATH $1 }
+  | bare_function_type                    { BARE_FUNCTION_TYPE $1 }
 
-type_path:
-  | option(PATHSEP) separated_nonempty_list(PATHSEP,type_path_segment) 
-{ TYP_PATH $2 }
+impl_trait_type:
+  | IMPL type_param_bounds { IMPL_TRAIT_TYPE $2 }
+(*Bare Function Type*)
+bare_function_type:
+  | option(for_lifetimes) function_type_qualifiers FN LPAREN
+  option(function_parameters_maybe_named_variadic) RPAREN option(bare_function_return_type)
+  { BARE_FUNC_TYPE ($1, $2, $5, $7)}
 
-type_path_segment:
-  | path_ident_segment { TYPE_PATH_SEGMENT ($1, None) }
+function_type_qualifiers:
+    | is_unsafe { FUNC_TYPE_QUALIFIERS $1 }
+    | is_unsafe EXTERN option(abi) { FUNC_TYPE_QUALIFIERS_EXTERN ($1, $3) }
 
-path_ident_segment:
-  | id = ident {PATH_IDENT_SEGMENT_IDENT id  }
-  | SUPER { PATH_IDENT_SEGMENT_SUPER }
-  | SELFVALUE { PATH_IDENT_SEGMENT_SELF }
-  | SELFTYPE { PATH_IDENT_SEGMENT_self }
-  | CRATE { PATH_IDENT_SEGMENT_CRATE }
-  | DOLLAR_CRATE {PATH_IDENT_SEGMENT_SCRATE }
+bare_function_return_type:
+    | RARROW type_no_bounds { BARE_RETURN_TYPE $2 }
 
+function_parameters_maybe_named_variadic:
+    | maybe_named_function_parameters  { FN_PARAMS_NORMAL $1 }
+    | maybe_named_function_parameters_variadic { FN_PARAMS_VARIADIC $1 }
+
+maybe_named_function_parameters:
+    |  separated_or_terminated_list(COMMA, maybe_named_param)
+      { MAYBE_NAMED_FN_PARAMS $1 }
+
+maybe_named_param:
+    | outer_attrs ident COLON typ { MAYBE_NAMED_PARAM_ID ($1, fst $2, $4) }
+    | outer_attrs UNDERSCORE COLON typ { MAYBE_NAMED_PARAM_UNDERSCORE ($1, $4) }
+    | outer_attrs typ { MAYBE_NAMED_PARAM ($1, $2) }
+
+maybe_named_function_parameters_variadic:
+  | nonempty_list(terminated(maybe_named_param, COMMA)) outer_attrs DOTDOTDOT 
+      { FN_PARAMS_VAR ($1, $2) }
+
+trait_object_type:
+    | is_dyn type_param_bounds { TRAIT_OBJECT_TYPE_PARAM ($1, $2) }
+
+is_dyn:
+  | DYN { true }
+  |     { false }
+
+(*Bare Function Type*)
+raw_pointer_type:
+  | STAR MUT type_no_bounds               { MUT_RAW_POINTER $3 }
+  | STAR CONST type_no_bounds             { CONST_RAW_POINTER $3 }
+
+reference_type:
+  | AND option(lifetime) is_mut type_no_bounds { REFER_TYP (Option.map fst $2, $3, $4)}
+
+impl_trait_type_one_bound:
+    IMPL trait_bound                     { $2 }
+
+tuple_type:
+  | LPAREN separated_or_terminated_list(COMMA, typ) RPAREN { TUPLE_TYPE_ $2 }
+
+type_list:
+    typ                                { [$1] }
+  | typ COMMA type_list                { $1 :: $3 }
+(*Type*)
 (*Helpers*)
 is_const:
   | CONST { true }
@@ -762,11 +807,7 @@ use_tree:
 
 
 use_trees:
-  | use_tree_list option(COMMA) { Stdlib.List.rev $1 }
-
-use_tree_list:
-  | use_tree { [$1] }
-  | use_tree_list COMMA use_tree { $3 :: $1 }
+  | nonempty_separated_or_terminated_list(COMMA, use_tree) { $1 }
 
 as_id_or_underscore:
   | AS id = ident { Some (Cabs.ID_OPT (fst id)) }
@@ -798,19 +839,22 @@ path_in_expression:
 path_expr_segment:
   | path_ident_segment option(path_genarg) { PATH_EXPR_SEGMENT ($1, $2) }
 
-path_genarg:
+path_ident_segment:
+  | ident { PATH_IDENT_SEGMENT_IDENT (fst $1) }
+  | SUPER { PATH_IDENT_SEGMENT_SUPER }
+    | SELFVALUE  { PATH_IDENT_SEGMENT_SELF }
+  | SELFTYPE { PATH_IDENT_SEGMENT_self }
+  | CRATE  {PATH_IDENT_SEGMENT_CRATE }
+  | DOLLAR_CRATE {PATH_IDENT_SEGMENT_SCRATE}
+
+path_genarg:      
   | PATHSEP generic_args { $2 }
 
-generic_args:
-  | LT GT { EMPTY_GENERIC_ARGS }
-  | LT generic_arg_list option(COMMA) GT { Stdlib.List.rev $2 }
-
-generic_arg_list:
-  | generic_arg { [$1] }
-  | generic_args COMMA generic_arg { $3 :: $1 }
+generic_args:      
+  | LT separated_or_terminated_list(COMMA, generic_arg) GT { GENERIC_ARGS $2 }
 
 generic_arg:
-  | lifetime              { GENERIC_ARG_LIFETIME $1 }
+  | lifetime              { GENERIC_ARG_LIFETIME (fst $1) }
   | typ                   {  GENERIC_ARG_TYPE $1 }
   | generic_args_const     { GENERIC_ARG_CONST $1 }
   | generic_args_binding   { GENERIC_ARGS_BINDING $1 }
@@ -819,14 +863,14 @@ generic_arg:
 generic_args_const:
   | block_expression             { GENERIC_ARGS_CONST_BLOCK $1 }
   | literal_expression           { GENERIC_ARGS_CONST_LIT $1 }
-  | MINUS literal_expression     { NEG_GENERIC_ARGS_CONST_LIT $1 }
+  | MINUS literal_expression     { NEG_GENERIC_ARGS_CONST_LIT $2 }
   | simple_path_segment          { GENERIC_ARGS_CONST_SIMPLE_PATH_SEG $1 }
 
 generic_args_bounds:
-  | ident option(generic_args) EQ type_param_bounds { GENERIC_ARGS_BOUNDS_ ($1, $2, $4) }
+  | ident option(generic_args) EQ type_param_bounds { GENERIC_ARGS_BOUNDS_ (fst $1, $2, $4) }
 
 generic_args_binding:
-  | ident option(generic_args) EQ typ { GENERIC_ARGS_BINDING_ ($1, $2, $4) }
+  | ident option(generic_args) EQ typ { GENERIC_ARGS_BINDING_ (fst $1, $2, $4) }
 
 qualified_path_in_expression:
   | qualified_path_type separated_nonempty_list(PATHSEP, path_expr_segment) 
@@ -841,6 +885,27 @@ as_typath:
 qualified_path_in_type:
   | qualified_path_type separated_nonempty_list(PATHSEP, type_path_segment) 
   { QUALIFIED_PATH_IN_TYPE ($1, $2) }
+
+type_path:  
+  | option(PATHSEP) segments = separated_nonempty_list(PATHSEP, type_path_segment)
+      { Cabs.TYP_PATH segments }
+
+type_path_segment:
+  | path_ident_segment option(path_gen_path_fn) { TYPE_PATH_SEGMENT ($1, $2) }
+
+path_gen_path_fn:
+  | option(PATHSEP) generic_args { GENARGS_OPT $2 }
+  | option(PATHSEP) type_path_fn { TYPE_PATH_FN_OPT $2 }
+
+type_path_fn:
+  | LPAREN option(type_path_fn_inputs) RPAREN option(rarrow_no_bounds) { TYPE_PATH_FN ($2, $4) }
+
+rarrow_no_bounds:
+  | RARROW type_no_bounds { $2 }
+
+type_path_fn_inputs:
+  | nonempty_separated_or_terminated_list(COMMA, typ) { TYPE_PATH_FN_INPUTS $1}
+
 (*Paths*)
 
 (*Extern crate*)
