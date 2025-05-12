@@ -52,7 +52,7 @@ with grouped_expression :=
       (* Grouped Expressions *)
       (* Array and Index Expression*)
 with array_expression :=
-  | ARRAY_EXPRESSION_ : list array_elements -> array_expression
+  | ARRAY_EXPRESSION_ : array_elements -> array_expression
 
 with array_elements :=
   | ARRAY_ElEMENT : list expression -> array_elements
@@ -113,7 +113,7 @@ with call_params :=
       (*  Call Expressions *)
       (*  Method Expressions *)
 with method_call_expression :=
-  | METHOD_CALL_EXPRESSION_ : expression -> path_expr_segment -> option call_params -> method_call_expression
+  | METHOD_CALL_EXPRESSION_ : expression -> path_expr_segment -> call_params -> method_call_expression
       (*  Method Expressions *)
       (*  Field Expressions *)
 with field_expression :=
@@ -687,15 +687,19 @@ with generic_param :=
 with lifetime_param :=
   | LIFETIME_PARAM :
       lifetime ->
+      lifetime_param
+  | LIFETIME_PARAM_BOUND :
+      lifetime ->
       option lifetime_bounds ->
       lifetime_param
 
 with type_param :=
   | TYPE_PARAM :
       identifier ->
-      type_param_bounds ->
       option type_ ->              (* default value, if any *)
       type_param
+  | TYPE_PARAM_BOUND :
+      identifier -> option type_param_bounds -> option type_ -> type_param
 
 with const_param :=
   | CONST_PARAM :

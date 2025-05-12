@@ -229,10 +229,10 @@ expr_list:
 (*Call Expression*)
 
 call_expression:
-  | expression LPAREN option(call_params) RPAREN { CALL_EXPRESSION_ ($1, $3) }
+  | expression LPAREN call_params RPAREN { CALL_EXPRESSION_ ($1, $3) }
 
 call_params:
-  | separated_list(COMMA, expression)                              { $1 }
+  | separated_list(COMMA, expression)   { CALL_PARAMS $1 }
 
 method_call_expression:
   | expression DOT path_expr_segment LPAREN call_params RPAREN 
@@ -313,7 +313,7 @@ label_block_expression:
   | block_expression { LABEL_BLOCK_EXPRESSION $1 }
 
 break_expression:
-  | BREAK option(LIFETIME_OR_LABEL) option(expression) { BREAK_EXPRESSION_ ($2, $3) }
+  | BREAK option(LIFETIME_OR_LABEL) option(expression) { BREAK_EXPRESSION_ (Option.map fst $2, $3) }
 
 continue_expression:
   | CONTINUE option(LIFETIME_OR_LABEL) { CONTINUE_EXPRESSION_ (Option.map fst $2) }
@@ -434,19 +434,18 @@ generic_param:
   | outer_attrs const_param {GP_CONST ($1, $2)}
 
 lifetime_param:
-  | lifetime option(col_life_bounds) {LIFETIME_PARAM(fst $1, $2)}
+  | lifetime { LIFETIME_PARAM (fst $1)}
+  | lifetime COLON option(lifetime_bounds) { LIFETIME_PARAM_BOUND (fst $1, $3) }
 
 col_life_bounds:
   | COLON lifetime_bounds { $2 }
 
 type_param:
-  | ident option(col_param_bounds) option(eq_typ) {TYPE_PARAM (fst $1, $2, $3) }
+  | ident option(eq_typ) {TYPE_PARAM (fst $1, $2) }
+  | ident option(type_param_bounds) option(eq_typ) { TYPE_PARAM_BOUND (fst $1, $2, $3) }
 
 eq_typ:
   | EQ typ {$2}
-
-col_param_bounds:
-  | COLON option(type_param_bounds) { $2 }
 
 const_param:
   | CONST ident COLON typ option(const_param_body) { CONST_PARAM (fst $2, $4, $5)}
@@ -532,8 +531,8 @@ function_qualifiers:
     { FUNCTION_QUALIFIERS_EXTERN (const, async, unsafe, opt)}
 
 abi:
-  | RAW_STRING_LIT { ABI_STRING $1 }
-  | STRING_LIT { ABI_STRING $1 }
+  | RAW_STRING_LIT { ABI_STRING (fst $1) }
+  | STRING_LIT { ABI_STRING (fst $1) }
 
 function_params:
   | self_param option(COMMA) { FN_PARAMS_SELF $1 }
