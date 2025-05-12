@@ -39,9 +39,7 @@
 %type <Cabs.as_clause option> as_clause
 %type <Cabs.module_> unsafe_module safe_module
 %type <(Cabs.identifier * Cabs.loc)> ident
-%type <Cabs.outer_attribute list> outer_attrs
 %type <Cabs.outer_attribute> outer_attr
-%type <Cabs.inner_attribute list> inner_attrs
 %type <Cabs.inner_attribute> inner_attr
 %type <Cabs.attr> attr 
 %type <Cabs.simple_path> simple_path
@@ -73,7 +71,7 @@ items:
   | i = item rest = items { i :: rest }
 
 item:
-  | attrs = outer_attrs v = vis_item { Cabs.VISITEM (attrs, v) }
+  | attrs = list(outer_attr) v = vis_item { Cabs.VISITEM (attrs, v) }
 
 vis_item:
   | m = unsafe_module { Cabs.MODULE m }
@@ -87,7 +85,7 @@ statement:
   | expression_statement  {STATEMENT_EXPRESSION_ $1 }
 
 let_statement:
-  | outer_attrs LET pattern_no_top_alt COLON typ option(let_expr) SEMI 
+  | list(outer_attr) LET pattern_no_top_alt COLON typ option(let_expr) SEMI 
   { LET_STATEMENT ($1, $3, Some $5 , $6) }
 
 let_expr:
@@ -103,8 +101,11 @@ expression_statement:
 (*statement*)
 (*Expression*)
 expression:
-  | outer_attrs exprs_without_block {EXPRESSION_WITHOUT_BLOCK ($1, $2) }
-  | outer_attrs exprs_with_block {EXPRESSION_WITH_BLOCK ($1, $2) }
+  | nonempty_list(outer_attr) exprs_without_block {EXPRESSION_WITHOUT_BLOCK ($1, $2) }
+  | exprs_without_block {EXPRESSION_WITHOUT_BLOCK ([], $1) }
+
+  | nonempty_list(outer_attr) exprs_with_block {EXPRESSION_WITH_BLOCK ($1, $2) }
+  | exprs_with_block {EXPRESSION_WITH_BLOCK ([], $1) }
 
 exprs_without_block:
   | literal_expression { LITERAL_EXPRESSION $1 }
@@ -217,7 +218,7 @@ struct_expr_fields:
   | separated_or_terminated_list(COMMA, struct_expr_field) {STRUCT_EXPR_FIELDS $1 }
 
 struct_expr_field:
-  | outer_attrs ident COLON expression { STRUCT_EXPR_FIELD $1 }
+  | list(outer_attr) ident COLON expression { STRUCT_EXPR_FIELD $1 }
 
 struct_base:
   | DOTDOT expression                  { STRUCT_BASE $2 }
@@ -260,7 +261,7 @@ closure_params:
   | nonempty_separated_or_terminated_list(COMMA, closure_param) { CLOSURE_PARAMS $1 }
 
 closure_param:
-  | outer_attrs pattern_no_top_alt option(typ_opt) { CLOSURE_PARAM ($1, $2, $3)}
+  | list(outer_attr) pattern_no_top_alt option(typ_opt) { CLOSURE_PARAM ($1, $2, $3)}
 
 typ_opt:
   | COLON typ { $2 }
@@ -275,7 +276,7 @@ unsafe_block_expression:
   | UNSAFE block_expression { UNSAFE_BLOCK_EXPRESSION_ $2 }
 
 block_expression:
-  | LBRACE inner_attrs option(statements) RBRACE {BLOCK_EXPRESSION_ ($2, $3) }
+  | LBRACE list(inner_attr) option(statements) RBRACE {BLOCK_EXPRESSION_ ($2, $3) }
   
 statements:
   | list(statement) { STATEMENTS $1 }
@@ -346,7 +347,7 @@ if_let_expression:
 (*If_let Expression*)
 (*Match Expression*)
 match_expression:
-  | MATCH scrutinee LBRACE inner_attrs option(match_arms) RBRACE 
+  | MATCH scrutinee LBRACE list(inner_attr) option(match_arms) RBRACE 
   { MATCH_EXPRESSION_ ($2, $4, $5)}
   
 scrutinee:
@@ -364,7 +365,7 @@ block_or_not:
   | exprs_with_block option(COMMA) { YES_BLOCK $1 }
 
 match_arm:
-  | outer_attrs pattern option(match_arm_guard) { MATCH_ARM ($1, $2, $3) }
+  | list(outer_attr) pattern option(match_arm_guard) { MATCH_ARM ($1, $2, $3) }
 
 match_arm_guard:
     | IF expression { MATCH_ARM_GUARD ($2) }
@@ -429,9 +430,9 @@ generic_params:
   | LT separated_nonempty_list(COMMA, generic_param) GT { GENERIC_PARAMS $2 }
 
 generic_param:
-  | outer_attrs lifetime_param {GP_LIFETIME ($1, $2)}
-  | outer_attrs type_param {GP_TYPE ($1, $2)}
-  | outer_attrs const_param {GP_CONST ($1, $2)}
+  | list(outer_attr) lifetime_param {GP_LIFETIME ($1, $2)}
+  | list(outer_attr) type_param {GP_TYPE ($1, $2)}
+  | list(outer_attr) const_param {GP_CONST ($1, $2)}
 
 lifetime_param:
   | lifetime { LIFETIME_PARAM (fst $1)}
@@ -540,8 +541,8 @@ function_params:
       { FN_PARAMS_FULL ($1, $2) }
 
 self_param:
-  | outer_attrs shorthand_self { SELF_SHORT ($1, $2)}
-  | outer_attrs typed_self { SELF_TYPED ($1, $2)}
+  | list(outer_attr) shorthand_self { SELF_SHORT ($1, $2)}
+  | list(outer_attr) typed_self { SELF_TYPED ($1, $2)}
 
 shorthand_self:
   | AND is_mut SELFVALUE { SELF_SHORTHAND_REF $2 }
@@ -552,9 +553,9 @@ typed_self:
   | is_mut SELFVALUE COLON typ { TYPED_SELF ($1, $4)}
 
 function_param:
-  | outer_attrs DOTDOTDOT { FN_PARAM_DOTS $1 }
-  | outer_attrs function_param_pattern { FN_PARAM_PATTERN ($1, $2) }
-  | outer_attrs typ { FN_PARAM_TYPE ($1, $2) }
+  | list(outer_attr) DOTDOTDOT { FN_PARAM_DOTS $1 }
+  | list(outer_attr) function_param_pattern { FN_PARAM_PATTERN ($1, $2) }
+  | list(outer_attr) typ { FN_PARAM_TYPE ($1, $2) }
 
 function_param_pattern:
   | pattern_no_top_alt COLON typ { FN_PARAM_PAT ($1, $2) }
@@ -659,7 +660,7 @@ struct_pattern_fields:
   | separated_nonempty_list(COMMA, struct_pattern_field) { STRUCT_PATTERN_FIELDS $1 }
 
 struct_pattern_field:
-  | outer_attrs struct_pattern_field_body { STRUCT_PATTERN_FIELD ($1, $2)}
+  | list(outer_attr) struct_pattern_field_body { STRUCT_PATTERN_FIELD ($1, $2)}
 
 struct_pattern_field_body:
   | INT_LIT COLON pattern { TUPLE_PAT (fst $1, $3) }
@@ -667,7 +668,7 @@ struct_pattern_field_body:
   | is_ref is_mut ident { Cabs.ID ($1, $2, fst $3)}
 
 struct_pattern_etcetara:
-  | outer_attrs DOTDOT { STRUCT_PATTERN_ETCETERA $1 }
+  | list(outer_attr) DOTDOT { STRUCT_PATTERN_ETCETERA $1 }
 
 tuple_struct_pattern:
   | path_in_expression LPAREN tuple_struct_items RPAREN 
@@ -734,12 +735,12 @@ maybe_named_function_parameters:
       { MAYBE_NAMED_FN_PARAMS $1 }
 
 maybe_named_param:
-    | outer_attrs ident COLON typ { MAYBE_NAMED_PARAM_ID ($1, fst $2, $4) }
-    | outer_attrs UNDERSCORE COLON typ { MAYBE_NAMED_PARAM_UNDERSCORE ($1, $4) }
-    | outer_attrs typ { MAYBE_NAMED_PARAM ($1, $2) }
+    | list(outer_attr) ident COLON typ { MAYBE_NAMED_PARAM_ID ($1, fst $2, $4) }
+    | list(outer_attr) UNDERSCORE COLON typ { MAYBE_NAMED_PARAM_UNDERSCORE ($1, $4) }
+    | list(outer_attr) typ { MAYBE_NAMED_PARAM ($1, $2) }
 
 maybe_named_function_parameters_variadic:
-  | nonempty_list(terminated(maybe_named_param, COMMA)) outer_attrs DOTDOTDOT 
+  | nonempty_list(terminated(maybe_named_param, COMMA)) list(outer_attr) DOTDOTDOT 
       { FN_PARAMS_VAR ($1, $2) }
 
 trait_object_type:
@@ -926,13 +927,13 @@ unsafe_module:
   | sm = safe_module { sm }
   | UNSAFE MOD name = ident SEMI
     { MOD_BLOCK (true, (fst name)) }
-  | UNSAFE MOD name = ident LBRACE attrs = inner_attrs content = items RBRACE
+  | UNSAFE MOD name = ident LBRACE attrs = list(inner_attr) content = items RBRACE
     { MOD_DEC (true, (fst name), Stdlib.List.rev (attrs), content) }
 
 safe_module:
   | MOD name = ident SEMI
     { MOD_BLOCK (false, (fst name)) }
-  | MOD name = ident LBRACE attrs = inner_attrs content = items RBRACE
+  | MOD name = ident LBRACE attrs = list(inner_attr) content = items RBRACE
     { MOD_DEC (false, (fst name), Stdlib.List.rev (attrs), content) }
 
 (*Modules*)
@@ -941,20 +942,11 @@ ident:
   | id = IDENT { (IDENT (fst id), snd id) }
   | raw = RAW_IDENT { (RAW_IDENT (fst raw), snd raw) }
 
-(* ATTRIBUTE *)
-outer_attrs:
-  | /* empty */ { [] }
-  | POUND a = outer_attr rest = outer_attrs { a :: rest }
-
 outer_attr:
-  | LBRACK a = attr RBRACK { OUTER_ATTRIBUTE a }
-
-inner_attrs:
-  | /* empty */ { [] }
-  | rest = inner_attrs POUND a = inner_attr { a :: rest }
+  | POUND LBRACK a = attr RBRACK { OUTER_ATTRIBUTE a }
 
 inner_attr:
-  | NOT LBRACK a = attr RBRACK { INNER_ATTRIBUTE a }
+  | POUND NOT LBRACK a = attr RBRACK { INNER_ATTRIBUTE a }
 
 attr:
   | path = simple_path input = maybe_attr_input { SAFE_ATTR (path, input) }
