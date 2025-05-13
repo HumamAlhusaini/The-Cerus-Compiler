@@ -199,16 +199,16 @@ index_expression:
   | expression LBRACK expression RBRACK      { INDEX_EXPRESSION_ ($1, $3) }
 (*Struct Expression*)
 struct_expression:
-  | path_in_expression LBRACE struct_expr_field_or_struct_base_opt RBRACE
-      { STRUCT_EXPRESSION_STRUCT ($1, $3) }
-  | path_in_expression LPAREN option(expr_list) RPAREN
-      { STRUCT_EXPRESSION_TUPLE ($1, $3) }
   | path_in_expression                       { STRUCT_EXPRESSION_UNIT $1 }
+  | path_in_expression LBRACE struct_expr_fields RBRACE
+      { STRUCT_EXPRESSION_FIELD ($1, $3) }
+  | path_in_expression LBRACE DOTDOT expression RBRACE
+      { STRUCT_EXPRESSION_EXPR ($1, $4) }
+  | path_in_expression LBRACE RBRACE
+      { STRUCT_EXPRESSION_EMP $1 }
+  | path_in_expression LPAREN expr_list RPAREN
+      { STRUCT_EXPRESSION_TUPLE ($1, $3) }
 
-struct_expr_field_or_struct_base_opt:
-  | struct_expr_fields                       { Some (STRUCT_EXPR_FIELD_OPT $1) }
-  | DOTDOT expression                        { Some (STRUCT_BASE_OPT (STRUCT_BASE $2)) }
-  |                                          { None }
 
 struct_expr_fields:
   | separated_list(COMMA, struct_expr_field) COMMA struct_base { STRUCT_EXPR_FIELDS_BASE ($1, $3)}
@@ -221,7 +221,7 @@ struct_base:
   | DOTDOT expression                  { STRUCT_BASE $2 }
 
 expr_list:
-  | separated_nonempty_list(COMMA, expression)   { EXPR_LIST $1 }
+  | separated_list(COMMA, expression)   { EXPR_LIST $1 }
 
 (*Struct Expression*)
 (*Call Expression*)
@@ -889,11 +889,9 @@ type_path:
       { Cabs.TYP_PATH segments }
 
 type_path_segment:
-  | path_ident_segment option(path_gen_path_fn) { TYPE_PATH_SEGMENT ($1, $2) }
-
-path_gen_path_fn:
-  | option(PATHSEP) generic_args { GENARGS_OPT $2 }
-  | option(PATHSEP) type_path_fn { TYPE_PATH_FN_OPT $2 }
+  | path_ident_segment option(PATHSEP) generic_args { TYPE_PATH_SEGMENT_GEN_ARGS ($1, $3) }
+  | path_ident_segment option(PATHSEP) type_path_fn { TYPE_PATH_SEGMENT_PATH_FN ($1, $3) }
+  | path_ident_segment { TYPE_PATH_SEGMENT $1 }
 
 type_path_fn:
   | LPAREN option(type_path_fn_inputs) RPAREN option(rarrow_no_bounds) { TYPE_PATH_FN ($2, $4) }

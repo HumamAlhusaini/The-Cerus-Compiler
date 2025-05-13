@@ -74,8 +74,10 @@ with tuple_indexing_expression :=
       (*Tuple and Tuple Indexing Expressions*)
       (*  Struct Expressions *)
 with struct_expression :=
-  | STRUCT_EXPRESSION_STRUCT : path_in_expression -> option struct_expr_field_or_struct_base -> struct_expression
-  | STRUCT_EXPRESSION_TUPLE :  path_in_expression -> option expr_list -> struct_expression
+  | STRUCT_EXPRESSION_FIELD : path_in_expression -> struct_expr_fields -> struct_expression
+  | STRUCT_EXPRESSION_EXPR : path_in_expression -> expression -> struct_expression
+  | STRUCT_EXPRESSION_EMP : path_in_expression -> struct_expression
+  | STRUCT_EXPRESSION_TUPLE :  path_in_expression -> expr_list -> struct_expression
   | STRUCT_EXPRESSION_UNIT :  path_in_expression -> struct_expression
 
 with struct_expr_field_or_struct_base :=
@@ -445,11 +447,9 @@ with type_path :=
   | TYP_PATH : list type_path_segment -> type_path
 
 with type_path_segment :=
-  | TYPE_PATH_SEGMENT : path_ident_segment -> option genargs_or_type_path_fn -> type_path_segment
-
-with genargs_or_type_path_fn :=
-  | GENARGS_OPT : generic_args -> genargs_or_type_path_fn
-  | TYPE_PATH_FN_OPT : type_path_fn -> genargs_or_type_path_fn
+  | TYPE_PATH_SEGMENT : path_ident_segment -> type_path_segment
+  | TYPE_PATH_SEGMENT_GEN_ARGS : path_ident_segment -> generic_args -> type_path_segment
+  | TYPE_PATH_SEGMENT_PATH_FN : path_ident_segment -> type_path_fn -> type_path_segment
 
 with type_path_fn :=
   | TYPE_PATH_FN : option type_path_fn_inputs -> option type_no_bounds -> type_path_fn
