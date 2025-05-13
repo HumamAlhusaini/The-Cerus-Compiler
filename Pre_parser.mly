@@ -48,9 +48,6 @@
 %type <Cabs.attr_input option> maybe_attr_input
 %type <Cabs.expression> expression
 
-%nonassoc LOWER
-%nonassoc HIGHER
-%right PATHSEP
 
 %start<Cabs.item list> program
 %%
@@ -252,10 +249,6 @@ closure_expression:
 expr_or_typ_block:
   | expression { EXPR_OPT $1 }
   | RARROW type_no_bounds block_expression { TYPE_BLOCK_OPT ($2, $3) }
-
-is_move:
-  | MOVE { true }
-  | { false }
 
 closure_params:
   | nonempty_separated_or_terminated_list(COMMA, closure_param) { CLOSURE_PARAMS $1 }
@@ -494,7 +487,7 @@ lifetime:
   | STATIC_LIFETIME        { (LIFETIME_STATIC, $startpos) }
   | ELIDED_LIFETIME        { (LIFETIME_UNDERSCORE, $startpos) }
 
-question_or_for:
+%inline question_or_for:
   | QUESTION      { QUESTION }
   | for_lifetimes { FOR_LF $1 }
 
@@ -746,7 +739,7 @@ maybe_named_function_parameters_variadic:
 trait_object_type:
     | is_dyn type_param_bounds { TRAIT_OBJECT_TYPE_PARAM ($1, $2) }
 
-is_dyn:
+%inline is_dyn:
   | DYN { true }
   |     { false }
 
@@ -769,24 +762,29 @@ type_list:
   | typ COMMA type_list                { $1 :: $3 }
 (*Type*)
 (*Helpers*)
-is_const:
+
+%inline is_move:
+  | MOVE { true }
+  | { false }
+
+%inline is_const:
   | CONST { true }
   | { false }
 
-is_async:
+%inline is_async:
   | ASYNC { true }
   | { false }
 
-is_unsafe:
+%inline is_unsafe:
   | UNSAFE { true }
   | SAFE { false }
   | { false }
 
-is_mut:
+%inline is_mut:
   | MUT { true }
   | { false }
 
-is_ref:
+%inline is_ref:
   | REF { true }
   | { false }
 
