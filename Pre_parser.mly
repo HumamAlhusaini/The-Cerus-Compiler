@@ -625,7 +625,7 @@ literal_pattern:
   | neg INT_LIT { Cabs.INTEGER_PATTERN ($1, fst $2) }
   | neg FLOAT_LIT { Cabs.FLOAT_PATTERN ($1, fst $2) }
 
-neg:
+%inline neg:
   | MINUS { true }
   | { false }
 
