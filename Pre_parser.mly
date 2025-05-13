@@ -199,20 +199,16 @@ index_expression:
   | expression LBRACK expression RBRACK      { INDEX_EXPRESSION_ ($1, $3) }
 (*Struct Expression*)
 struct_expression:
-  | path_in_expression                       { STRUCT_EXPRESSION_UNIT $1 }
-  | path_in_expression LBRACE struct_expr_fields RBRACE
-      { STRUCT_EXPRESSION_FIELD ($1, $3) }
-  | path_in_expression LBRACE DOTDOT expression RBRACE
-      { STRUCT_EXPRESSION_EXPR ($1, $4) }
-  | path_in_expression LBRACE RBRACE
-      { STRUCT_EXPRESSION_EMP $1 }
-  | path_in_expression LPAREN expr_list RPAREN
-      { STRUCT_EXPRESSION_TUPLE ($1, $3) }
+  | path_in_expression struct_expr_body     { STRUCT_EXPRESSION_ ($1, $2) }
 
+struct_expr_body:
+  | LBRACE struct_expr_fields RBRACE { STRUCT_EXPRESSION_FIELDS $2 }
+  | LBRACE DOTDOT expression RBRACE { STRUCT_EXPRESSION_EXPR $3 }
+  | LPAREN expr_list RPAREN { STRUCT_EXPRESSION_TUPLE $2 }
 
 struct_expr_fields:
   | separated_list(COMMA, struct_expr_field) COMMA struct_base { STRUCT_EXPR_FIELDS_BASE ($1, $3)}
-  | separated_or_terminated_list(COMMA, struct_expr_field) {STRUCT_EXPR_FIELDS $1 }
+  | nonempty_separated_or_terminated_list(COMMA, struct_expr_field) {STRUCT_EXPR_FIELDS $1 }
 
 struct_expr_field:
   | list(outer_attr) ident COLON expression { STRUCT_EXPR_FIELD $1 }

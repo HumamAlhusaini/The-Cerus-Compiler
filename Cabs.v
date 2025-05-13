@@ -74,15 +74,13 @@ with tuple_indexing_expression :=
       (*Tuple and Tuple Indexing Expressions*)
       (*  Struct Expressions *)
 with struct_expression :=
-  | STRUCT_EXPRESSION_FIELD : path_in_expression -> struct_expr_fields -> struct_expression
-  | STRUCT_EXPRESSION_EXPR : path_in_expression -> expression -> struct_expression
-  | STRUCT_EXPRESSION_EMP : path_in_expression -> struct_expression
-  | STRUCT_EXPRESSION_TUPLE :  path_in_expression -> expr_list -> struct_expression
-  | STRUCT_EXPRESSION_UNIT :  path_in_expression -> struct_expression
+  | STRUCT_EXPRESSION_ : path_in_expression -> struct_expr_body -> struct_expression
 
-with struct_expr_field_or_struct_base :=
-  | STRUCT_EXPR_FIELD_OPT : struct_expr_fields -> struct_expr_field_or_struct_base
-  | STRUCT_BASE_OPT : struct_base -> struct_expr_field_or_struct_base
+with struct_expr_body :=
+  | STRUCT_EXPRESSION_FIELDS : struct_expr_fields -> struct_expr_body
+  | STRUCT_EXPRESSION_EXPR : expression -> struct_expr_body
+  | STRUCT_EXPRESSION_TUPLE : expr_list -> struct_expr_body
+  | STRUCT_EXPRESSION_UNIT : struct_expr_body
 
 with struct_expr_fields :=
   | STRUCT_EXPR_FIELDS_BASE : list struct_expr_field -> struct_base -> struct_expr_fields
