@@ -468,8 +468,13 @@ with type_param_bound :=
   | TYPE_PARAM_BOUND_USE_BOUND : use_bound -> type_param_bound
 
 with trait_bound :=
-  | ENCASED_TRAIT_BOUND : option question_or_for -> type_path -> trait_bound 
-  | TRAIT_BOUND : option question_or_for -> type_path -> trait_bound
+  | ENCASED_TRAIT_BOUND : trait_bound_body -> trait_bound 
+  | TRAIT_BOUND : trait_bound_body -> trait_bound
+
+with trait_bound_body :=
+  | QUESTION_BODY : type_path -> trait_bound_body
+  | FOR_BODY : for_lifetimes -> type_path -> trait_bound_body
+  | EMPTY_BODY : type_path -> trait_bound_body
 
 with lifetime_bounds := 
   | LIFETIME_BOUNDS : list lifetime -> lifetime_bounds
@@ -490,10 +495,6 @@ with use_bound_generic_arg :=
   | USE_BOUND_GENERIC_ARG_LIFETIME : lifetime -> use_bound_generic_arg
   | USE_BOUND_GENERIC_ARG_IDENT : identifier -> use_bound_generic_arg
   | USE_BOUND_GENERIC_ARG_SELF
-
-with question_or_for :=
-  | QUESTION 
-  | FOR_LF : for_lifetimes -> question_or_for
 
 with for_lifetimes :=
   | FOR_LIFETIMES : generic_params -> for_lifetimes

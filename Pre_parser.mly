@@ -474,9 +474,13 @@ type_param_bound:
   | use_bound { TYPE_PARAM_BOUND_USE_BOUND $1 }
 
 trait_bound:
-  | option (question_or_for) type_path { TRAIT_BOUND ($1, $2)}
-  | LPAREN option (question_or_for) type_path RPAREN 
-  { ENCASED_TRAIT_BOUND ($2, $3) }
+  | trait_bound_body { TRAIT_BOUND $1 }
+  | LPAREN trait_bound_body RPAREN { ENCASED_TRAIT_BOUND $2 }
+
+trait_bound_body:
+  | for_lifetimes type_path { FOR_BODY ($1, $2) }
+  | QUESTION type_path { QUESTION_BODY $2 }
+  | type_path { EMPTY_BODY $1 }
 
 lifetime_bounds:
   | separated_or_terminated_list(PLUS, lifetime) 
@@ -486,10 +490,6 @@ lifetime:
   | LIFETIME_OR_LABEL       { (LIFETIME (fst $1), $startpos) }
   | STATIC_LIFETIME        { (LIFETIME_STATIC, $startpos) }
   | ELIDED_LIFETIME        { (LIFETIME_UNDERSCORE, $startpos) }
-
-%inline question_or_for:
-  | QUESTION      { QUESTION }
-  | for_lifetimes { FOR_LF $1 }
 
 for_lifetimes:
   | FOR generic_params { FOR_LIFETIMES $2 }
