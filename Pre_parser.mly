@@ -431,11 +431,13 @@ col_life_bounds:
   | COLON lifetime_bounds { $2 }
 
 type_param:
-  | ident option(eq_typ) {TYPE_PARAM (fst $1, $2) }
-  | ident option(type_param_bounds) option(eq_typ) { TYPE_PARAM_BOUND (fst $1, $2, $3) }
+  | ident eq_typ {TYPE_PARAM (fst $1, $2) }
 
-eq_typ:
-  | EQ typ {$2}
+%inline eq_typ:
+  | EQ typ { TYPE_PARAM_EQ_TYP $2}
+  | COLON type_param_bounds { TYPE_PARAM_BODY_BOUND $2 }
+  | COLON type_param_bounds EQ typ { TYPE_PARAM_BOTH ($2, $4) }
+  | { TYPE_PARAM_EMP }
 
 const_param:
   | CONST ident COLON typ option(const_param_body) { CONST_PARAM (fst $2, $4, $5)}

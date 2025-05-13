@@ -696,12 +696,14 @@ with lifetime_param :=
       lifetime_param
 
 with type_param :=
-  | TYPE_PARAM :
-      identifier ->
-      option type_ ->              (* default value, if any *)
-      type_param
-  | TYPE_PARAM_BOUND :
-      identifier -> option type_param_bounds -> option type_ -> type_param
+  | TYPE_PARAM : identifier -> type_param_body -> type_param
+
+with type_param_body :=
+  | TYPE_PARAM_EQ_TYP : type_ -> type_param_body
+  | TYPE_PARAM_BODY_BOUND :  type_param_bounds -> type_param_body
+  | TYPE_PARAM_BOTH : type_param_bounds -> type_ -> type_param_body
+  | TYPE_PARAM_EMP : type_param_body
+
 
 with const_param :=
   | CONST_PARAM :
