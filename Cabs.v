@@ -445,9 +445,12 @@ with type_path :=
   | TYP_PATH : list type_path_segment -> type_path
 
 with type_path_segment :=
-  | TYPE_PATH_SEGMENT : path_ident_segment -> type_path_segment
-  | TYPE_PATH_SEGMENT_GEN_ARGS : path_ident_segment -> generic_args -> type_path_segment
-  | TYPE_PATH_SEGMENT_PATH_FN : path_ident_segment -> type_path_fn -> type_path_segment
+  | TYPE_PATH_SEGMENT : path_ident_segment -> type_path_seg_body -> type_path_segment
+
+with type_path_seg_body :=
+  | SEG_BODY_GEN_ARGS : generic_args -> type_path_seg_body
+  | SEG_BODY_PATH_FN : type_path_fn -> type_path_seg_body
+  | SEG_BODY_EMPTY : type_path_seg_body
 
 with type_path_fn :=
   | TYPE_PATH_FN : option type_path_fn_inputs -> option type_no_bounds -> type_path_fn

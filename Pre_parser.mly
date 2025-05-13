@@ -885,9 +885,14 @@ type_path:
       { Cabs.TYP_PATH segments }
 
 type_path_segment:
-  | path_ident_segment option(PATHSEP) generic_args { TYPE_PATH_SEGMENT_GEN_ARGS ($1, $3) }
-  | path_ident_segment option(PATHSEP) type_path_fn { TYPE_PATH_SEGMENT_PATH_FN ($1, $3) }
-  | path_ident_segment { TYPE_PATH_SEGMENT $1 }
+  | path_ident_segment type_path_seg_body { TYPE_PATH_SEGMENT ($1, $2) }
+
+type_path_seg_body:
+  | PATHSEP generic_args { SEG_BODY_GEN_ARGS $2 }
+  | generic_args { SEG_BODY_GEN_ARGS $1 }
+  | PATHSEP type_path_fn { SEG_BODY_PATH_FN $2 }
+  | type_path_fn { SEG_BODY_PATH_FN $1 }
+  | { SEG_BODY_EMPTY }
 
 type_path_fn:
   | LPAREN option(type_path_fn_inputs) RPAREN option(rarrow_no_bounds) { TYPE_PATH_FN ($2, $4) }
